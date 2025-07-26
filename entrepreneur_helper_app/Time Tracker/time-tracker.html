@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Time Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Time Tracker</h1>
+
+    <div class="time-tracker-form">
+      <input type="text" id="taskName" placeholder="Task or Client Name" />
+      <select id="taskCategory">
+        <option value="">Select Category</option>
+        <option value="Billable">Billable</option>
+        <option value="Non-Billable">Non-Billable</option>
+      </select>
+      <button onclick="startTimer()">Start</button>
+      <button onclick="stopTimer()">Stop</button>
+      <div id="currentTimer">00:00:00</div>
+    </div>
+
+    <div class="tracked-time">
+      <h2>Logged Time</h2>
+      <ul id="timeLogs"></ul>
+    </div>
+  </div>
+
+  <script>
+    let timerInterval;
+    let startTime;
+    let elapsedTime = 0;
+
+    function startTimer() {
+      if (timerInterval) return;
+
+      startTime = Date.now() - elapsedTime;
+      timerInterval = setInterval(() => {
+        elapsedTime = Date.now() - startTime;
+        document.getElementById('currentTimer').textContent = formatTime(elapsedTime);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (!timerInterval) return;
+
+      clearInterval(timerInterval);
+      timerInterval = null;
+
+      const taskName = document.getElementById("taskName").value;
+      const taskCategory = document.getElementById("taskCategory").value;
+      const duration = formatTime(elapsedTime);
+
+      if (taskName) {
+        const log = `${taskName} (${taskCategory || "Uncategorized"}): ${duration}`;
+        const li = document.createElement("li");
+        li.textContent = log;
+        document.getElementById("timeLogs").appendChild(li);
+      }
+
+      elapsedTime = 0;
+      document.getElementById("currentTimer").textContent = "00:00:00";
+    }
+
+    function formatTime(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+      return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    }
+
+    function pad(num) {
+      return num.toString().padStart(2, '0');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Planner</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/planner.css">
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      padding: 20px;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    #quote, #gratitude, #agenda {
+      margin: 20px auto;
+      max-width: 600px;
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    label, input, textarea, select, button {
+      width: 100%;
+      margin: 5px 0;
+    }
+    .task-entry {
+      display: flex;
+      gap: 10px;
+    }
+    .task-entry input {
+      flex: 1;
+    }
+    .task-list {
+      margin-top: 15px;
+    }
+    .task {
+      padding: 5px;
+      border-bottom: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Daily Planner</h1>
+<h2 id="plannerDate"></h2>
+
+<section id="quote">
+  <h3>Motivational Quote</h3>
+  <p id="motivationalQuote"></p>
+</section>
+
+<section id="gratitude">
+  <h3>Gratitude Journal</h3>
+  <label for="morningGratitude">Morning Gratitude:</label>
+  <textarea id="morningGratitude" rows="2"></textarea>
+
+  <label for="eveningGratitude">Evening Gratitude:</label>
+  <textarea id="eveningGratitude" rows="2"></textarea>
+</section>
+
+<section id="agenda">
+  <h3>24-Hour Agenda</h3>
+  <div class="task-entry">
+    <input type="time" id="taskTime">
+    <input type="text" id="taskText" placeholder="What do you need to do?">
+    <button onclick="addTask()">Add</button>
+  </div>
+
+  <div id="taskList" class="task-list"></div>
+</section>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const selectedDate = urlParams.get('date') || new Date().toISOString().split('T')[0];
+  document.getElementById('plannerDate').innerText = selectedDate;
+
+  const quoteList = [
+    "Discipline equals freedom. – Jocko Willink",
+    "Success is not final, failure is not fatal. – Winston Churchill",
+    "What you do today can improve all your tomorrows. – Ralph Marston",
+    "Don't wish it were easier. Wish you were better. – Jim Rohn",
+    "Do not wait for the perfect time, take the time and make it perfect."
+  ];
+  document.getElementById('motivationalQuote').innerText = quoteList[Math.floor(Math.random() * quoteList.length)];
+
+  const taskListEl = document.getElementById('taskList');
+  const tasksKey = 'planner-' + selectedDate;
+  const gratitudeKey = 'gratitude-' + selectedDate;
+
+  let tasks = JSON.parse(localStorage.getItem(tasksKey)) || [];
+  let gratitude = JSON.parse(localStorage.getItem(gratitudeKey)) || {
+    morning: '',
+    evening: ''
+  };
+
+  document.getElementById('morningGratitude').value = gratitude.morning;
+  document.getElementById('eveningGratitude').value = gratitude.evening;
+
+  document.getElementById('morningGratitude').addEventListener('input', () => {
+    gratitude.morning = document.getElementById('morningGratitude').value;
+    localStorage.setItem(gratitudeKey, JSON.stringify(gratitude));
+  });
+
+  document.getElementById('eveningGratitude').addEventListener('input', () => {
+    gratitude.evening = document.getElementById('eveningGratitude').value;
+    localStorage.setItem(gratitudeKey, JSON.stringify(gratitude));
+  });
+
+  function renderTasks() {
+    taskListEl.innerHTML = '';
+    tasks.sort((a, b) => a.time.localeCompare(b.time));
+    tasks.forEach((task, index) => {
+      const taskEl = document.createElement('div');
+      taskEl.classList.add('task');
+      taskEl.innerHTML = `<strong>${task.time}</strong> – ${task.text}
+        <button onclick="removeTask(${index})" style="float:right">✕</button>`;
+      taskListEl.appendChild(taskEl);
+    });
+  }
+
+  function addTask() {
+    const time = document.getElementById('taskTime').value;
+    const text = document.getElementById('taskText').value.trim();
+    if (!time || !text) return;
+    tasks.push({ time, text });
+    localStorage.setItem(tasksKey, JSON.stringify(tasks));
+    renderTasks();
+    document.getElementById('taskTime').value = '';
+    document.getElementById('taskText').value = '';
+  }
+
+  function removeTask(index) {
+    tasks.splice(index, 1);
+    localStorage.setItem(tasksKey, JSON.stringify(tasks));
+    renderTasks();
+  }
+
+  renderTasks();
+</script>
+
+</body>
+</html>

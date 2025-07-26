@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Reminders</title>
+  <link rel="stylesheet" href="css/reminders.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <h1>Reminders</h1>
+
+  <form id="reminderForm">
+    <label>Title:</label>
+    <input type="text" id="reminderTitle" required>
+    
+    <label>Date:</label>
+    <input type="date" id="reminderDate" required>
+    
+    <label>Time:</label>
+    <input type="time" id="reminderTime" required>
+    
+    <label>Type:</label>
+    <select id="reminderType">
+      <option value="planner">Planner Task</option>
+      <option value="calendar">Calendar Event</option>
+      <option value="invoice">Invoice/Bill</option>
+      <option value="gratitude">Gratitude Prompt</option>
+      <option value="inventory">Inventory Check</option>
+      <option value="other">Other</option>
+    </select>
+    
+    <label>Repeat:</label>
+    <select id="reminderRepeat">
+      <option value="none">None</option>
+      <option value="daily">Daily</option>
+      <option value="weekly">Weekly</option>
+      <option value="monthly">Monthly</option>
+    </select>
+
+    <button type="submit">Add Reminder</button>
+  </form>
+
+  <div id="reminderList"></div>
+
+  <script src="js/reminders.js">
+    const reminderForm = document.getElementById('reminderForm');
+const reminderList = document.getElementById('reminderList');
+
+let reminders = JSON.parse(localStorage.getItem('reminders')) || [];
+
+reminderForm.addEventListener('submit', e => {
+  e.preventDefault();
+  const reminder = {
+    id: Date.now(),
+    title: document.getElementById('reminderTitle').value,
+    date: document.getElementById('reminderDate').value,
+    time: document.getElementById('reminderTime').value,
+    type: document.getElementById('reminderType').value,
+    repeat: document.getElementById('reminderRepeat').value
+  };
+  reminders.push(reminder);
+  localStorage.setItem('reminders', JSON.stringify(reminders));
+  displayReminders();
+  reminderForm.reset();
+});
+
+function displayReminders() {
+  reminderList.innerHTML = '';
+  reminders.forEach(rem => {
+    const div = document.createElement('div');
+    div.textContent = `${rem.title} - ${rem.date} ${rem.time} (${rem.type}) [${rem.repeat}]`;
+    reminderList.appendChild(div);
+  });
+}
+
+function checkReminders() {
+  const now = new Date();
+  const currentDate = now.toISOString().split('T')[0];
+  const currentTime = now.toTimeString().slice(0, 5);
+  reminders.forEach(rem => {
+    if (rem.date === currentDate && rem.time === currentTime) {
+      alert(`Reminder: ${rem.title}`);
+    }
+  });
+}
+
+// Check every minute
+setInterval(checkReminders, 60000);
+displayReminders();
+
+  </script>
+</body>
+</html>

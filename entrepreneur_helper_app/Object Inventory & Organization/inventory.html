@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Inventory & Location Tracker</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      max-width: 900px;
+      margin: auto;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 10px;
+      background: #0074D9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background: #f7f7f7;
+    }
+    .actions button {
+      background: red;
+      margin-right: 5px;
+      padding: 5px 10px;
+      border-radius: 3px;
+    }
+    .search-inputs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .search-inputs input {
+      flex: 1;
+      min-width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Inventory & Location Tracker</h2>
+
+  <label for="itemName">Item Name</label>
+  <input type="text" id="itemName" placeholder="e.g. Drill, Car Keys" />
+
+  <label for="itemCategory">Category</label>
+  <input type="text" id="itemCategory" placeholder="e.g. Tools, Personal" />
+
+  <label for="itemLocation">Location</label>
+  <input type="text" id="itemLocation" placeholder="e.g. Workshop, Pocket" />
+
+  <label for="itemNotes">Notes</label>
+  <textarea id="itemNotes" rows="3" placeholder="Optional notes"></textarea>
+
+  <button onclick="addItem()">Add Item</button>
+
+  <div class="search-inputs">
+    <input type="text" id="searchName" placeholder="Search by name" oninput="renderItems()" />
+    <input type="text" id="searchCategory" placeholder="Search by category" oninput="renderItems()" />
+    <input type="text" id="searchLocation" placeholder="Search by location" oninput="renderItems()" />
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Category</th>
+        <th>Location</th>
+        <th>Notes</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="inventoryTableBody"></tbody>
+  </table>
+
+  <script>
+    let inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+    let editingId = null;
+
+    const itemNameInput = document.getElementById('itemName');
+    const itemCategoryInput = document.getElementById('itemCategory');
+    const itemLocationInput = document.getElementById('itemLocation');
+    const itemNotesInput = document.getElementById('itemNotes');
+
+    function addItem() {
+      const name = itemNameInput.value.trim();
+      const category = itemCategoryInput.value.trim();
+      const location = itemLocationInput.value.trim();
+      const notes = itemNotesInput.value.trim();
+
+      if (!name || !category || !location) {
+        alert('Name, Category, and Location are required.');
+        return;
+      }
+
+      if (editingId) {
+        // Edit existing
+        const idx = inventory.findIndex(i => i.id === editingId);
+        if (idx !== -1) {
+          inventory[idx] = { id: editingId, name, category, location, notes };
+          editingId = null;
+          document.querySelector('button').textContent = 'Add Item';
+        }
+      } else {
+        // Add new
+        const id = Date.now();
+        inventory.push({ id, name, category, location, notes });
+      }
+
+      saveAndRender();
+      clearInputs();
+    }
+
+    function clearInputs() {
+      itemNameInput.value = '';
+      itemCategoryInput.value = '';
+      itemLocationInput.value = '';
+      itemNotesInput.value = '';
+    }
+
+    function saveAndRender() {
+      localStorage.setItem('inventory', JSON.stringify(inventory));
+      renderItems();
+    }
+
+    function renderItems() {
+      const tbody = document.getElementById('inventoryTableBody');
+      tbody.innerHTML = '';
+
+      const searchName = document.getElementById('searchName').value.toLowerCase();
+      const searchCategory = document.getElementById('searchCategory').value.toLowerCase();
+      const searchLocation = document.getElementById('searchLocation').value.toLowerCase();
+
+      let filtered = inventory.filter(item => {
+        return item.name.toLowerCase().includes(searchName)
+          && item.category.toLowerCase().includes(searchCategory)
+          && item.location.toLowerCase().includes(searchLocation);
+      });
+
+      if (filtered.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="5" style="text-align:center;">No items found.</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.name}</td>
+          <td>${item.category}</td>
+          <td>${item.location}</td>
+          <td>${item.notes}</td>
+          <td class="actions">
+            <button onclick="editItem(${item.id})">Edit</button>
+            <button onclick="deleteItem(${item.id})">Delete</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function editItem(id) {
+      const item = inventory.find(i => i.id === id);
+      if (!item) return;
+
+      itemNameInput.value = item.name;
+      itemCategoryInput.value = item.category;
+      itemLocationInput.value = item.location;
+      itemNotesInput.value = item.notes;
+      editingId = id;
+      document.querySelector('button').textContent = 'Save Changes';
+    }
+
+    function deleteItem(id) {
+      if (confirm('Delete this item?')) {
+        inventory = inventory.filter(i => i.id !== id);
+        saveAndRender();
+      }
+    }
+
+    // Initial render
+    renderItems();
+  </script>
+</body>
+</html>

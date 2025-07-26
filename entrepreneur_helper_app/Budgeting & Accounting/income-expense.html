@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Income & Expense Tracker</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 15px;
+      background: #0074D9;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f7f7f7;
+    }
+    .right {
+      text-align: right;
+    }
+    .summary {
+      margin-top: 25px;
+      font-size: 18px;
+    }
+    .budget-section {
+      margin-top: 40px;
+      background: #f1f8ff;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    .budget-section label {
+      margin-top: 0;
+    }
+  </style>
+</head>
+<body>
+  <h2>Income & Expense Tracker</h2>
+
+  <label>Type</label>
+  <select id="typeSelect">
+    <option value="income">Income</option>
+    <option value="expense">Expense</option>
+  </select>
+
+  <label>Category</label>
+  <input type="text" id="categoryInput" placeholder="e.g. Sales, Supplies, Salary" />
+
+  <label>Amount</label>
+  <input type="number" id="amountInput" placeholder="0.00" step="0.01" min="0" />
+
+  <label>Date</label>
+  <input type="date" id="dateInput" />
+
+  <button onclick="addEntry()">Add Entry</button>
+
+  <table id="entriesTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Category</th>
+        <th class="right">Amount</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="summary">
+    <p><strong>Total Income:</strong> $<span id="totalIncome">0.00</span></p>
+    <p><strong>Total Expenses:</strong> $<span id="totalExpenses">0.00</span></p>
+    <p><strong>Net Profit:</strong> $<span id="netProfit">0.00</span></p>
+  </div>
+
+  <div class="budget-section">
+    <h3>Budget & Savings Planner</h3>
+    <label for="savingPercentInput">Set Saving Percentage (%)</label>
+    <input type="number" id="savingPercentInput" min="0" max="100" value="20" />
+    <button onclick="calculateBudget()">Calculate Budget</button>
+
+    <div id="budgetResults" style="margin-top:15px;"></div>
+  </div>
+
+  <script>
+    let entries = JSON.parse(localStorage.getItem('financeEntries') || '[]');
+
+    const typeSelect = document.getElementById('typeSelect');
+    const categoryInput = document.getElementById('categoryInput');
+    const amountInput = document.getElementById('amountInput');
+    const dateInput = document.getElementById('dateInput');
+    const entriesTableBody = document.querySelector('#entriesTable tbody');
+    const totalIncomeSpan = document.getElementById('totalIncome');
+    const totalExpensesSpan = document.getElementById('totalExpenses');
+    const netProfitSpan = document.getElementById('netProfit');
+    const savingPercentInput = document.getElementById('savingPercentInput');
+    const budgetResultsDiv = document.getElementById('budgetResults');
+
+    function addEntry() {
+      const type = typeSelect.value;
+      const category = categoryInput.value.trim();
+      const amount = parseFloat(amountInput.value);
+      const date = dateInput.value;
+
+      if (!category || isNaN(amount) || amount <= 0 || !date) {
+        alert('Please fill in all fields with valid values.');
+        return;
+      }
+
+      entries.push({ id: Date.now(), type, category, amount, date });
+      localStorage.setItem('financeEntries', JSON.stringify(entries));
+
+      categoryInput.value = '';
+      amountInput.value = '';
+      dateInput.value = '';
+      renderEntries();
+      updateSummary();
+    }
+
+    function renderEntries() {
+      entriesTableBody.innerHTML = '';
+      entries.forEach(entry => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td>${entry.date}</td>
+          <td>${entry.type}</td>
+          <td>${entry.category}</td>
+          <td class="right">$${entry.amount.toFixed(2)}</td>
+          <td>
+            <button onclick="deleteEntry(${entry.id})" style="background:red; color:white; border:none; border-radius:4px; padding: 4px 8px; cursor:pointer;">Delete</button>
+          </td>
+        `;
+
+        entriesTableBody.appendChild(tr);
+      });
+    }
+
+    function deleteEntry(id) {
+      entries = entries.filter(e => e.id !== id);
+      localStorage.setItem('financeEntries', JSON.stringify(entries));
+      renderEntries();
+      updateSummary();
+    }
+
+    function updateSummary() {
+      let income = 0;
+      let expenses = 0;
+      entries.forEach(e => {
+        if (e.type === 'income') income += e.amount;
+        else expenses += e.amount;
+      });
+      totalIncomeSpan.textContent = income.toFixed(2);
+      totalExpensesSpan.textContent = expenses.toFixed(2);
+      netProfitSpan.textContent = (income - expenses).toFixed(2);
+    }
+
+    function calculateBudget() {
+      const savingPercent = parseFloat(savingPercentInput.value);
+      if (isNaN(savingPercent) || savingPercent < 0 || savingPercent > 100) {
+        alert('Enter a valid saving percentage (0-100).');
+        return;
+      }
+      let income = 0;
+      let expenses = 0;
+      entries.forEach(e => {
+        if (e.type === 'income') income += e.amount;
+        else expenses += e.amount;
+      });
+
+      const net = income - expenses;
+      if (net <= 0) {
+        budgetResultsDiv.innerHTML = `<p style="color:red;">No positive net income to budget.</p>`;
+        return;
+      }
+
+      const savingAmount = net * (savingPercent / 100);
+      const budgetAmount = net - savingAmount;
+
+      budgetResultsDiv.innerHTML = `
+        <p>Net Income: $${net.toFixed(2)}</p>
+        <p>Savings (${savingPercent}%): $${savingAmount.toFixed(2)}</p>
+        <p>Budget for Expenses: $${budgetAmount.toFixed(2)}</p>
+      `;
+    }
+
+    // Initialize UI
+    renderEntries();
+    updateSummary();
+  </script>
+</body>
+</html>
