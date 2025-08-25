@@ -9,10 +9,14 @@
 <body>
     <h1>Connect the Dots Drafting Tool</h1>
     <div id="controls">
-        <button id="connect-mode-btn">Connect Dots</button>
+        <button id="connect-mode-btn" data-mode="connect">Connect Dots</button>
+        <button id="dimension-tool-btn" data-mode="dimension">Dimensions</button>
         <button id="shade-tool-btn" disabled>Shade</button>
-        <button id="dimension-tool-btn" disabled>Dimensions</button>
         <button id="text-tool-btn" disabled>Text Box</button>
+    </div>
+    <div id="prompt-controls">
+        <input type="text" id="prompt-input" placeholder="e.g., draw a 10 by 20 rectangle">
+        <button id="prompt-draw-btn">Draw</button>
     </div>
     <canvas id="drafting-canvas"></canvas>
     <script src="js/main.js"></script>
