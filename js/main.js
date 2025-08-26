@@ -2,62 +2,106 @@ window.onload = function() {
     // --- Elements ---
     const canvas = document.getElementById('drafting-canvas');
     const connectModeBtn = document.getElementById('connect-mode-btn');
+    const dimensionToolBtn = document.getElementById('dimension-tool-btn');
 
-    if (!canvas || !connectModeBtn) {
+    if (!canvas || !connectModeBtn || !dimensionToolBtn) {
         console.error("Required elements not found!");
         return;
     }
+    const modeButtons = [connectModeBtn, dimensionToolBtn];
 
     // --- Context ---
     const ctx = canvas.getContext('2d');
 
-    // --- State ---
+    // --- State & Constants ---
     const dots = [];
     const lines = [];
+    const dimensions = [];
     const dotRadius = 5;
-    let currentMode = 'edit'; // 'edit' or 'connect'
-    let firstDotForLine = null;
+    const PIXELS_PER_FOOT = 10;
+    let currentMode = 'edit';
+    let firstDotForTool = null;
     let dragStartX, dragStartY;
 
-    // --- Canvas and Grid Setup ---
+    // --- Canvas Setup ---
     canvas.width = 800;
     canvas.height = 600;
-    const gridSpacing = 20;
 
-    // --- Drawing Functions (no changes) ---
+    // --- Drawing Functions ---
     function drawGrid() {
-        ctx.beginPath();
-        ctx.strokeStyle = '#e0e0e0';
+        const gridSpacing = 20;
+        ctx.beginPath(); ctx.strokeStyle = '#e0e0e0';
         for (let x = 0; x <= canvas.width; x += gridSpacing) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
         for (let y = 0; y <= canvas.height; y += gridSpacing) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
         ctx.stroke();
     }
+
     function drawDots() {
         dots.forEach(dot => {
-            ctx.fillStyle = (dot === firstDotForLine) ? '#007bff' : '#000000';
-            ctx.beginPath();
-            ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = (dot === firstDotForTool) ? '#007bff' : '#000000';
+            ctx.beginPath(); ctx.arc(dot.x, dot.y, dotRadius, 0, Math.PI * 2); ctx.fill();
         });
     }
+
     function drawLines() {
-        ctx.strokeStyle = '#333333';
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#333333'; ctx.lineWidth = 2;
         lines.forEach(line => {
-            ctx.beginPath();
-            ctx.moveTo(line.startDot.x, line.startDot.y);
-            ctx.lineTo(line.endDot.x, line.endDot.y);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(line.startDot.x, line.startDot.y); ctx.lineTo(line.endDot.x, line.endDot.y); ctx.stroke();
         });
     }
+
+    function drawDimensions() {
+        ctx.strokeStyle = '#007bff'; ctx.fillStyle = '#007bff'; ctx.lineWidth = 1; ctx.font = '12px Arial';
+        const offset = 20; const tickLength = 5;
+        dimensions.forEach(dim => {
+            const { dot1, dot2 } = dim;
+            const dx = dot2.x - dot1.x;
+            const dy = dot2.y - dot1.y;
+            const angle = Math.atan2(dy, dx);
+            const perp_dx = -Math.sin(angle) * offset;
+            const perp_dy = Math.cos(angle) * offset;
+            const dim_start_x = dot1.x + perp_dx; const dim_start_y = dot1.y + perp_dy;
+            const dim_end_x = dot2.x + perp_dx; const dim_end_y = dot2.y + perp_dy;
+            ctx.beginPath();
+            ctx.moveTo(dot1.x, dot1.y); ctx.lineTo(dim_start_x, dim_start_y);
+            ctx.moveTo(dot2.x, dot2.y); ctx.lineTo(dim_end_x, dim_end_y);
+            ctx.moveTo(dim_start_x, dim_start_y); ctx.lineTo(dim_end_x, dim_end_y);
+            ctx.stroke();
+            ctx.save();
+            ctx.translate(dim_start_x, dim_start_y); ctx.rotate(angle + Math.PI / 4);
+            ctx.beginPath(); ctx.moveTo(-tickLength, 0); ctx.lineTo(tickLength, 0); ctx.stroke();
+            ctx.restore();
+            ctx.save();
+            ctx.translate(dim_end_x, dim_end_y); ctx.rotate(angle + Math.PI / 4);
+            ctx.beginPath(); ctx.moveTo(-tickLength, 0); ctx.lineTo(tickLength, 0); ctx.stroke();
+            ctx.restore();
+            const pixelDist = Math.sqrt(dx*dx + dy*dy);
+            const feetDist = pixelDist / PIXELS_PER_FOOT;
+            const feet = Math.floor(feetDist);
+            const inches = Math.round((feetDist - feet) * 12);
+            const dimText = `${feet}' ${inches}"`;
+            const midX = dim_start_x + dx / 2;
+            const midY = dim_start_y + dy / 2;
+            ctx.save();
+            ctx.translate(midX, midY);
+            ctx.rotate(angle);
+            if (angle < -Math.PI / 2 || angle > Math.PI / 2) { ctx.rotate(Math.PI); }
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(dimText, 0, -2);
+            ctx.restore();
+        });
+    }
+
     function redrawCanvas() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawGrid();
         drawLines();
+        drawDimensions();
         drawDots();
     }
 
-    // --- Helper Functions (no changes) ---
+    // --- Helper Functions ---
     function getMousePos(event) {
         const rect = canvas.getBoundingClientRect();
         return { x: event.clientX - rect.left, y: event.clientY - rect.top };
@@ -72,31 +116,30 @@ window.onload = function() {
         return null;
     }
 
-    // --- Mode Switching (no changes) ---
-    connectModeBtn.addEventListener('click', () => {
-        currentMode = (currentMode === 'edit') ? 'connect' : 'edit';
-        connectModeBtn.textContent = (currentMode === 'connect') ? 'Add/Move Dots' : 'Connect Dots';
-        connectModeBtn.style.backgroundColor = (currentMode === 'connect') ? '#28a745' : '';
-        connectModeBtn.style.color = (currentMode === 'connect') ? 'white' : '';
-        firstDotForLine = null;
+    // --- Mode Switching ---
+    function setMode(newMode) {
+        currentMode = (currentMode === newMode) ? 'edit' : newMode;
+        modeButtons.forEach(btn => {
+            btn.style.backgroundColor = (btn.dataset.mode === currentMode) ? '#28a745' : '';
+            btn.style.color = (btn.dataset.mode === currentMode) ? 'white' : '';
+        });
+        firstDotForTool = null;
         redrawCanvas();
-    });
+    }
+    connectModeBtn.addEventListener('click', () => setMode('connect'));
+    dimensionToolBtn.addEventListener('click', () => setMode('dimension'));
 
-    // --- Refactored Event Handlers ---
+    // --- Event Handlers ---
     canvas.addEventListener('mousedown', (e) => {
         const startPos = getMousePos(e);
         dragStartX = startPos.x;
         dragStartY = startPos.y;
-
-        if (currentMode === 'connect') {
-            handleConnectClick(startPos);
+        if (currentMode === 'connect' || currentMode === 'dimension') {
+            handleToolClick(startPos);
             return;
         }
-
-        // --- Edit Mode Mousedown ---
         const dotToDrag = getDotAtPos(startPos);
         if (dotToDrag) {
-            // A dot was clicked. Start a drag operation.
             function handleDrag(moveEvent) {
                 const movePos = getMousePos(moveEvent);
                 dotToDrag.x = movePos.x;
@@ -117,30 +160,32 @@ window.onload = function() {
         const endPos = getMousePos(e);
         const moved = Math.abs(endPos.x - dragStartX) > 2 || Math.abs(endPos.y - dragStartY) > 2;
         const startedOnDot = getDotAtPos({ x: dragStartX, y: dragStartY });
-
         if (!moved && !startedOnDot) {
             dots.push(endPos);
             redrawCanvas();
         }
     });
 
-    function handleConnectClick(pos) {
+    function handleToolClick(pos) {
         const clickedDot = getDotAtPos(pos);
-        if (clickedDot) {
-            if (!firstDotForLine) {
-                firstDotForLine = clickedDot;
-            } else {
-                if (firstDotForLine !== clickedDot) {
-                    const lineExists = lines.some(line =>
-                        (line.startDot === firstDotForLine && line.endDot === clickedDot) ||
-                        (line.startDot === clickedDot && line.endDot === firstDotForLine)
-                    );
-                    if (!lineExists) lines.push({ startDot: firstDotForLine, endDot: clickedDot });
-                }
-                firstDotForLine = null;
-            }
+        if (!clickedDot) {
+            firstDotForTool = null;
+            redrawCanvas();
+            return;
+        }
+        if (!firstDotForTool) {
+            firstDotForTool = clickedDot;
         } else {
-            firstDotForLine = null;
+            if (firstDotForTool !== clickedDot) {
+                if (currentMode === 'connect') {
+                    const lineExists = lines.some(l => (l.startDot === firstDotForTool && l.endDot === clickedDot) || (l.startDot === clickedDot && l.endDot === firstDotForTool));
+                    if (!lineExists) lines.push({ startDot: firstDotForTool, endDot: clickedDot });
+                } else if (currentMode === 'dimension') {
+                    const dimExists = dimensions.some(d => (d.dot1 === firstDotForTool && d.dot2 === clickedDot) || (d.dot1 === clickedDot && d.dot2 === firstDotForTool));
+                    if (!dimExists) dimensions.push({ dot1: firstDotForTool, dot2: clickedDot });
+                }
+            }
+            firstDotForTool = null;
         }
         redrawCanvas();
     }
