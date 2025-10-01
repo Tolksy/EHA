@@ -3,18 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Drafting App</title>
+    <title>Invoices, Schedule & Income</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <h1>Connect the Dots Drafting Tool</h1>
-    <div id="controls">
-        <button id="connect-mode-btn" data-mode="connect">Connect Dots</button>
-        <button id="dimension-tool-btn" data-mode="dimension">Dimensions</button>
-        <button id="shade-tool-btn" disabled>Shade</button>
-        <button id="text-tool-btn" disabled>Text Box</button>
-    </div>
-    <canvas id="drafting-canvas"></canvas>
+    <header>
+        <h1>Billing & Schedule</h1>
+        <nav id="tabs">
+            <button data-tab="invoices" class="tab active">Invoices</button>
+            <button data-tab="schedule" class="tab">Schedule</button>
+            <button data-tab="reports" class="tab">Reports</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="tab-invoices" class="tab-panel active">
+            <div class="toolbar">
+                <button id="new-invoice-btn">New Invoice</button>
+                <input id="invoice-search" placeholder="Search invoices..." />
+                <select id="invoice-status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="viewed">Viewed</option>
+                    <option value="partially_paid">Partially Paid</option>
+                    <option value="paid">Paid</option>
+                    <option value="void">Void</option>
+                </select>
+            </div>
+            <table id="invoice-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Customer</th>
+                        <th>Service Date</th>
+                        <th>Due</th>
+                        <th>Total</th>
+                        <th>Balance</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section id="tab-schedule" class="tab-panel">
+            <div class="toolbar">
+                <input type="date" id="schedule-date" />
+                <button id="today-btn">Today</button>
+                <button id="week-btn">Week</button>
+                <button id="month-btn">Month</button>
+            </div>
+            <div id="calendar"></div>
+        </section>
+
+        <section id="tab-reports" class="tab-panel">
+            <div class="toolbar">
+                <label>Basis
+                    <select id="basis-select">
+                        <option value="cash">Cash</option>
+                        <option value="accrual">Accrual</option>
+                    </select>
+                </label>
+                <label>Interval
+                    <select id="interval-select">
+                        <option value="month">Month</option>
+                        <option value="week">Week</option>
+                        <option value="quarter">Quarter</option>
+                        <option value="year">Year</option>
+                    </select>
+                </label>
+                <input type="date" id="start-date" />
+                <input type="date" id="end-date" />
+                <button id="run-report-btn">Run</button>
+            </div>
+            <canvas id="income-chart" height="200"></canvas>
+            <table id="income-table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Income</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </main>
+
+    <dialog id="invoice-dialog">
+        <form method="dialog" id="invoice-form">
+            <header>
+                <h2>Invoice</h2>
+            </header>
+            <div class="form-grid">
+                <label>
+                    Number
+                    <input id="inv-number" required />
+                </label>
+                <label>
+                    Customer
+                    <input id="inv-customer" required />
+                </label>
+                <label>
+                    Issue Date
+                    <input type="date" id="inv-issue" required />
+                </label>
+                <label>
+                    Due Date
+                    <input type="date" id="inv-due" required />
+                </label>
+                <label>
+                    Service Date
+                    <input type="date" id="inv-service-date" required />
+                </label>
+                <label>
+                    Service Start Time
+                    <input type="time" id="inv-service-start" />
+                </label>
+                <label>
+                    Service End Time
+                    <input type="time" id="inv-service-end" />
+                </label>
+                <label>
+                    Status
+                    <select id="inv-status">
+                        <option value="draft">Draft</option>
+                        <option value="sent">Sent</option>
+                        <option value="viewed">Viewed</option>
+                        <option value="partially_paid">Partially Paid</option>
+                        <option value="paid">Paid</option>
+                        <option value="void">Void</option>
+                    </select>
+                </label>
+            </div>
+
+            <div id="items">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Line Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-rows"></tbody>
+                </table>
+                <button type="button" id="add-item-btn">Add Item</button>
+            </div>
+
+            <div class="totals">
+                <div>Subtotal: <span id="subtotal">0.00</span></div>
+                <div>Tax (0%): <span id="tax">0.00</span></div>
+                <div>Total: <strong id="total">0.00</strong></div>
+                <div>Balance: <strong id="balance">0.00</strong></div>
+            </div>
+
+            <footer>
+                <button value="cancel" id="cancel-invoice">Cancel</button>
+                <button value="default" id="save-invoice">Save</button>
+            </footer>
+        </form>
+    </dialog>
+
     <script src="js/main.js"></script>
 </body>
 </html>
