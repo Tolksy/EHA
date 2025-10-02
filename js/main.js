@@ -44,6 +44,29 @@ class ProfitTracker {
         document.getElementById('sort-by').addEventListener('change', () => {
             this.renderInvoiceList();
         });
+
+        // Client tracker button
+        document.getElementById('client-tracker-btn').addEventListener('click', () => {
+            this.openClientTracker();
+        });
+
+        // Client tracker modal events
+        document.getElementById('close-client-tracker').addEventListener('click', () => {
+            this.closeClientTracker();
+        });
+
+        // Client tracker filters
+        document.getElementById('client-search').addEventListener('input', () => {
+            this.filterClients();
+        });
+
+        document.getElementById('warmth-filter').addEventListener('change', () => {
+            this.filterClients();
+        });
+
+        document.getElementById('status-filter-clients').addEventListener('change', () => {
+            this.filterClients();
+        });
     }
 
     updateCurrentMonthDisplay() {
@@ -256,12 +279,12 @@ class ProfitTracker {
     }
 
     getCustomerName(customerId) {
-        const customerData = {
-            'john-smith': 'John Smith',
-            'abc-corp': 'ABC Corporation',
-            'jane-doe': 'Jane Doe'
-        };
-        return customerData[customerId] || customerId;
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customer = customers.find(c => c.id === customerId);
+        if (customer) {
+            return customer.company ? `${customer.name} (${customer.company})` : customer.name;
+        }
+        return customerId;
     }
 
     filterInvoices() {
@@ -381,6 +404,154 @@ class ProfitTracker {
         }
     }
 
+    openClientTracker() {
+        document.getElementById('client-tracker-modal').style.display = 'flex';
+        this.loadClients();
+        this.updateClientStats();
+    }
+
+    closeClientTracker() {
+        document.getElementById('client-tracker-modal').style.display = 'none';
+    }
+
+    loadClients() {
+        this.clients = JSON.parse(localStorage.getItem('customers')) || [];
+        this.renderClientList();
+    }
+
+    renderClientList() {
+        const tbody = document.getElementById('client-list-tbody');
+        tbody.innerHTML = '';
+
+        this.clients.forEach(client => {
+            const row = document.createElement('tr');
+            const recommendation = this.getRecommendation(client);
+            const lastContact = new Date(client.lastContact);
+            const daysSinceContact = Math.floor((new Date() - lastContact) / (1000 * 60 * 60 * 24));
+            
+            row.innerHTML = `
+                <td>${client.name}</td>
+                <td>${client.company || '-'}</td>
+                <td>
+                    <div class="warmth-score">
+                        <span>${client.warmthScore}/10</span>
+                        <div class="warmth-bar">
+                            <div class="warmth-fill ${this.getWarmthClass(client.warmthScore)}" 
+                                 style="width: ${(client.warmthScore / 10) * 100}%"></div>
+                        </div>
+                    </div>
+                </td>
+                <td>${daysSinceContact === 0 ? 'Today' : `${daysSinceContact} days ago`}</td>
+                <td><span class="recommendation ${recommendation.type}">${recommendation.text}</span></td>
+                <td>
+                    <button class="btn-small" onclick="profitTracker.viewClientDetails('${client.id}')">View</button>
+                    <button class="btn-small" onclick="profitTracker.markInteraction('${client.id}', 'follow_up')">Follow-up</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+
+        this.filterClients(); // Apply current filters
+    }
+
+    getWarmthClass(score) {
+        if (score >= 8) return 'hot';
+        if (score >= 5) return 'warm';
+        return 'cold';
+    }
+
+    getRecommendation(client) {
+        const daysSinceContact = Math.floor((new Date() - new Date(client.lastContact)) / (1000 * 60 * 60 * 24));
+        
+        // Hot prospects (8-10) - gift recommendation
+        if (client.warmthScore >= 8 && daysSinceContact > 30) {
+            return { type: 'gift', text: 'Send Gift' };
+        }
+        
+        // Warm prospects (5-7) - follow-up needed
+        if (client.warmthScore >= 5 && client.warmthScore < 8 && daysSinceContact > 14) {
+            return { type: 'follow-up', text: 'Follow-up' };
+        }
+        
+        // Cold prospects (1-4) - follow-up needed
+        if (client.warmthScore < 5 && daysSinceContact > 7) {
+            return { type: 'follow-up', text: 'Follow-up' };
+        }
+        
+        return { type: 'none', text: 'Good' };
+    }
+
+    updateClientStats() {
+        const totalClients = this.clients.length;
+        const hotProspects = this.clients.filter(c => c.warmthScore >= 8).length;
+        const needsFollowup = this.clients.filter(c => {
+            const recommendation = this.getRecommendation(c);
+            return recommendation.type === 'follow-up';
+        }).length;
+
+        document.getElementById('total-clients').textContent = totalClients;
+        document.getElementById('hot-prospects').textContent = hotProspects;
+        document.getElementById('needs-followup').textContent = needsFollowup;
+    }
+
+    filterClients() {
+        const searchTerm = document.getElementById('client-search').value.toLowerCase();
+        const warmthFilter = document.getElementById('warmth-filter').value;
+        const statusFilter = document.getElementById('status-filter-clients').value;
+        const rows = document.querySelectorAll('#client-list-tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const warmthScore = parseInt(row.querySelector('.warmth-score span').textContent);
+            const status = row.cells[0].textContent.toLowerCase(); // Using name as proxy for status for now
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesWarmth = !warmthFilter || 
+                (warmthFilter === 'hot' && warmthScore >= 8) ||
+                (warmthFilter === 'warm' && warmthScore >= 5 && warmthScore < 8) ||
+                (warmthFilter === 'cold' && warmthScore < 5);
+            const matchesStatus = !statusFilter; // Simplified for now
+            
+            row.style.display = (matchesSearch && matchesWarmth && matchesStatus) ? '' : 'none';
+        });
+    }
+
+    viewClientDetails(clientId) {
+        const client = this.clients.find(c => c.id === clientId);
+        if (client) {
+            alert(`Client Details:\n\nName: ${client.name}\nCompany: ${client.company || 'N/A'}\nEmail: ${client.email}\nPhone: ${client.phone || 'N/A'}\nWarmth Score: ${client.warmthScore}/10\nLast Contact: ${client.lastContact}\nTotal Invoices: ${client.totalInvoices}\nTotal Amount: $${client.totalAmount}\nNotes: ${client.notes || 'None'}`);
+        }
+    }
+
+    markInteraction(clientId, interactionType) {
+        const client = this.clients.find(c => c.id === clientId);
+        if (!client) return;
+
+        // Update warmth score
+        let scoreChange = 0;
+        switch (interactionType) {
+            case 'follow_up':
+                scoreChange = 1;
+                break;
+            case 'gift_sent':
+                scoreChange = 1;
+                break;
+        }
+
+        client.warmthScore = Math.max(1, Math.min(10, client.warmthScore + scoreChange));
+        client.lastContact = new Date().toISOString().split('T')[0];
+        
+        // Save updated clients
+        localStorage.setItem('customers', JSON.stringify(this.clients));
+        
+        // Refresh display
+        this.renderClientList();
+        this.updateClientStats();
+        
+        this.showMessage(`${interactionType.replace('_', ' ')} recorded!`, 'success');
+    }
+
     showSuccessMessage() {
         const messageDiv = document.getElementById('success-message');
         messageDiv.style.display = 'block';
@@ -407,3 +578,4 @@ document.addEventListener('DOMContentLoaded', () => {
         window.profitTracker.refreshData();
     });
 });
+

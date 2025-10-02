@@ -14,6 +14,9 @@
             <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
         </div>
         <div class="header-right">
+            <button class="btn-secondary" id="client-tracker-btn" title="View all clients and prospects">
+                👥 Clients
+            </button>
             <button class="btn-primary" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
                 + Invoice
             </button>
@@ -115,6 +118,63 @@
     <!-- Success Message -->
     <div id="success-message" class="success-message" style="display: none;">
         Invoice saved successfully!
+    </div>
+
+    <!-- Client Tracker Modal -->
+    <div id="client-tracker-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>Client & Prospect Tracker</h3>
+                <button type="button" class="modal-close" id="close-client-tracker">&times;</button>
+            </div>
+            <div class="client-tracker-content">
+                <div class="client-stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-clients">0</div>
+                        <div class="stat-label">Total Clients</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="hot-prospects">0</div>
+                        <div class="stat-label">Hot Prospects</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="needs-followup">0</div>
+                        <div class="stat-label">Need Follow-up</div>
+                    </div>
+                </div>
+                <div class="client-filters">
+                    <input type="text" id="client-search" placeholder="Search clients...">
+                    <select id="warmth-filter">
+                        <option value="">All Warmth Levels</option>
+                        <option value="hot">Hot (8-10)</option>
+                        <option value="warm">Warm (5-7)</option>
+                        <option value="cold">Cold (1-4)</option>
+                    </select>
+                    <select id="status-filter-clients">
+                        <option value="">All Status</option>
+                        <option value="client">Active Clients</option>
+                        <option value="prospect">Prospects</option>
+                    </select>
+                </div>
+                <div class="client-list-container">
+                    <table class="client-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Company</th>
+                                <th>Warmth</th>
+                                <th>Last Contact</th>
+                                <th>Recommendation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="client-list-tbody">
+                            <!-- Client rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="js/main.js"></script>

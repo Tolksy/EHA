@@ -17,7 +17,66 @@ class QuickBooksInvoice {
             status: 'draft'
         };
         this.lineItemCounter = 0;
+        this.customers = this.loadCustomers();
         this.init();
+    }
+
+    loadCustomers() {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        // Initialize with sample data if empty
+        if (customers.length === 0) {
+            const sampleCustomers = [
+                {
+                    id: 'john-smith',
+                    name: 'John Smith',
+                    company: '',
+                    email: 'john@example.com',
+                    phone: '',
+                    address: '123 Main St\nAnytown, ST 12345',
+                    notes: '',
+                    warmthScore: 7,
+                    lastContact: new Date().toISOString().split('T')[0],
+                    status: 'client',
+                    totalInvoices: 3,
+                    totalAmount: 2500
+                },
+                {
+                    id: 'abc-corp',
+                    name: 'ABC Corporation',
+                    company: 'ABC Corporation',
+                    email: 'billing@abc-corp.com',
+                    phone: '(555) 123-4567',
+                    address: '456 Business Ave\nCorporate City, ST 67890',
+                    notes: 'Large corporate client, prefers email communication',
+                    warmthScore: 9,
+                    lastContact: new Date().toISOString().split('T')[0],
+                    status: 'client',
+                    totalInvoices: 8,
+                    totalAmount: 15000
+                },
+                {
+                    id: 'jane-doe',
+                    name: 'Jane Doe',
+                    company: '',
+                    email: 'jane@example.com',
+                    phone: '(555) 987-6543',
+                    address: '789 Residential Rd\nHome Town, ST 54321',
+                    notes: 'Potential repeat customer',
+                    warmthScore: 4,
+                    lastContact: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                    status: 'prospect',
+                    totalInvoices: 1,
+                    totalAmount: 500
+                }
+            ];
+            localStorage.setItem('customers', JSON.stringify(sampleCustomers));
+            return sampleCustomers;
+        }
+        return customers;
+    }
+
+    saveCustomers() {
+        localStorage.setItem('customers', JSON.stringify(this.customers));
     }
 
     getNextInvoiceNumber() {
@@ -39,6 +98,7 @@ class QuickBooksInvoice {
         this.updateTotals();
         this.setDefaultDates();
         this.updateInvoiceNumber();
+        this.populateCustomerDropdown();
     }
 
     setDefaultDates() {
@@ -60,6 +120,25 @@ class QuickBooksInvoice {
         // Customer selection
         document.getElementById('customer-select').addEventListener('change', (e) => {
             this.handleCustomerChange(e.target.value);
+        });
+
+        // Add customer button
+        document.getElementById('add-customer-btn').addEventListener('click', () => {
+            this.openCustomerModal();
+        });
+
+        // Customer modal events
+        document.getElementById('close-customer-modal').addEventListener('click', () => {
+            this.closeCustomerModal();
+        });
+
+        document.getElementById('cancel-customer').addEventListener('click', () => {
+            this.closeCustomerModal();
+        });
+
+        document.getElementById('customer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveCustomer();
         });
 
         // Customer email
@@ -143,30 +222,119 @@ class QuickBooksInvoice {
         });
     }
 
+    populateCustomerDropdown() {
+        const select = document.getElementById('customer-select');
+        select.innerHTML = '<option value="">Select a customer</option>';
+        
+        this.customers.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer.id;
+            option.textContent = customer.company ? `${customer.name} (${customer.company})` : customer.name;
+            select.appendChild(option);
+        });
+    }
+
+    openCustomerModal() {
+        document.getElementById('customer-modal').style.display = 'flex';
+        document.getElementById('customer-modal-title').textContent = 'Add New Customer';
+        document.getElementById('customer-form').reset();
+    }
+
+    closeCustomerModal() {
+        document.getElementById('customer-modal').style.display = 'none';
+        document.getElementById('customer-form').reset();
+    }
+
+    saveCustomer() {
+        const form = document.getElementById('customer-form');
+        const formData = new FormData(form);
+        
+        const customer = {
+            id: this.generateCustomerId(document.getElementById('customer-name').value),
+            name: document.getElementById('customer-name').value.trim(),
+            company: document.getElementById('customer-company').value.trim(),
+            email: document.getElementById('customer-email-modal').value.trim(),
+            phone: document.getElementById('customer-phone').value.trim(),
+            address: document.getElementById('customer-address').value.trim(),
+            notes: document.getElementById('customer-notes').value.trim(),
+            warmthScore: 5, // Default warmth score
+            lastContact: new Date().toISOString().split('T')[0],
+            status: 'prospect',
+            totalInvoices: 0,
+            totalAmount: 0
+        };
+
+        // Validate required fields
+        if (!customer.name || !customer.email) {
+            this.showMessage('Name and email are required', 'error');
+            return;
+        }
+
+        // Check if customer already exists
+        const existingCustomer = this.customers.find(c => c.email === customer.email);
+        if (existingCustomer) {
+            this.showMessage('A customer with this email already exists', 'error');
+            return;
+        }
+
+        // Add customer
+        this.customers.push(customer);
+        this.saveCustomers();
+        
+        // Update dropdown
+        this.populateCustomerDropdown();
+        
+        // Select the new customer
+        document.getElementById('customer-select').value = customer.id;
+        this.handleCustomerChange(customer.id);
+        
+        this.closeCustomerModal();
+        this.showMessage('Customer added successfully!', 'success');
+    }
+
+    generateCustomerId(name) {
+        return name.toLowerCase()
+            .replace(/[^a-z0-9\s]/g, '')
+            .replace(/\s+/g, '-')
+            .substring(0, 50) + '-' + Date.now();
+    }
+
+    updateCustomerWarmthScore(customerId, interactionType) {
+        const customer = this.customers.find(c => c.id === customerId);
+        if (!customer) return;
+
+        // Update warmth score based on interaction
+        let scoreChange = 0;
+        switch (interactionType) {
+            case 'invoice_sent':
+                scoreChange = 1;
+                break;
+            case 'invoice_paid':
+                scoreChange = 2;
+                break;
+            case 'follow_up':
+                scoreChange = 1;
+                break;
+            case 'gift_sent':
+                scoreChange = 1;
+                break;
+            case 'negative_feedback':
+                scoreChange = -2;
+                break;
+        }
+
+        customer.warmthScore = Math.max(1, Math.min(10, customer.warmthScore + scoreChange));
+        customer.lastContact = new Date().toISOString().split('T')[0];
+        
+        this.saveCustomers();
+    }
+
     handleCustomerChange(customerId) {
         this.currentInvoice.customer = customerId;
         
-        // Simulate customer data loading
-        const customerData = {
-            'john-smith': {
-                name: 'John Smith',
-                email: 'john@example.com',
-                address: '123 Main St\nAnytown, ST 12345'
-            },
-            'abc-corp': {
-                name: 'ABC Corporation',
-                email: 'billing@abc-corp.com',
-                address: '456 Business Ave\nCorporate City, ST 67890'
-            },
-            'jane-doe': {
-                name: 'Jane Doe',
-                email: 'jane@example.com',
-                address: '789 Residential Rd\nHome Town, ST 54321'
-            }
-        };
-
-        if (customerData[customerId]) {
-            const customer = customerData[customerId];
+        const customer = this.customers.find(c => c.id === customerId);
+        
+        if (customer) {
             document.getElementById('customer-email').value = customer.email;
             document.getElementById('billing-address').value = customer.address;
             this.currentInvoice.customerEmail = customer.email;
@@ -387,6 +555,16 @@ class QuickBooksInvoice {
         
         this.collectInvoiceData();
         
+        // Update customer warmth score and invoice count
+        this.updateCustomerWarmthScore(this.currentInvoice.customer, 'invoice_sent');
+        const customer = this.customers.find(c => c.id === this.currentInvoice.customer);
+        if (customer) {
+            customer.totalInvoices++;
+            customer.totalAmount += this.currentInvoice.total;
+            customer.status = 'client'; // Mark as client if they have invoices
+            this.saveCustomers();
+        }
+        
         // Save to localStorage
         const savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
         this.currentInvoice.status = 'sent';
@@ -489,3 +667,4 @@ class QuickBooksInvoice {
 document.addEventListener('DOMContentLoaded', () => {
     window.quickBooksInvoice = new QuickBooksInvoice();
 });
+

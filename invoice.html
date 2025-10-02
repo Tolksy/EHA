@@ -37,12 +37,12 @@
                         <label for="customer-select">
                             Customer <span class="help-icon" title="Select customer">❓</span>
                         </label>
-                        <select id="customer-select" class="customer-dropdown">
-                            <option value="">Select a customer</option>
-                            <option value="john-smith">John Smith</option>
-                            <option value="abc-corp">ABC Corporation</option>
-                            <option value="jane-doe">Jane Doe</option>
-                        </select>
+                        <div class="customer-select-container">
+                            <select id="customer-select" class="customer-dropdown">
+                                <option value="">Select a customer</option>
+                            </select>
+                            <button type="button" id="add-customer-btn" class="add-customer-btn" title="Add new customer">+</button>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -212,6 +212,47 @@
         </div>
     </footer>
 
+    <!-- Customer Modal -->
+    <div id="customer-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="customer-modal-title">Add New Customer</h3>
+                <button type="button" class="modal-close" id="close-customer-modal">&times;</button>
+            </div>
+            <form id="customer-form">
+                <div class="form-group">
+                    <label for="customer-name">Customer Name *</label>
+                    <input type="text" id="customer-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-company">Company</label>
+                    <input type="text" id="customer-company">
+                </div>
+                <div class="form-group">
+                    <label for="customer-email-modal">Email *</label>
+                    <input type="email" id="customer-email-modal" required>
+                </div>
+                <div class="form-group">
+                    <label for="customer-phone">Phone</label>
+                    <input type="tel" id="customer-phone">
+                </div>
+                <div class="form-group">
+                    <label for="customer-address">Address</label>
+                    <textarea id="customer-address" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="customer-notes">Notes</label>
+                    <textarea id="customer-notes" rows="2" placeholder="Any additional notes about this customer"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancel-customer">Cancel</button>
+                    <button type="submit" class="btn-primary" id="save-customer">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script src="js/invoice.js"></script>
 </body>
 </html>
+
