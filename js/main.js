@@ -1,482 +1,409 @@
-// QuickBooks Exact Replica - Invoice Management System
+// Profit Tracker Dashboard - Main Page
 
-class QuickBooksInvoice {
+class ProfitTracker {
     constructor() {
-        this.currentInvoice = {
-            number: 1010,
-            customer: '',
-            customerEmail: '',
-            billingAddress: '',
-            terms: 'net-30',
-            invoiceDate: '2025-01-10',
-            dueDate: '2025-01-31',
-            message: '',
-            lineItems: [],
-            total: 0,
-            balanceDue: 0
-        };
-        this.lineItemCounter = 0;
+        this.currentDate = new Date();
+        this.savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
         this.init();
     }
 
     init() {
         this.setupEventListeners();
-        this.initializeLineItems();
-        this.updateTotals();
-        this.setDefaultDates();
-    }
-
-    setDefaultDates() {
-        const today = new Date();
-        const dueDate = new Date(today);
-        dueDate.setDate(today.getDate() + 21); // 21 days from today
-
-        document.getElementById('invoice-date').value = today.toISOString().split('T')[0];
-        document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
+        this.updateCurrentMonthDisplay();
+        this.renderProfitChart();
+        this.updateSummaryCards();
+        this.renderInvoiceList();
+        this.checkForSuccessMessage();
     }
 
     setupEventListeners() {
-        // Customer selection
-        document.getElementById('customer-select').addEventListener('change', (e) => {
-            this.handleCustomerChange(e.target.value);
+        // Month navigation
+        document.getElementById('prev-month').addEventListener('click', () => {
+            this.currentDate.setMonth(this.currentDate.getMonth() - 1);
+            this.updateCurrentMonthDisplay();
+            this.renderProfitChart();
+            this.updateSummaryCards();
         });
 
-        // Customer email
-        document.getElementById('customer-email').addEventListener('input', (e) => {
-            this.currentInvoice.customerEmail = e.target.value;
+        document.getElementById('next-month').addEventListener('click', () => {
+            this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+            this.updateCurrentMonthDisplay();
+            this.renderProfitChart();
+            this.updateSummaryCards();
         });
 
-        // Billing address
-        document.getElementById('billing-address').addEventListener('input', (e) => {
-            this.currentInvoice.billingAddress = e.target.value;
+        // Invoice list controls
+        document.getElementById('invoice-search').addEventListener('input', (e) => {
+            this.filterInvoices();
         });
 
-        // Terms
-        document.getElementById('terms').addEventListener('change', (e) => {
-            this.currentInvoice.terms = e.target.value;
-            this.updateDueDate();
+        document.getElementById('status-filter').addEventListener('change', () => {
+            this.filterInvoices();
         });
 
-        // Invoice date
-        document.getElementById('invoice-date').addEventListener('change', (e) => {
-            this.currentInvoice.invoiceDate = e.target.value;
-            this.updateDueDate();
-        });
-
-        // Due date
-        document.getElementById('due-date').addEventListener('change', (e) => {
-            this.currentInvoice.dueDate = e.target.value;
-        });
-
-        // Invoice message
-        document.getElementById('invoice-message').addEventListener('input', (e) => {
-            this.currentInvoice.message = e.target.value;
-        });
-
-        // Line item actions
-        document.getElementById('add-lines').addEventListener('click', () => {
-            this.addLineItem();
-        });
-
-        document.getElementById('clear-all-lines').addEventListener('click', () => {
-            this.clearAllLines();
-        });
-
-        document.getElementById('add-subtotal').addEventListener('click', () => {
-            this.addSubtotalLine();
-        });
-
-        // Footer actions
-        document.querySelector('.btn-cancel').addEventListener('click', () => {
-            this.cancelInvoice();
-        });
-
-        document.querySelector('.btn-save').addEventListener('click', () => {
-            this.saveInvoice();
-        });
-
-        document.getElementById('save-and-send').addEventListener('click', () => {
-            this.saveAndSendInvoice();
-        });
-
-        // Header actions
-        document.querySelector('.close-btn').addEventListener('click', () => {
-            this.closeInvoice();
-        });
-
-        // Utility buttons
-        document.querySelectorAll('.utility-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (!e.target.closest('.close-btn')) {
-                    this.showMessage('Feature coming soon!', 'info');
-                }
-            });
-        });
-
-        // Footer links
-        document.querySelectorAll('.footer-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showMessage('Feature coming soon!', 'info');
-            });
+        document.getElementById('sort-by').addEventListener('change', () => {
+            this.renderInvoiceList();
         });
     }
 
-    handleCustomerChange(customerId) {
-        this.currentInvoice.customer = customerId;
+    updateCurrentMonthDisplay() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
         
-        // Simulate customer data loading
-        const customerData = {
-            'john-smith': {
-                name: 'John Smith',
-                email: 'john@example.com',
-                address: '123 Main St\nAnytown, ST 12345'
-            },
-            'abc-corp': {
-                name: 'ABC Corporation',
-                email: 'billing@abc-corp.com',
-                address: '456 Business Ave\nCorporate City, ST 67890'
-            },
-            'jane-doe': {
-                name: 'Jane Doe',
-                email: 'jane@example.com',
-                address: '789 Residential Rd\nHome Town, ST 54321'
+        const month = monthNames[this.currentDate.getMonth()];
+        const year = this.currentDate.getFullYear();
+        
+        document.getElementById('current-month-year').textContent = `${month} ${year}`;
+    }
+
+    renderProfitChart() {
+        const canvas = document.getElementById('profit-chart');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Get data for the last 12 months
+        const chartData = this.getChartData();
+        
+        if (chartData.length === 0) {
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('No invoice data available', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+        
+        // Chart dimensions
+        const padding = 60;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        const maxValue = Math.max(...chartData.map(d => d.amount), 1000); // Minimum scale
+        
+        // Draw axes
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 2;
+        
+        // Y-axis
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // X-axis
+        ctx.beginPath();
+        ctx.moveTo(padding, canvas.height - padding);
+        ctx.lineTo(canvas.width - padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // Draw bars
+        const barWidth = chartWidth / chartData.length * 0.8;
+        const barSpacing = chartWidth / chartData.length * 0.2;
+        
+        chartData.forEach((data, index) => {
+            const barHeight = (data.amount / maxValue) * chartHeight;
+            const x = padding + index * (barWidth + barSpacing) + barSpacing / 2;
+            const y = canvas.height - padding - barHeight;
+            
+            // Color based on whether it's the current month
+            ctx.fillStyle = data.isCurrentMonth ? '#0077c5' : '#28a745';
+            
+            ctx.fillRect(x, y, barWidth, barHeight);
+            
+            // Draw month labels
+            ctx.fillStyle = '#495057';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(data.month, x + barWidth / 2, canvas.height - padding + 20);
+            
+            // Draw value labels on bars
+            if (data.amount > 0) {
+                ctx.fillStyle = '#0077c5';
+                ctx.font = '10px Arial';
+                ctx.fillText('$' + data.amount.toFixed(0), x + barWidth / 2, y - 5);
             }
-        };
-
-        if (customerData[customerId]) {
-            const customer = customerData[customerId];
-            document.getElementById('customer-email').value = customer.email;
-            document.getElementById('billing-address').value = customer.address;
-            this.currentInvoice.customerEmail = customer.email;
-            this.currentInvoice.billingAddress = customer.address;
-        } else {
-            document.getElementById('customer-email').value = '';
-            document.getElementById('billing-address').value = '';
-            this.currentInvoice.customerEmail = '';
-            this.currentInvoice.billingAddress = '';
-        }
+        });
     }
 
-    updateDueDate() {
-        const invoiceDate = new Date(this.currentInvoice.invoiceDate);
-        const terms = this.currentInvoice.terms;
+    getChartData() {
+        const data = [];
+        const currentMonth = this.currentDate.getMonth();
+        const currentYear = this.currentDate.getFullYear();
         
-        let daysToAdd = 30; // Default Net 30
-        
-        switch (terms) {
-            case 'net-15':
-                daysToAdd = 15;
-                break;
-            case 'net-30':
-                daysToAdd = 30;
-                break;
-            case 'net-60':
-                daysToAdd = 60;
-                break;
-            case 'due-on-receipt':
-                daysToAdd = 0;
-                break;
+        // Get data for the last 12 months
+        for (let i = 11; i >= 0; i--) {
+            const date = new Date(currentYear, currentMonth - i, 1);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            
+            // Calculate total for this month based on service dates
+            const monthTotal = this.savedInvoices.reduce((total, invoice) => {
+                // Group by service date from line items
+                const monthInvoices = invoice.lineItems.filter(item => {
+                    const serviceDate = new Date(item.serviceDate);
+                    return serviceDate.getMonth() === date.getMonth() && 
+                           serviceDate.getFullYear() === date.getFullYear();
+                });
+                
+                return total + monthInvoices.reduce((sum, item) => sum + item.amount, 0);
+            }, 0);
+            
+            data.push({
+                month: date.toLocaleDateString('en-US', { month: 'short' }),
+                amount: monthTotal,
+                isCurrentMonth: date.getMonth() === currentMonth && date.getFullYear() === currentYear
+            });
         }
         
-        const dueDate = new Date(invoiceDate);
-        dueDate.setDate(invoiceDate.getDate() + daysToAdd);
-        
-        document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
-        this.currentInvoice.dueDate = dueDate.toISOString().split('T')[0];
+        return data;
     }
 
-    initializeLineItems() {
-        const tbody = document.getElementById('line-items-tbody');
+    updateSummaryCards() {
+        const currentMonth = this.currentDate.getMonth();
+        const currentYear = this.currentDate.getFullYear();
+        
+        // This Month
+        const thisMonthData = this.getChartData().find(d => d.isCurrentMonth);
+        document.getElementById('this-month-total').textContent = `$${thisMonthData ? thisMonthData.amount.toFixed(2) : '0.00'}`;
+        
+        // Last Month
+        const lastMonth = new Date(currentYear, currentMonth - 1, 1);
+        const lastMonthTotal = this.getMonthTotal(lastMonth);
+        document.getElementById('last-month-total').textContent = `$${lastMonthTotal.toFixed(2)}`;
+        
+        // This Year
+        const thisYearTotal = this.savedInvoices.reduce((total, invoice) => {
+            const yearInvoices = invoice.lineItems.filter(item => {
+                const serviceDate = new Date(item.serviceDate);
+                return serviceDate.getFullYear() === currentYear;
+            });
+            return total + yearInvoices.reduce((sum, item) => sum + item.amount, 0);
+        }, 0);
+        document.getElementById('this-year-total').textContent = `$${thisYearTotal.toFixed(2)}`;
+        
+        // Total Invoices
+        document.getElementById('total-invoices').textContent = this.savedInvoices.length;
+    }
+
+    getMonthTotal(date) {
+        return this.savedInvoices.reduce((total, invoice) => {
+            const monthInvoices = invoice.lineItems.filter(item => {
+                const serviceDate = new Date(item.serviceDate);
+                return serviceDate.getMonth() === date.getMonth() && 
+                       serviceDate.getFullYear() === date.getFullYear();
+            });
+            return total + monthInvoices.reduce((sum, item) => sum + item.amount, 0);
+        }, 0);
+    }
+
+    renderInvoiceList() {
+        const tbody = document.getElementById('invoice-list-tbody');
+        const emptyState = document.getElementById('empty-state');
+        
+        if (this.savedInvoices.length === 0) {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
+            return;
+        }
+        
+        emptyState.style.display = 'none';
+        
+        // Sort invoices
+        const sortedInvoices = [...this.savedInvoices].sort((a, b) => {
+            const sortBy = document.getElementById('sort-by').value;
+            
+            switch (sortBy) {
+                case 'service-date':
+                    const aDate = new Date(a.lineItems[0]?.serviceDate || a.invoiceDate);
+                    const bDate = new Date(b.lineItems[0]?.serviceDate || b.invoiceDate);
+                    return bDate - aDate; // Newest first
+                case 'invoice-date':
+                    return new Date(b.invoiceDate) - new Date(a.invoiceDate);
+                case 'amount':
+                    return b.total - a.total;
+                case 'customer':
+                    return a.customer.localeCompare(b.customer);
+                default:
+                    return 0;
+            }
+        });
+        
         tbody.innerHTML = '';
         
-        // Add two initial empty rows
-        this.addLineItem();
-        this.addLineItem();
-    }
-
-    addLineItem() {
-        this.lineItemCounter++;
-        const tbody = document.getElementById('line-items-tbody');
-        const row = document.createElement('tr');
-        row.className = 'line-item-row';
-        row.dataset.lineId = this.lineItemCounter;
-        
-        row.innerHTML = `
-            <td class="drag-handle">⋮⋮</td>
-            <td class="line-number">${this.lineItemCounter}</td>
-            <td><input type="date" class="service-date" value="${new Date().toISOString().split('T')[0]}"></td>
-            <td><input type="text" class="product-service" placeholder="Product or service"></td>
-            <td><input type="text" class="description" placeholder="Description"></td>
-            <td><input type="number" class="qty" value="1" min="0" step="0.01"></td>
-            <td><input type="number" class="rate" value="0" min="0" step="0.01" placeholder="0.00"></td>
-            <td><input type="number" class="amount" value="0" readonly></td>
-            <td><button class="delete-line" title="Delete line">🗑️</button></td>
-        `;
-        
-        tbody.appendChild(row);
-        
-        // Add event listeners for this row
-        this.setupLineItemListeners(row);
-        
-        // Update line numbers
-        this.updateLineNumbers();
-        
-        return row;
-    }
-
-    setupLineItemListeners(row) {
-        const inputs = row.querySelectorAll('input');
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                this.updateLineItemTotal(row);
-                this.updateTotals();
-            });
+        sortedInvoices.forEach(invoice => {
+            const row = document.createElement('tr');
+            const serviceDate = invoice.lineItems[0]?.serviceDate || invoice.invoiceDate;
+            const dueDate = new Date(invoice.dueDate);
+            const isOverdue = dueDate < new Date() && invoice.status !== 'paid';
+            
+            row.innerHTML = `
+                <td>#${invoice.number}</td>
+                <td>${this.getCustomerName(invoice.customer)}</td>
+                <td>${this.formatDate(serviceDate)}</td>
+                <td>${this.formatDate(invoice.invoiceDate)}</td>
+                <td class="${isOverdue ? 'overdue' : ''}">${this.formatDate(invoice.dueDate)}</td>
+                <td>$${invoice.total.toFixed(2)}</td>
+                <td><span class="status ${invoice.status}">${invoice.status}</span></td>
+                <td>
+                    <button class="btn-small" onclick="profitTracker.viewInvoice(${invoice.number})">View</button>
+                    <button class="btn-small" onclick="profitTracker.editInvoice(${invoice.number})">Edit</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
         });
         
-        const deleteBtn = row.querySelector('.delete-line');
-        deleteBtn.addEventListener('click', () => {
-            row.remove();
-            this.updateLineNumbers();
-            this.updateTotals();
-        });
-        
-        // Drag handle functionality (basic implementation)
-        const dragHandle = row.querySelector('.drag-handle');
-        dragHandle.addEventListener('mousedown', (e) => {
-            this.startDrag(row, e);
-        });
+        this.filterInvoices(); // Apply current filters
     }
 
-    updateLineItemTotal(row) {
-        const qty = parseFloat(row.querySelector('.qty').value) || 0;
-        const rate = parseFloat(row.querySelector('.rate').value) || 0;
-        const amount = qty * rate;
-        
-        row.querySelector('.amount').value = amount.toFixed(2);
-        
-        // Update line item data
-        const lineId = row.dataset.lineId;
-        const lineItem = {
-            id: lineId,
-            serviceDate: row.querySelector('.service-date').value,
-            productService: row.querySelector('.product-service').value,
-            description: row.querySelector('.description').value,
-            qty: qty,
-            rate: rate,
-            amount: amount
+    getCustomerName(customerId) {
+        const customerData = {
+            'john-smith': 'John Smith',
+            'abc-corp': 'ABC Corporation',
+            'jane-doe': 'Jane Doe'
         };
-        
-        // Update or add line item
-        const existingIndex = this.currentInvoice.lineItems.findIndex(item => item.id === lineId);
-        if (existingIndex >= 0) {
-            this.currentInvoice.lineItems[existingIndex] = lineItem;
-        } else {
-            this.currentInvoice.lineItems.push(lineItem);
-        }
+        return customerData[customerId] || customerId;
     }
 
-    updateLineNumbers() {
-        const rows = document.querySelectorAll('.line-item-row');
-        rows.forEach((row, index) => {
-            row.querySelector('.line-number').textContent = index + 1;
+    filterInvoices() {
+        const searchTerm = document.getElementById('invoice-search').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+        const rows = document.querySelectorAll('#invoice-list-tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const statusElement = row.querySelector('.status');
+            const status = statusElement ? statusElement.textContent : '';
+            
+            const matchesSearch = text.includes(searchTerm);
+            const matchesStatus = !statusFilter || status === statusFilter;
+            
+            row.style.display = (matchesSearch && matchesStatus) ? '' : 'none';
         });
     }
 
-    updateTotals() {
-        let total = 0;
-        
-        this.currentInvoice.lineItems.forEach(item => {
-            total += item.amount;
+    formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
         });
-        
-        this.currentInvoice.total = total;
-        this.currentInvoice.balanceDue = total;
-        
-        // Update UI
-        document.getElementById('total-amount').textContent = `$${total.toFixed(2)}`;
-        document.getElementById('balance-due').textContent = `$${total.toFixed(2)}`;
-        document.getElementById('balance-due-bottom').textContent = `$${total.toFixed(2)}`;
     }
 
-    clearAllLines() {
-        if (confirm('Are you sure you want to clear all line items?')) {
-            const tbody = document.getElementById('line-items-tbody');
-            tbody.innerHTML = '';
-            this.currentInvoice.lineItems = [];
-            this.lineItemCounter = 0;
-            this.updateTotals();
-            this.showMessage('All line items cleared', 'success');
+    viewInvoice(invoiceNumber) {
+        const invoice = this.savedInvoices.find(inv => inv.number === invoiceNumber);
+        if (invoice) {
+            // Open invoice in new tab/window for viewing
+            const invoiceWindow = window.open('', '_blank');
+            invoiceWindow.document.write(this.generateInvoiceHTML(invoice));
         }
     }
 
-    addSubtotalLine() {
-        // Add a subtotal line (non-editable)
-        const tbody = document.getElementById('line-items-tbody');
-        const row = document.createElement('tr');
-        row.className = 'subtotal-row';
-        row.style.backgroundColor = '#f8f9fa';
-        
-        const currentTotal = this.currentInvoice.total;
-        
-        row.innerHTML = `
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td><strong>Subtotal</strong></td>
-            <td></td>
-            <td></td>
-            <td><strong>$${currentTotal.toFixed(2)}</strong></td>
-            <td></td>
+    editInvoice(invoiceNumber) {
+        // Redirect to invoice page with invoice data
+        localStorage.setItem('editingInvoice', JSON.stringify(
+            this.savedInvoices.find(inv => inv.number === invoiceNumber)
+        ));
+        window.location.href = 'invoice.html';
+    }
+
+    generateInvoiceHTML(invoice) {
+        return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Invoice #${invoice.number}</title>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 40px; }
+                    .header { text-align: center; margin-bottom: 30px; }
+                    .invoice-details { margin-bottom: 20px; }
+                    .line-items { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+                    .line-items th, .line-items td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                    .line-items th { background-color: #f2f2f2; }
+                    .totals { text-align: right; margin-top: 20px; }
+                    .total-row { margin: 5px 0; }
+                    .balance-due { font-weight: bold; font-size: 1.2em; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>INVOICE #${invoice.number}</h1>
+                </div>
+                
+                <div class="invoice-details">
+                    <p><strong>Customer:</strong> ${this.getCustomerName(invoice.customer)}</p>
+                    <p><strong>Invoice Date:</strong> ${this.formatDate(invoice.invoiceDate)}</p>
+                    <p><strong>Due Date:</strong> ${this.formatDate(invoice.dueDate)}</p>
+                    <p><strong>Status:</strong> ${invoice.status}</p>
+                </div>
+                
+                <table class="line-items">
+                    <thead>
+                        <tr>
+                            <th>Service Date</th>
+                            <th>Description</th>
+                            <th>Qty</th>
+                            <th>Rate</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${invoice.lineItems.map(item => `
+                            <tr>
+                                <td>${this.formatDate(item.serviceDate)}</td>
+                                <td>${item.productService} - ${item.description}</td>
+                                <td>${item.qty}</td>
+                                <td>$${item.rate.toFixed(2)}</td>
+                                <td>$${item.amount.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                
+                <div class="totals">
+                    <div class="total-row">Total: $${invoice.total.toFixed(2)}</div>
+                    <div class="total-row balance-due">Balance Due: $${invoice.balanceDue.toFixed(2)}</div>
+                </div>
+                
+                ${invoice.message ? `<div style="margin-top: 30px;"><strong>Message:</strong><br>${invoice.message}</div>` : ''}
+            </body>
+            </html>
         `;
-        
-        tbody.appendChild(row);
-        this.showMessage('Subtotal line added', 'success');
     }
 
-    startDrag(row, e) {
-        // Basic drag functionality placeholder
-        e.preventDefault();
-        this.showMessage('Drag functionality coming soon!', 'info');
-    }
-
-    saveInvoice() {
-        this.collectInvoiceData();
-        
-        // Simulate save
-        this.showMessage('Invoice saved successfully!', 'success');
-        console.log('Invoice saved:', this.currentInvoice);
-        
-        // In a real app, this would save to a database
-        localStorage.setItem('currentInvoice', JSON.stringify(this.currentInvoice));
-    }
-
-    saveAndSendInvoice() {
-        if (!this.currentInvoice.customer) {
-            this.showMessage('Please select a customer first', 'error');
-            return;
-        }
-        
-        if (this.currentInvoice.lineItems.length === 0) {
-            this.showMessage('Please add at least one line item', 'error');
-            return;
-        }
-        
-        this.collectInvoiceData();
-        
-        // Simulate save and send
-        this.showMessage('Invoice saved and sent successfully!', 'success');
-        console.log('Invoice saved and sent:', this.currentInvoice);
-        
-        // In a real app, this would save and send email
-        localStorage.setItem('currentInvoice', JSON.stringify(this.currentInvoice));
-        
-        // Generate next invoice number
-        this.currentInvoice.number++;
-        document.querySelector('h1').textContent = `Invoice no. ${this.currentInvoice.number}`;
-        document.getElementById('invoice-number').value = this.currentInvoice.number;
-        document.title = `Invoice no. ${this.currentInvoice.number}`;
-    }
-
-    collectInvoiceData() {
-        this.currentInvoice.customer = document.getElementById('customer-select').value;
-        this.currentInvoice.customerEmail = document.getElementById('customer-email').value;
-        this.currentInvoice.billingAddress = document.getElementById('billing-address').value;
-        this.currentInvoice.terms = document.getElementById('terms').value;
-        this.currentInvoice.invoiceDate = document.getElementById('invoice-date').value;
-        this.currentInvoice.dueDate = document.getElementById('due-date').value;
-        this.currentInvoice.message = document.getElementById('invoice-message').value;
-        
-        // Collect line items
-        this.currentInvoice.lineItems = [];
-        document.querySelectorAll('.line-item-row').forEach(row => {
-            const lineItem = {
-                id: row.dataset.lineId,
-                serviceDate: row.querySelector('.service-date').value,
-                productService: row.querySelector('.product-service').value,
-                description: row.querySelector('.description').value,
-                qty: parseFloat(row.querySelector('.qty').value) || 0,
-                rate: parseFloat(row.querySelector('.rate').value) || 0,
-                amount: parseFloat(row.querySelector('.amount').value) || 0
-            };
-            this.currentInvoice.lineItems.push(lineItem);
-        });
-    }
-
-    cancelInvoice() {
-        if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
-            this.showMessage('Invoice cancelled', 'info');
-            // Reset form or navigate away
-            window.location.reload();
+    checkForSuccessMessage() {
+        // Check if we came from invoice creation
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('success') === 'true') {
+            this.showSuccessMessage();
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
 
-    closeInvoice() {
-        if (confirm('Are you sure you want to close? All unsaved changes will be lost.')) {
-            this.showMessage('Invoice closed', 'info');
-            // Close window or navigate away
-            window.close();
-        }
-    }
-
-    showMessage(message, type = 'info') {
-        // Remove existing messages
-        document.querySelectorAll('.message').forEach(msg => msg.remove());
+    showSuccessMessage() {
+        const messageDiv = document.getElementById('success-message');
+        messageDiv.style.display = 'block';
         
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${type}`;
-        messageDiv.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 4px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        `;
-        
-        switch (type) {
-            case 'success':
-                messageDiv.style.backgroundColor = '#28a745';
-                break;
-            case 'error':
-                messageDiv.style.backgroundColor = '#dc3545';
-                break;
-            case 'info':
-                messageDiv.style.backgroundColor = '#17a2b8';
-                break;
-            default:
-                messageDiv.style.backgroundColor = '#6c757d';
-        }
-        
-        messageDiv.textContent = message;
-        document.body.appendChild(messageDiv);
-        
-        // Auto-remove after 3 seconds
         setTimeout(() => {
-            messageDiv.remove();
+            messageDiv.style.display = 'none';
         }, 3000);
+    }
+
+    refreshData() {
+        this.savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
+        this.renderProfitChart();
+        this.updateSummaryCards();
+        this.renderInvoiceList();
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.quickBooksInvoice = new QuickBooksInvoice();
-});
-
-// Load saved invoice if exists
-document.addEventListener('DOMContentLoaded', () => {
-    const savedInvoice = localStorage.getItem('currentInvoice');
-    if (savedInvoice) {
-        try {
-            const invoice = JSON.parse(savedInvoice);
-            // Restore invoice data
-            console.log('Loaded saved invoice:', invoice);
-        } catch (e) {
-            console.error('Error loading saved invoice:', e);
-        }
-    }
+    window.profitTracker = new ProfitTracker();
+    
+    // Refresh data when returning from invoice page
+    window.addEventListener('focus', () => {
+        window.profitTracker.refreshData();
+    });
 });

@@ -606,6 +606,304 @@ button:focus, input:focus, select:focus, textarea:focus {
     outline-offset: 2px;
 }
 
+/* Dashboard Styles */
+.dashboard-header {
+    background: white;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.dashboard-main {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Profit Tracker Section */
+.profit-tracker-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 32px;
+    overflow: hidden;
+}
+
+.section-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.date-controls {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.date-controls span {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+    min-width: 120px;
+    text-align: center;
+}
+
+/* Profit Chart */
+.profit-chart-container {
+    padding: 24px;
+    background: white;
+}
+
+#profit-chart {
+    width: 100%;
+    height: 300px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+}
+
+/* Summary Cards */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    padding: 24px;
+    background: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+}
+
+.summary-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.card-label {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.card-amount {
+    font-size: 24px;
+    font-weight: 700;
+    color: #0077c5;
+}
+
+/* Invoice List Section */
+.invoice-list-section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.list-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.list-controls input,
+.list-controls select {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+}
+
+/* Invoice Table */
+.invoice-table-container {
+    padding: 24px;
+}
+
+.invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 16px;
+}
+
+.invoice-table th {
+    background: #f8f9fa;
+    padding: 12px 8px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.invoice-table td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.invoice-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+/* Status badges */
+.status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status.draft {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.status.sent {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status.paid {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status.overdue {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Overdue styling */
+.overdue {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+/* Action buttons */
+.btn-small {
+    background: #0077c5;
+    border: 1px solid #0077c5;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 4px;
+    transition: all 0.2s;
+}
+
+.btn-small:hover {
+    background: #005a9e;
+    border-color: #005a9e;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: #666;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.empty-state h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.empty-state p {
+    font-size: 14px;
+    margin-bottom: 24px;
+    color: #666;
+}
+
+/* Success Message */
+.success-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-weight: 500;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Responsive Design for Dashboard */
+@media (max-width: 1200px) {
+    .summary-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .list-controls {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-main {
+        padding: 16px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 16px;
+        align-items: flex-start;
+    }
+    
+    .date-controls {
+        align-self: stretch;
+        justify-content: center;
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .invoice-table-container {
+        overflow-x: auto;
+    }
+    
+    .invoice-table {
+        min-width: 600px;
+    }
+    
+    .list-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .list-controls input,
+    .list-controls select {
+        width: 100%;
+    }
+}
+
 /* Print Styles */
 @media print {
     .invoice-header, .invoice-footer, .line-actions {
@@ -619,5 +917,14 @@ button:focus, input:focus, select:focus, textarea:focus {
     
     body {
         background: white;
+    }
+    
+    .dashboard-header {
+        display: none;
+    }
+    
+    .section-header {
+        background: white;
+        border-bottom: 2px solid #333;
     }
 }
