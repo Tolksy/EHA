@@ -108,6 +108,16 @@ class QuickBooksInvoice {
 
         document.getElementById('invoice-date').value = today.toISOString().split('T')[0];
         document.getElementById('due-date').value = dueDate.toISOString().split('T')[0];
+        
+        // Set minimum date for service dates to prevent backdating (current month only)
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const minServiceDate = currentMonth.toISOString().split('T')[0];
+        
+        // Update all existing service date inputs
+        document.querySelectorAll('.service-date').forEach(input => {
+            input.min = minServiceDate;
+            input.max = today.toISOString().split('T')[0];
+        });
     }
 
     updateInvoiceNumber() {
@@ -246,9 +256,6 @@ class QuickBooksInvoice {
     }
 
     saveCustomer() {
-        const form = document.getElementById('customer-form');
-        const formData = new FormData(form);
-        
         const customer = {
             id: this.generateCustomerId(document.getElementById('customer-name').value),
             name: document.getElementById('customer-name').value.trim(),
@@ -391,10 +398,16 @@ class QuickBooksInvoice {
         row.className = 'line-item-row';
         row.dataset.lineId = this.lineItemCounter;
         
+        // Set date restrictions for service dates (current month only)
+        const today = new Date();
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const minServiceDate = currentMonth.toISOString().split('T')[0];
+        const maxServiceDate = today.toISOString().split('T')[0];
+        
         row.innerHTML = `
             <td class="drag-handle">⋮⋮</td>
             <td class="line-number">${this.lineItemCounter}</td>
-            <td><input type="date" class="service-date" value="${new Date().toISOString().split('T')[0]}"></td>
+            <td><input type="date" class="service-date" value="${maxServiceDate}" min="${minServiceDate}" max="${maxServiceDate}"></td>
             <td><input type="text" class="product-service" placeholder="Product or service"></td>
             <td><input type="text" class="description" placeholder="Description"></td>
             <td><input type="number" class="qty" value="1" min="0" step="0.01"></td>
