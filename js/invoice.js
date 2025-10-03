@@ -2,7 +2,8 @@
 
 class QuickBooksInvoice {
     constructor() {
-        this.currentInvoice = {
+        this.editingInvoice = this.checkForEditingInvoice();
+        this.currentInvoice = this.editingInvoice || {
             number: this.getNextInvoiceNumber(),
             customer: '',
             customerEmail: '',
@@ -19,6 +20,15 @@ class QuickBooksInvoice {
         this.lineItemCounter = 0;
         this.customers = this.loadCustomers();
         this.init();
+    }
+
+    checkForEditingInvoice() {
+        const editingData = localStorage.getItem('editingInvoice');
+        if (editingData) {
+            localStorage.removeItem('editingInvoice'); // Clear after reading
+            return JSON.parse(editingData);
+        }
+        return null;
     }
 
     loadCustomers() {
@@ -94,11 +104,18 @@ class QuickBooksInvoice {
 
     init() {
         this.setupEventListeners();
-        this.initializeLineItems();
-        this.updateTotals();
-        this.setDefaultDates();
-        this.updateInvoiceNumber();
         this.populateCustomerDropdown();
+        
+        if (this.editingInvoice) {
+            this.populateInvoiceForm();
+            this.initializeLineItemsFromData();
+        } else {
+            this.initializeLineItems();
+            this.setDefaultDates();
+        }
+        
+        this.updateTotals();
+        this.updateInvoiceNumber();
     }
 
     setDefaultDates() {
@@ -118,6 +135,57 @@ class QuickBooksInvoice {
             input.min = minServiceDate;
             input.max = today.toISOString().split('T')[0];
         });
+    }
+
+    populateInvoiceForm() {
+        // Populate customer selection
+        document.getElementById('customer-select').value = this.currentInvoice.customer;
+        document.getElementById('customer-email').value = this.currentInvoice.customerEmail || '';
+        document.getElementById('billing-address').value = this.currentInvoice.billingAddress || '';
+        document.getElementById('terms').value = this.currentInvoice.terms || 'net-30';
+        document.getElementById('invoice-date').value = this.currentInvoice.invoiceDate;
+        document.getElementById('due-date').value = this.currentInvoice.dueDate;
+        document.getElementById('invoice-message').value = this.currentInvoice.message || '';
+        
+        // Update line item counter to continue from existing items
+        this.lineItemCounter = this.currentInvoice.lineItems.length;
+    }
+
+    initializeLineItemsFromData() {
+        const tbody = document.getElementById('line-items-tbody');
+        tbody.innerHTML = '';
+        
+        // Set date restrictions for service dates (current month only)
+        const today = new Date();
+        const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const minServiceDate = currentMonth.toISOString().split('T')[0];
+        const maxServiceDate = today.toISOString().split('T')[0];
+        
+        this.currentInvoice.lineItems.forEach((item, index) => {
+            const row = document.createElement('tr');
+            row.className = 'line-item-row';
+            row.dataset.lineId = item.id || (index + 1);
+            
+            row.innerHTML = `
+                <td class="drag-handle">⋮⋮</td>
+                <td class="line-number">${index + 1}</td>
+                <td><input type="date" class="service-date" value="${item.serviceDate}" min="${minServiceDate}" max="${maxServiceDate}"></td>
+                <td><input type="text" class="product-service" value="${item.productService || ''}" placeholder="Product or service"></td>
+                <td><input type="text" class="description" value="${item.description || ''}" placeholder="Description"></td>
+                <td><input type="number" class="qty" value="${item.qty || 1}" min="0" step="0.01"></td>
+                <td><input type="number" class="rate" value="${item.rate || 0}" min="0" step="0.01" placeholder="0.00"></td>
+                <td><input type="number" class="amount" value="${item.amount || 0}" readonly></td>
+                <td><button class="delete-line" title="Delete line">🗑️</button></td>
+            `;
+            
+            tbody.appendChild(row);
+            this.setupLineItemListeners(row);
+        });
+        
+        // If no line items, add one empty row
+        if (this.currentInvoice.lineItems.length === 0) {
+            this.addLineItem();
+        }
     }
 
     updateInvoiceNumber() {
@@ -548,10 +616,24 @@ class QuickBooksInvoice {
         
         // Save to localStorage
         const savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
-        savedInvoices.push(this.currentInvoice);
-        localStorage.setItem('savedInvoices', JSON.stringify(savedInvoices));
         
-        this.showMessage('Invoice saved successfully!', 'success');
+        if (this.editingInvoice) {
+            // Update existing invoice
+            const index = savedInvoices.findIndex(inv => inv.number === this.currentInvoice.number);
+            if (index !== -1) {
+                savedInvoices[index] = this.currentInvoice;
+                this.showMessage('Invoice updated successfully!', 'success');
+            } else {
+                savedInvoices.push(this.currentInvoice);
+                this.showMessage('Invoice saved successfully!', 'success');
+            }
+        } else {
+            // Add new invoice
+            savedInvoices.push(this.currentInvoice);
+            this.showMessage('Invoice saved successfully!', 'success');
+        }
+        
+        localStorage.setItem('savedInvoices', JSON.stringify(savedInvoices));
         console.log('Invoice saved:', this.currentInvoice);
     }
 
@@ -581,10 +663,23 @@ class QuickBooksInvoice {
         // Save to localStorage
         const savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
         this.currentInvoice.status = 'sent';
-        savedInvoices.push(this.currentInvoice);
-        localStorage.setItem('savedInvoices', JSON.stringify(savedInvoices));
         
-        this.showMessage('Invoice saved and sent successfully!', 'success');
+        if (this.editingInvoice) {
+            // Update existing invoice
+            const index = savedInvoices.findIndex(inv => inv.number === this.currentInvoice.number);
+            if (index !== -1) {
+                savedInvoices[index] = this.currentInvoice;
+            } else {
+                savedInvoices.push(this.currentInvoice);
+            }
+            this.showMessage('Invoice updated and sent successfully!', 'success');
+        } else {
+            // Add new invoice
+            savedInvoices.push(this.currentInvoice);
+            this.showMessage('Invoice saved and sent successfully!', 'success');
+        }
+        
+        localStorage.setItem('savedInvoices', JSON.stringify(savedInvoices));
         console.log('Invoice saved and sent:', this.currentInvoice);
         
         // Redirect back to main page after a short delay
