@@ -116,6 +116,43 @@ class ProfitTracker {
         document.getElementById('refresh-chart').addEventListener('click', () => {
             this.renderProfitChart();
         });
+
+        // Calendar button
+        document.getElementById('calendar-btn').addEventListener('click', () => {
+            this.openCalendar();
+        });
+
+        // Calendar modal events
+        document.getElementById('close-calendar').addEventListener('click', () => {
+            this.closeCalendar();
+        });
+
+        // Calendar navigation
+        document.getElementById('prev-month').addEventListener('click', () => {
+            this.changeMonth(-1);
+        });
+
+        document.getElementById('next-month').addEventListener('click', () => {
+            this.changeMonth(1);
+        });
+
+        document.getElementById('today-btn-calendar').addEventListener('click', () => {
+            this.goToToday();
+        });
+
+        // Appointment modal events
+        document.getElementById('close-appointment-modal').addEventListener('click', () => {
+            this.closeAppointmentModal();
+        });
+
+        document.getElementById('cancel-appointment').addEventListener('click', () => {
+            this.closeAppointmentModal();
+        });
+
+        document.getElementById('appointment-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveAppointment();
+        });
     }
 
     updateCurrentMonthDisplay() {
@@ -976,6 +1013,220 @@ class ProfitTracker {
         ctx.stroke();
         ctx.setLineDash([]);
         ctx.fillText('Profit', padding + 200, padding + 15);
+    }
+
+    // Calendar Methods
+    openCalendar() {
+        document.getElementById('calendar-modal').style.display = 'flex';
+        this.currentCalendarDate = new Date();
+        this.renderCalendar();
+        this.populateClientDropdown();
+    }
+
+    closeCalendar() {
+        document.getElementById('calendar-modal').style.display = 'none';
+        this.closeAppointmentModal();
+    }
+
+    changeMonth(direction) {
+        this.currentCalendarDate.setMonth(this.currentCalendarDate.getMonth() + direction);
+        this.renderCalendar();
+    }
+
+    goToToday() {
+        this.currentCalendarDate = new Date();
+        this.renderCalendar();
+    }
+
+    renderCalendar() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const year = this.currentCalendarDate.getFullYear();
+        const month = this.currentCalendarDate.getMonth();
+        
+        // Update header
+        document.getElementById('current-month-year').textContent = `${monthNames[month]} ${year}`;
+        
+        // Get calendar data
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+        
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        
+        // Clear calendar
+        const calendarDays = document.getElementById('calendar-days');
+        calendarDays.innerHTML = '';
+        
+        // Generate 42 days (6 weeks)
+        for (let i = 0; i < 42; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day';
+            
+            // Add classes for styling
+            if (currentDate.getMonth() !== month) {
+                dayElement.classList.add('other-month');
+            }
+            
+            if (this.isToday(currentDate)) {
+                dayElement.classList.add('today');
+            }
+            
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayAppointments = appointments[dateStr] || [];
+            
+            if (dayAppointments.length > 0) {
+                dayElement.classList.add('has-appointments');
+            }
+            
+            // Day number
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number';
+            dayNumber.textContent = currentDate.getDate();
+            dayElement.appendChild(dayNumber);
+            
+            // Add appointments
+            dayAppointments.forEach(appointment => {
+                const appointmentBlock = document.createElement('div');
+                appointmentBlock.className = `appointment-block ${appointment.color}`;
+                appointmentBlock.innerHTML = `
+                    <span class="appointment-time">${appointment.startTime}</span>
+                    <span class="appointment-client">${appointment.client}</span>
+                `;
+                appointmentBlock.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showAppointmentDetails(appointment);
+                });
+                dayElement.appendChild(appointmentBlock);
+            });
+            
+            // Click handler for adding appointments
+            dayElement.addEventListener('click', () => {
+                this.openAppointmentModal(currentDate);
+            });
+            
+            calendarDays.appendChild(dayElement);
+        }
+    }
+
+    isToday(date) {
+        const today = new Date();
+        return date.getDate() === today.getDate() &&
+               date.getMonth() === today.getMonth() &&
+               date.getFullYear() === today.getFullYear();
+    }
+
+    populateClientDropdown() {
+        const select = document.getElementById('appointment-client');
+        select.innerHTML = '<option value="">Select a client</option>';
+        
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        customers.forEach(customer => {
+            const option = document.createElement('option');
+            option.value = customer.id;
+            option.textContent = customer.company ? `${customer.name} (${customer.company})` : customer.name;
+            select.appendChild(option);
+        });
+    }
+
+    openAppointmentModal(date) {
+        document.getElementById('appointment-modal').style.display = 'flex';
+        document.getElementById('appointment-date').value = date.toISOString().split('T')[0];
+        document.getElementById('appointment-modal-title').textContent = `Schedule Appointment - ${date.toLocaleDateString()}`;
+        
+        // Clear form
+        document.getElementById('appointment-form').reset();
+        document.getElementById('appointment-date').value = date.toISOString().split('T')[0];
+        document.querySelector('input[name="appointment-color"][value="blue"]').checked = true;
+        
+        // Set default times
+        document.getElementById('start-time').value = '09:00';
+        document.getElementById('end-time').value = '10:00';
+    }
+
+    closeAppointmentModal() {
+        document.getElementById('appointment-modal').style.display = 'none';
+    }
+
+    saveAppointment() {
+        const formData = {
+            id: Date.now(),
+            date: document.getElementById('appointment-date').value,
+            clientId: document.getElementById('appointment-client').value,
+            startTime: document.getElementById('start-time').value,
+            endTime: document.getElementById('end-time').value,
+            color: document.querySelector('input[name="appointment-color"]:checked').value,
+            notes: document.getElementById('appointment-notes').value.trim()
+        };
+        
+        // Validate form
+        if (!formData.clientId) {
+            this.showMessage('Please select a client', 'error');
+            return;
+        }
+        
+        if (formData.startTime >= formData.endTime) {
+            this.showMessage('End time must be after start time', 'error');
+            return;
+        }
+        
+        // Get client name
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const client = customers.find(c => c.id === formData.clientId);
+        formData.client = client ? (client.company ? `${client.name} (${client.company})` : client.name) : 'Unknown Client';
+        
+        // Save appointment
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        if (!appointments[formData.date]) {
+            appointments[formData.date] = [];
+        }
+        appointments[formData.date].push(formData);
+        
+        // Sort appointments by start time
+        appointments[formData.date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+        
+        this.showMessage('Appointment scheduled successfully!', 'success');
+        this.closeAppointmentModal();
+        this.renderCalendar();
+    }
+
+    showAppointmentDetails(appointment) {
+        // Create and show tooltip with appointment details
+        const tooltip = document.createElement('div');
+        tooltip.className = 'appointment-tooltip show';
+        tooltip.innerHTML = `
+            <div><strong>${appointment.client}</strong></div>
+            <div>${appointment.startTime} - ${appointment.endTime}</div>
+            ${appointment.notes ? `<div>${appointment.notes}</div>` : ''}
+        `;
+        
+        document.body.appendChild(tooltip);
+        
+        // Position tooltip
+        const rect = event.target.getBoundingClientRect();
+        tooltip.style.left = rect.left + 'px';
+        tooltip.style.top = (rect.top - tooltip.offsetHeight - 10) + 'px';
+        
+        // Remove tooltip after delay
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        }, 3000);
+        
+        // Remove tooltip on click
+        tooltip.addEventListener('click', () => {
+            if (tooltip.parentNode) {
+                tooltip.parentNode.removeChild(tooltip);
+            }
+        });
     }
 
     showSuccessMessage() {
