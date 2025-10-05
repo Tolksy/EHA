@@ -14,9 +14,21 @@
             <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
         </div>
         <div class="header-right">
-            <button class="btn-secondary" id="smart-scheduler-btn" title="AI-powered smart scheduling">
-                🧠 Smart Scheduler
-            </button>
+            <div class="scheduler-dropdown">
+                <button class="btn-secondary" id="smart-scheduler-btn" title="AI-powered smart scheduling">
+                    🧠 Smart Scheduler ▼
+                </button>
+                <div class="dropdown-menu" id="scheduler-dropdown-menu">
+                    <button class="dropdown-item" id="macro-scheduler-btn">
+                        📅 Macro Planning
+                        <small>Long-term scheduling</small>
+                    </button>
+                    <button class="dropdown-item" id="micro-scheduler-btn">
+                        📝 Daily Logging
+                        <small>Log field services</small>
+                    </button>
+                </div>
+            </div>
             <button class="btn-secondary" id="profit-tracker-btn" title="Track daily revenue and expenses">
                 💰 Profit Tracker
             </button>
@@ -438,7 +450,7 @@
                             <div class="progress-fill" id="wizard-progress"></div>
                         </div>
                         <div class="progress-text">
-                            <span id="current-step">1</span> of 5
+                            <span id="current-step">1</span> of 6
                         </div>
                     </div>
                     
@@ -615,6 +627,42 @@
                                 </label>
                             </div>
                         </div>
+
+                        <!-- Step 6: Schedule Duration -->
+                        <div class="wizard-step" id="step-6">
+                            <h4>📅 How long should this schedule run?</h4>
+                            <p>Choose the duration for your generated schedule</p>
+                            <div class="duration-options">
+                                <label class="duration-option">
+                                    <input type="radio" name="schedule-duration" value="7">
+                                    <div class="option-card">
+                                        <div class="option-duration">1 Week</div>
+                                        <div class="option-desc">Quick planning</div>
+                                    </div>
+                                </label>
+                                <label class="duration-option">
+                                    <input type="radio" name="schedule-duration" value="14">
+                                    <div class="option-card">
+                                        <div class="option-duration">2 Weeks</div>
+                                        <div class="option-desc">Short-term planning</div>
+                                    </div>
+                                </label>
+                                <label class="duration-option">
+                                    <input type="radio" name="schedule-duration" value="30">
+                                    <div class="option-card">
+                                        <div class="option-duration">1 Month</div>
+                                        <div class="option-desc">Full month planning</div>
+                                    </div>
+                                </label>
+                                <label class="duration-option">
+                                    <input type="radio" name="schedule-duration" value="90">
+                                    <div class="option-card">
+                                        <div class="option-duration">3 Months</div>
+                                        <div class="option-desc">Quarterly planning</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="wizard-actions">
@@ -654,6 +702,157 @@
                         <button type="button" class="btn-secondary" id="regenerate-schedule">🔄 Regenerate</button>
                         <button type="button" class="btn-primary" id="save-schedule">💾 Save to Calendar</button>
                         <button type="button" class="btn-secondary" id="edit-schedule">✏️ Edit Schedule</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Logging Wizard Modal -->
+    <div id="daily-logging-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>📝 Daily Field Service Logging</h3>
+                <button type="button" class="modal-close" id="close-daily-logging">&times;</button>
+            </div>
+            <div class="daily-logging-content">
+                <!-- Date Selection -->
+                <div class="date-selection-section">
+                    <h4>📅 Select the date to log services for:</h4>
+                    <div class="date-picker-container">
+                        <input type="date" id="logging-date" class="date-input">
+                        <button class="btn-secondary" id="today-logging-btn">Today</button>
+                        <button class="btn-secondary" id="yesterday-logging-btn">Yesterday</button>
+                    </div>
+                </div>
+
+                <!-- Service Entry Wizard -->
+                <div id="service-entry-wizard" class="service-entry-wizard" style="display: none;">
+                    <div class="wizard-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="logging-progress"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="logging-step">1</span> of 4
+                        </div>
+                    </div>
+
+                    <div class="wizard-content">
+                        <!-- Step 1: Customer Selection -->
+                        <div class="wizard-step active" id="logging-step-1">
+                            <h4>👤 Who are you billing?</h4>
+                            <p>Select the customer for this service</p>
+                            <div class="customer-search">
+                                <input type="text" id="customer-search" placeholder="Search customers...">
+                            </div>
+                            <div class="customer-list" id="customer-list">
+                                <!-- Customers will be populated here -->
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Service Type -->
+                        <div class="wizard-step" id="logging-step-2">
+                            <h4>🔧 What service did you provide?</h4>
+                            <p>Select the type of field service</p>
+                            <div class="service-type-options">
+                                <label class="service-type-option">
+                                    <input type="radio" name="service-type" value="installation">
+                                    <div class="option-card">
+                                        <div class="service-icon">🔧</div>
+                                        <div class="service-title">Installation</div>
+                                        <div class="service-desc">Equipment, systems, fixtures</div>
+                                    </div>
+                                </label>
+                                <label class="service-type-option">
+                                    <input type="radio" name="service-type" value="repair">
+                                    <div class="option-card">
+                                        <div class="service-icon">🔨</div>
+                                        <div class="service-title">Repair</div>
+                                        <div class="service-desc">Fix, troubleshoot, restore</div>
+                                    </div>
+                                </label>
+                                <label class="service-type-option">
+                                    <input type="radio" name="service-type" value="maintenance">
+                                    <div class="option-card">
+                                        <div class="service-icon">🛠️</div>
+                                        <div class="service-title">Maintenance</div>
+                                        <div class="service-desc">Regular upkeep, cleaning</div>
+                                    </div>
+                                </label>
+                                <label class="service-type-option">
+                                    <input type="radio" name="service-type" value="inspection">
+                                    <div class="option-card">
+                                        <div class="service-icon">🔍</div>
+                                        <div class="service-title">Inspection</div>
+                                        <div class="service-desc">Assessment, evaluation</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Team Members -->
+                        <div class="wizard-step" id="logging-step-3">
+                            <h4>👥 Who was on the job?</h4>
+                            <p>Select team members who worked on this service</p>
+                            <div class="employee-list">
+                                <div class="employee-option">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="employees" value="self" checked>
+                                        <span class="employee-name">Myself</span>
+                                    </label>
+                                </div>
+                                <!-- Additional employees will be populated here -->
+                            </div>
+                            <div class="add-employee-section">
+                                <button type="button" class="btn-small" id="add-employee-btn">+ Add Employee</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Time & Details -->
+                        <div class="wizard-step" id="logging-step-4">
+                            <h4>⏰ Service Details</h4>
+                            <p>Enter timing and additional information</p>
+                            <div class="service-details">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="start-time-logging">Start Time</label>
+                                        <input type="time" id="start-time-logging" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="end-time-logging">End Time</label>
+                                        <input type="time" id="end-time-logging" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="service-description">Service Description</label>
+                                    <textarea id="service-description" rows="3" placeholder="Describe what was done..."></textarea>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="service-amount">Service Amount</label>
+                                    <input type="number" id="service-amount" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-secondary" id="logging-back" style="display: none;">← Back</button>
+                        <button type="button" class="btn-primary" id="logging-next">Next →</button>
+                        <button type="button" class="btn-primary" id="logging-save" style="display: none;">💾 Save Service</button>
+                    </div>
+                </div>
+
+                <!-- Service Summary -->
+                <div id="service-summary" class="service-summary" style="display: none;">
+                    <h4>📋 Services Logged Today</h4>
+                    <div class="logged-services" id="logged-services">
+                        <!-- Logged services will appear here -->
+                    </div>
+                    <div class="summary-actions">
+                        <button type="button" class="btn-secondary" id="add-another-service">+ Add Another Service</button>
+                        <button type="button" class="btn-primary" id="finish-logging">✅ Finish Logging</button>
                     </div>
                 </div>
             </div>

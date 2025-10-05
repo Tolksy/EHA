@@ -47,9 +47,20 @@ class ProfitTracker {
             this.renderInvoiceList();
         });
 
-        // Smart Scheduler button
+        // Smart Scheduler dropdown
         document.getElementById('smart-scheduler-btn').addEventListener('click', () => {
+            this.toggleSchedulerDropdown();
+        });
+
+        // Scheduler dropdown items
+        document.getElementById('macro-scheduler-btn').addEventListener('click', () => {
             this.openSmartScheduler();
+            this.hideSchedulerDropdown();
+        });
+
+        document.getElementById('micro-scheduler-btn').addEventListener('click', () => {
+            this.openDailyLogging();
+            this.hideSchedulerDropdown();
         });
 
         // Client tracker button
@@ -197,6 +208,63 @@ class ProfitTracker {
 
         document.getElementById('edit-schedule').addEventListener('click', () => {
             this.editSchedule();
+        });
+
+        // Daily Logging modal events
+        document.getElementById('close-daily-logging').addEventListener('click', () => {
+            this.closeDailyLogging();
+        });
+
+        // Date selection
+        document.getElementById('today-logging-btn').addEventListener('click', () => {
+            this.setTodayForLogging();
+        });
+
+        document.getElementById('yesterday-logging-btn').addEventListener('click', () => {
+            this.setYesterdayForLogging();
+        });
+
+        document.getElementById('logging-date').addEventListener('change', () => {
+            this.startServiceEntry();
+        });
+
+        // Logging wizard navigation
+        document.getElementById('logging-next').addEventListener('click', () => {
+            this.nextLoggingStep();
+        });
+
+        document.getElementById('logging-back').addEventListener('click', () => {
+            this.previousLoggingStep();
+        });
+
+        document.getElementById('logging-save').addEventListener('click', () => {
+            this.saveServiceEntry();
+        });
+
+        // Service summary actions
+        document.getElementById('add-another-service').addEventListener('click', () => {
+            this.addAnotherService();
+        });
+
+        document.getElementById('finish-logging').addEventListener('click', () => {
+            this.finishLogging();
+        });
+
+        // Customer search
+        document.getElementById('customer-search').addEventListener('input', () => {
+            this.filterCustomers();
+        });
+
+        // Add employee
+        document.getElementById('add-employee-btn').addEventListener('click', () => {
+            this.addEmployee();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.scheduler-dropdown')) {
+                this.hideSchedulerDropdown();
+            }
         });
     }
 
@@ -1460,6 +1528,12 @@ class ProfitTracker {
                     return false;
                 }
                 break;
+            case 6:
+                if (!document.querySelector('input[name="schedule-duration"]:checked')) {
+                    this.showMessage('Please select schedule duration', 'error');
+                    return false;
+                }
+                break;
         }
         return true;
     }
@@ -1482,12 +1556,15 @@ class ProfitTracker {
             case 5:
                 this.wizardData.bufferTime = parseInt(document.querySelector('input[name="buffer-time"]:checked').value);
                 break;
+            case 6:
+                this.wizardData.scheduleDuration = parseInt(document.querySelector('input[name="schedule-duration"]:checked').value);
+                break;
         }
     }
 
     updateWizardDisplay() {
         // Update progress bar
-        const progress = (this.currentWizardStep / 5) * 100;
+        const progress = (this.currentWizardStep / 6) * 100;
         document.getElementById('wizard-progress').style.width = `${progress}%`;
         document.getElementById('current-step').textContent = this.currentWizardStep;
 
@@ -1503,7 +1580,7 @@ class ProfitTracker {
 
         backBtn.style.display = this.currentWizardStep > 1 ? 'block' : 'none';
         
-        if (this.currentWizardStep === 5) {
+        if (this.currentWizardStep === 6) {
             nextBtn.style.display = 'none';
             generateBtn.style.display = 'block';
         } else {
@@ -1544,18 +1621,19 @@ class ProfitTracker {
     createSmartSchedule() {
         const schedule = [];
         const today = new Date();
-        const startOfWeek = new Date(today);
-        startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+        const startDate = new Date(today);
+        startDate.setDate(today.getDate() - today.getDay()); // Start from Sunday
         
         const dailyRevenueTarget = this.wizardData.profitGoal / this.wizardData.workDays;
+        const duration = this.wizardData.scheduleDuration || 7;
         
         // Get working hours
         const workHours = this.parseWorkHours(this.wizardData.workHours);
         
-        // Generate schedule for next 7 days
-        for (let i = 0; i < 7; i++) {
-            const currentDate = new Date(startOfWeek);
-            currentDate.setDate(startOfWeek.getDate() + i);
+        // Generate schedule for the specified duration
+        for (let i = 0; i < duration; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
             
             const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
             const isWorkDay = this.isWorkDay(i, this.wizardData.workDays);
@@ -1584,11 +1662,13 @@ class ProfitTracker {
     }
 
     isWorkDay(dayIndex, workDays) {
-        // dayIndex: 0=Sunday, 1=Monday, ..., 6=Saturday
+        // dayIndex: 0=Sunday, 1=Monday, ..., 6=Saturday, 7=Sunday, 8=Monday, etc.
+        const dayOfWeek = dayIndex % 7;
+        
         if (workDays === 5) {
-            return dayIndex >= 1 && dayIndex <= 5; // Monday-Friday
+            return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday-Friday
         } else if (workDays === 6) {
-            return dayIndex >= 1 && dayIndex <= 6; // Monday-Saturday
+            return dayOfWeek >= 1 && dayOfWeek <= 6; // Monday-Saturday
         } else {
             return true; // 7 days
         }
@@ -1733,7 +1813,74 @@ class ProfitTracker {
     }
 
     saveSchedule() {
-        // This would save the generated schedule to the calendar
+        // Get the current generated schedule
+        const scheduleWeek = document.getElementById('schedule-week');
+        const scheduleDays = scheduleWeek.querySelectorAll('.schedule-day');
+        
+        // Load existing appointments
+        let appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        
+        // Save each day's appointments
+        scheduleDays.forEach(dayElement => {
+            const dayHeader = dayElement.querySelector('.day-header .day-date').textContent;
+            const dayName = dayElement.querySelector('.day-header .day-name').textContent;
+            
+            // Parse the date from the day header
+            const today = new Date();
+            const startOfWeek = new Date(today);
+            startOfWeek.setDate(today.getDate() - today.getDay());
+            
+            // Find the date for this day
+            const dayIndex = Array.from(scheduleDays).indexOf(dayElement);
+            const appointmentDate = new Date(startOfWeek);
+            appointmentDate.setDate(startOfWeek.getDate() + dayIndex);
+            const dateStr = appointmentDate.toISOString().split('T')[0];
+            
+            // Get appointments for this day
+            const timeBlocks = dayElement.querySelectorAll('.time-block');
+            const dayAppointments = [];
+            
+            timeBlocks.forEach(block => {
+                // Skip "Day Off" blocks
+                if (block.textContent.includes('Day Off')) return;
+                
+                const timeText = block.querySelector('.block-time').textContent;
+                const activity = block.querySelector('.block-activity').textContent;
+                const client = block.querySelector('.block-client').textContent;
+                const revenueText = block.querySelector('.block-revenue');
+                const revenue = revenueText ? parseFloat(revenueText.textContent.replace('+$', '')) : 0;
+                const color = Array.from(block.classList).find(cls => ['blue', 'green', 'orange', 'purple'].includes(cls));
+                
+                // Parse start and end times
+                const [startTime, endTime] = timeText.split(' - ');
+                
+                const appointment = {
+                    id: Date.now() + Math.random(),
+                    date: dateStr,
+                    client: client,
+                    startTime: startTime,
+                    endTime: endTime,
+                    color: color,
+                    notes: `Smart Scheduled: ${activity}`,
+                    revenue: revenue,
+                    type: 'smart-generated'
+                };
+                
+                dayAppointments.push(appointment);
+            });
+            
+            if (dayAppointments.length > 0) {
+                appointments[dateStr] = appointments[dateStr] || [];
+                appointments[dateStr] = appointments[dateStr].concat(dayAppointments);
+                
+                // Sort appointments by start time
+                appointments[dateStr].sort((a, b) => a.startTime.localeCompare(b.startTime));
+            }
+        });
+        
+        // Save to localStorage
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+        
         this.showMessage('Schedule saved to calendar successfully!', 'success');
         this.closeSmartScheduler();
         
@@ -1775,6 +1922,334 @@ class ProfitTracker {
                 messageDiv.parentNode.removeChild(messageDiv);
             }
         }, 3000);
+    }
+
+    // Scheduler Dropdown Methods
+    toggleSchedulerDropdown() {
+        const dropdown = document.getElementById('scheduler-dropdown-menu');
+        dropdown.classList.toggle('show');
+    }
+
+    hideSchedulerDropdown() {
+        const dropdown = document.getElementById('scheduler-dropdown-menu');
+        dropdown.classList.remove('show');
+    }
+
+    // Daily Logging Methods
+    openDailyLogging() {
+        document.getElementById('daily-logging-modal').style.display = 'flex';
+        this.resetDailyLogging();
+    }
+
+    closeDailyLogging() {
+        document.getElementById('daily-logging-modal').style.display = 'none';
+        this.resetDailyLogging();
+    }
+
+    resetDailyLogging() {
+        this.currentLoggingStep = 1;
+        this.loggingData = {};
+        this.loggedServices = [];
+        this.updateLoggingDisplay();
+        
+        // Hide service entry wizard and summary
+        document.getElementById('service-entry-wizard').style.display = 'none';
+        document.getElementById('service-summary').style.display = 'none';
+        
+        // Reset date to today
+        this.setTodayForLogging();
+    }
+
+    setTodayForLogging() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('logging-date').value = today;
+        this.startServiceEntry();
+    }
+
+    setYesterdayForLogging() {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        document.getElementById('logging-date').value = yesterday.toISOString().split('T')[0];
+        this.startServiceEntry();
+    }
+
+    startServiceEntry() {
+        const date = document.getElementById('logging-date').value;
+        if (date) {
+            document.getElementById('service-entry-wizard').style.display = 'block';
+            this.loadCustomers();
+            this.resetLoggingWizard();
+        }
+    }
+
+    resetLoggingWizard() {
+        this.currentLoggingStep = 1;
+        this.loggingData = {};
+        this.updateLoggingDisplay();
+        
+        // Reset all form inputs
+        document.querySelectorAll('#service-entry-wizard input, #service-entry-wizard textarea').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            } else if (input.type === 'radio') {
+                input.checked = false;
+            } else {
+                input.value = '';
+            }
+        });
+        
+        // Check "Myself" by default
+        document.querySelector('input[name="employees"][value="self"]').checked = true;
+        
+        // Set default times
+        document.getElementById('start-time-logging').value = '09:00';
+        document.getElementById('end-time-logging').value = '17:00';
+    }
+
+    nextLoggingStep() {
+        if (!this.validateLoggingStep()) {
+            return;
+        }
+
+        this.saveLoggingStepData();
+        this.currentLoggingStep++;
+        this.updateLoggingDisplay();
+    }
+
+    previousLoggingStep() {
+        this.currentLoggingStep--;
+        this.updateLoggingDisplay();
+    }
+
+    validateLoggingStep() {
+        switch (this.currentLoggingStep) {
+            case 1:
+                if (!this.selectedCustomer) {
+                    this.showMessage('Please select a customer', 'error');
+                    return false;
+                }
+                break;
+            case 2:
+                if (!document.querySelector('input[name="service-type"]:checked')) {
+                    this.showMessage('Please select a service type', 'error');
+                    return false;
+                }
+                break;
+            case 3:
+                if (!document.querySelector('input[name="employees"]:checked')) {
+                    this.showMessage('Please select at least one team member', 'error');
+                    return false;
+                }
+                break;
+            case 4:
+                const startTime = document.getElementById('start-time-logging').value;
+                const endTime = document.getElementById('end-time-logging').value;
+                if (!startTime || !endTime) {
+                    this.showMessage('Please enter start and end times', 'error');
+                    return false;
+                }
+                if (startTime >= endTime) {
+                    this.showMessage('End time must be after start time', 'error');
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
+    saveLoggingStepData() {
+        switch (this.currentLoggingStep) {
+            case 1:
+                this.loggingData.customer = this.selectedCustomer;
+                break;
+            case 2:
+                this.loggingData.serviceType = document.querySelector('input[name="service-type"]:checked').value;
+                break;
+            case 3:
+                this.loggingData.employees = Array.from(document.querySelectorAll('input[name="employees"]:checked'))
+                    .map(input => input.value);
+                break;
+            case 4:
+                this.loggingData.startTime = document.getElementById('start-time-logging').value;
+                this.loggingData.endTime = document.getElementById('end-time-logging').value;
+                this.loggingData.description = document.getElementById('service-description').value;
+                this.loggingData.amount = parseFloat(document.getElementById('service-amount').value) || 0;
+                break;
+        }
+    }
+
+    updateLoggingDisplay() {
+        // Update progress bar
+        const progress = (this.currentLoggingStep / 4) * 100;
+        document.getElementById('logging-progress').style.width = `${progress}%`;
+        document.getElementById('logging-step').textContent = this.currentLoggingStep;
+
+        // Show/hide steps
+        document.querySelectorAll('#service-entry-wizard .wizard-step').forEach((step, index) => {
+            step.classList.toggle('active', index + 1 === this.currentLoggingStep);
+        });
+
+        // Update buttons
+        const backBtn = document.getElementById('logging-back');
+        const nextBtn = document.getElementById('logging-next');
+        const saveBtn = document.getElementById('logging-save');
+
+        backBtn.style.display = this.currentLoggingStep > 1 ? 'block' : 'none';
+        
+        if (this.currentLoggingStep === 4) {
+            nextBtn.style.display = 'none';
+            saveBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            saveBtn.style.display = 'none';
+        }
+    }
+
+    loadCustomers() {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customerList = document.getElementById('customer-list');
+        customerList.innerHTML = '';
+
+        customers.forEach(customer => {
+            const customerItem = document.createElement('div');
+            customerItem.className = 'customer-item';
+            customerItem.innerHTML = `
+                <div class="customer-name">${customer.name}</div>
+                ${customer.company ? `<div class="customer-company">${customer.company}</div>` : ''}
+            `;
+            customerItem.addEventListener('click', () => {
+                this.selectCustomer(customer);
+            });
+            customerList.appendChild(customerItem);
+        });
+    }
+
+    selectCustomer(customer) {
+        this.selectedCustomer = customer;
+        
+        // Highlight selected customer
+        document.querySelectorAll('.customer-item').forEach(item => {
+            item.classList.remove('selected');
+        });
+        event.target.closest('.customer-item').classList.add('selected');
+        
+        this.nextLoggingStep();
+    }
+
+    filterCustomers() {
+        const searchTerm = document.getElementById('customer-search').value.toLowerCase();
+        const customerItems = document.querySelectorAll('.customer-item');
+        
+        customerItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            item.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    }
+
+    addEmployee() {
+        const employeeName = prompt('Enter employee name:');
+        if (employeeName) {
+            const employeeList = document.querySelector('.employee-list');
+            const employeeOption = document.createElement('div');
+            employeeOption.className = 'employee-option';
+            employeeOption.innerHTML = `
+                <label class="checkbox-label">
+                    <input type="checkbox" name="employees" value="${employeeName}">
+                    <span class="employee-name">${employeeName}</span>
+                </label>
+            `;
+            employeeList.appendChild(employeeOption);
+        }
+    }
+
+    saveServiceEntry() {
+        if (!this.validateLoggingStep()) {
+            return;
+        }
+
+        this.saveLoggingStepData();
+        
+        // Create service entry
+        const serviceEntry = {
+            id: Date.now(),
+            date: document.getElementById('logging-date').value,
+            customer: this.loggingData.customer,
+            serviceType: this.loggingData.serviceType,
+            employees: this.loggingData.employees,
+            startTime: this.loggingData.startTime,
+            endTime: this.loggingData.endTime,
+            description: this.loggingData.description,
+            amount: this.loggingData.amount
+        };
+
+        this.loggedServices.push(serviceEntry);
+        this.showServiceSummary();
+    }
+
+    showServiceSummary() {
+        const summary = document.getElementById('service-summary');
+        const loggedServices = document.getElementById('logged-services');
+        
+        loggedServices.innerHTML = '';
+        
+        this.loggedServices.forEach(service => {
+            const serviceItem = document.createElement('div');
+            serviceItem.className = 'logged-service-item';
+            serviceItem.innerHTML = `
+                <div class="service-header">
+                    <div class="service-customer">${service.customer.name}</div>
+                    <div class="service-type">${service.serviceType}</div>
+                </div>
+                <div class="service-time">${service.startTime} - ${service.endTime}</div>
+                <div class="service-description">${service.description}</div>
+                <div class="service-amount">$${service.amount.toFixed(2)}</div>
+            `;
+            loggedServices.appendChild(serviceItem);
+        });
+
+        summary.style.display = 'block';
+        document.getElementById('service-entry-wizard').style.display = 'none';
+    }
+
+    addAnotherService() {
+        document.getElementById('service-summary').style.display = 'none';
+        document.getElementById('service-entry-wizard').style.display = 'block';
+        this.resetLoggingWizard();
+    }
+
+    finishLogging() {
+        // Save services to localStorage
+        const date = document.getElementById('logging-date').value;
+        const dailyServices = JSON.parse(localStorage.getItem('dailyServices')) || {};
+        dailyServices[date] = this.loggedServices;
+        localStorage.setItem('dailyServices', JSON.stringify(dailyServices));
+
+        // Also save as appointments for calendar display
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        if (!appointments[date]) {
+            appointments[date] = [];
+        }
+
+        this.loggedServices.forEach(service => {
+            const appointment = {
+                id: service.id,
+                date: date,
+                client: service.customer.name,
+                startTime: service.startTime,
+                endTime: service.endTime,
+                color: 'green', // Field work color
+                notes: `${service.serviceType}: ${service.description}`,
+                revenue: service.amount,
+                type: 'field-service'
+            };
+            appointments[date].push(appointment);
+        });
+
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+
+        this.showMessage('Services logged successfully!', 'success');
+        this.closeDailyLogging();
+        this.renderCalendarHero();
     }
 }
 
