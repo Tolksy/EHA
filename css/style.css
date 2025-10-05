@@ -8,21 +8,105 @@
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #0a0a0f;
+    color: #e8f4f8;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-/* Header Styles */
-.dashboard-header, .invoice-header {
-    background: #fff;
-    border-bottom: 1px solid #e9ecef;
+/* Neural Network Background */
+.neural-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+.neural-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: gridMove 20s linear infinite;
+}
+
+.neural-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
+    animation: particleFloat 15s ease-in-out infinite;
+}
+
+.neural-connections {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(45deg, transparent 49%, rgba(0, 255, 255, 0.02) 50%, transparent 51%),
+        linear-gradient(-45deg, transparent 49%, rgba(147, 51, 234, 0.02) 50%, transparent 51%);
+    background-size: 100px 100px;
+    animation: connectionPulse 25s ease-in-out infinite;
+}
+
+@keyframes gridMove {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+@keyframes particleFloat {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.1); }
+}
+
+@keyframes connectionPulse {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.4; }
+}
+
+/* Neural Header Styles */
+.neural-header {
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
     padding: 1rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.dashboard-header, .invoice-header {
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -34,11 +118,104 @@ body {
     gap: 1rem;
 }
 
-.header-left h1 {
+/* Brain Logo */
+.brain-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.neural-brain {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, rgba(147, 51, 234, 0.2) 100%);
+    border: 2px solid rgba(0, 255, 255, 0.4);
+    animation: brainPulse 3s ease-in-out infinite;
+}
+
+.brain-core {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, #00ffff 0%, #9333ea 100%);
+    border-radius: 50%;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.6),
+        0 0 40px rgba(147, 51, 234, 0.4);
+}
+
+.neural-path {
+    position: absolute;
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.6), rgba(147, 51, 234, 0.6));
+    border-radius: 2px;
+    animation: neuralFlow 2s ease-in-out infinite;
+}
+
+.neural-path-1 {
+    width: 30px;
+    height: 2px;
+    top: 15px;
+    left: 5px;
+    transform: rotate(15deg);
+    animation-delay: 0s;
+}
+
+.neural-path-2 {
+    width: 25px;
+    height: 2px;
+    bottom: 12px;
+    right: 8px;
+    transform: rotate(-20deg);
+    animation-delay: 0.5s;
+}
+
+.neural-path-3 {
+    width: 20px;
+    height: 2px;
+    top: 25px;
+    right: 5px;
+    transform: rotate(45deg);
+    animation-delay: 1s;
+}
+
+@keyframes brainPulse {
+    0%, 100% { 
+        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        transform: scale(1.05);
+    }
+}
+
+@keyframes neuralFlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.logo-text h1 {
     font-size: 1.5rem;
-    font-weight: 600;
-    color: #2c3e50;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin: 0;
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+}
+
+.subtitle {
+    font-size: 0.8rem;
+    color: rgba(232, 244, 248, 0.7);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
 .header-right {
@@ -47,21 +224,121 @@ body {
     align-items: center;
 }
 
-/* Button Styles */
-.btn-primary {
-    background: #007bff;
-    color: white;
-    border: none;
+/* Neural Button Styles */
+.btn-neural {
+    background: rgba(0, 255, 255, 0.1);
+    color: #00ffff;
+    border: 1px solid rgba(0, 255, 255, 0.3);
     padding: 0.75rem 1.5rem;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 0.9rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-neural::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-neural:hover::before {
+    left: 100%;
+}
+
+.btn-neural:hover {
+    background: rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.6);
+    box-shadow: 
+        0 0 20px rgba(0, 255, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.neural-primary {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+    color: #ffffff;
+    border: 1px solid rgba(0, 255, 255, 0.4);
+    box-shadow: 
+        0 4px 15px rgba(0, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.neural-primary:hover {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
+    box-shadow: 
+        0 6px 25px rgba(0, 255, 255, 0.4),
+        0 0 30px rgba(147, 51, 234, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transform: translateY(-3px);
+}
+
+.btn-icon {
+    font-size: 1.1rem;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+}
+
+.btn-text {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.neural-btn {
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    padding: 0.5rem;
+    border-radius: 8px;
+    color: #00ffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.neural-btn:hover {
+    background: rgba(0, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+    transform: scale(1.1);
+}
+
+.neural-icon {
+    font-size: 1.2rem;
+    animation: neuralSpin 2s linear infinite;
+}
+
+@keyframes neuralSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Legacy Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
 }
 
 .btn-primary:hover {
@@ -147,20 +424,149 @@ body {
     padding: 2rem;
     max-width: 1400px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
-/* Section Headers */
+/* Neural Section Headers */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
+    position: relative;
 }
 
 .section-header h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+    text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    position: relative;
+}
+
+.section-header h2::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 50px;
+    height: 2px;
+    background: linear-gradient(90deg, #00ffff, #9333ea);
+    border-radius: 1px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+}
+
+/* Neural Title and AI Status */
+.neural-title {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.ai-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00ff88;
+    box-shadow: 
+        0 0 10px rgba(0, 255, 136, 0.6),
+        0 0 20px rgba(0, 255, 136, 0.3);
+    animation: statusPulse 2s ease-in-out infinite;
+}
+
+.status-indicator.active {
+    background: #00ff88;
+}
+
+.status-text {
+    font-size: 0.8rem;
+    color: #00ff88;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+@keyframes statusPulse {
+    0%, 100% { 
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+/* Neural Controls */
+.neural-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.neural-month-display {
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    background: rgba(0, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    min-width: 150px;
+    text-align: center;
+}
+
+.month-glow {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.1), rgba(147, 51, 234, 0.1));
+    border-radius: 12px;
+    animation: monthGlow 3s ease-in-out infinite;
+}
+
+@keyframes monthGlow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+}
+
+/* Neural Section */
+.neural-section {
+    position: relative;
+}
+
+.neural-section::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    background: linear-gradient(45deg, rgba(0, 255, 255, 0.05), rgba(147, 51, 234, 0.05));
+    border-radius: 20px;
+    z-index: -1;
+    animation: sectionGlow 4s ease-in-out infinite;
+}
+
+@keyframes sectionGlow {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 0.4; }
 }
 
 /* Date Controls */
@@ -198,23 +604,35 @@ body {
 }
 
 .summary-card {
-    background: white;
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
     padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.1),
+        0 0 0 1px rgba(0, 255, 255, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(0, 255, 255, 0.3);
     text-align: center;
+    transition: all 0.3s ease;
 }
 
 .card-label {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: rgba(232, 244, 248, 0.7);
     margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .card-amount {
     font-size: 1.5rem;
     font-weight: 600;
-    color: #2c3e50;
+    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 /* Invoice Table */
@@ -1488,20 +1906,120 @@ body {
     border-bottom: 5px solid #2c3e50;
 }
 
-/* Scheduler Dropdown Styles */
+/* Neural Dropdown Styles */
 .scheduler-dropdown {
     position: relative;
     display: inline-block;
 }
 
+.neural-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    min-width: 250px;
+    display: none;
+    margin-top: 0.5rem;
+}
+
+.neural-dropdown.show {
+    display: block;
+    animation: neuralDropdownFade 0.3s ease;
+}
+
+.neural-item {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.neural-item:last-child {
+    border-bottom: none;
+}
+
+.neural-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0, 255, 255, 0.1), transparent);
+    transition: width 0.3s ease;
+}
+
+.neural-item:hover::before {
+    width: 100%;
+}
+
+.neural-item:hover {
+    background: rgba(0, 255, 255, 0.1);
+    border-left: 3px solid rgba(0, 255, 255, 0.6);
+}
+
+.item-icon {
+    font-size: 1.2rem;
+    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+}
+
+.item-content {
+    flex: 1;
+}
+
+.item-title {
+    display: block;
+    color: #00ffff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.item-content small {
+    display: block;
+    color: rgba(232, 244, 248, 0.7);
+    font-size: 0.8rem;
+}
+
+@keyframes neuralDropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Legacy Dropdown Styles */
 .dropdown-menu {
     position: absolute;
     top: 100%;
     left: 0;
-    background: white;
-    border: 1px solid #e9ecef;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 12px;
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
     z-index: 1000;
     min-width: 200px;
     display: none;
@@ -1518,8 +2036,9 @@ body {
     background: none;
     text-align: left;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    border-bottom: 1px solid #f8f9fa;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+    color: #e8f4f8;
 }
 
 .dropdown-item:last-child {
@@ -1527,12 +2046,12 @@ body {
 }
 
 .dropdown-item:hover {
-    background: #f8f9fa;
+    background: rgba(0, 255, 255, 0.1);
 }
 
 .dropdown-item small {
     display: block;
-    color: #6c757d;
+    color: rgba(232, 244, 248, 0.7);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }

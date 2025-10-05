@@ -7,51 +7,98 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <!-- Neural Network Background -->
+    <div class="neural-bg">
+        <div class="neural-grid"></div>
+        <div class="neural-particles"></div>
+        <div class="neural-connections"></div>
+    </div>
+
     <!-- Top Header Bar -->
-    <header class="dashboard-header">
+    <header class="dashboard-header neural-header">
         <div class="header-left">
-            <h1>Profit Tracker & Invoices</h1>
-            <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
+            <div class="brain-logo">
+                <div class="neural-brain">
+                    <div class="brain-core"></div>
+                    <div class="neural-path neural-path-1"></div>
+                    <div class="neural-path neural-path-2"></div>
+                    <div class="neural-path neural-path-3"></div>
+                </div>
+                <div class="logo-text">
+                    <h1>EHA Neural Core</h1>
+                    <span class="subtitle">AI-Powered Business Intelligence</span>
+                </div>
+            </div>
+            <button class="refresh-btn neural-btn" title="Neural Sync" onclick="window.location.reload()">
+                <span class="neural-icon">⚡</span>
+            </button>
         </div>
         <div class="header-right">
             <div class="scheduler-dropdown">
-                <button class="btn-secondary" id="smart-scheduler-btn" title="AI-powered smart scheduling">
-                    🧠 Smart Scheduler ▼
+                <button class="btn-neural" id="smart-scheduler-btn" title="AI-powered smart scheduling">
+                    <span class="btn-icon">🧠</span>
+                    <span class="btn-text">Neural Scheduler</span>
+                    <span class="btn-arrow">▼</span>
                 </button>
-                <div class="dropdown-menu" id="scheduler-dropdown-menu">
-                    <button class="dropdown-item" id="macro-scheduler-btn">
-                        📅 Macro Planning
-                        <small>Long-term scheduling</small>
+                <div class="dropdown-menu neural-dropdown" id="scheduler-dropdown-menu">
+                    <button class="dropdown-item neural-item" id="macro-scheduler-btn">
+                        <span class="item-icon">📅</span>
+                        <div class="item-content">
+                            <span class="item-title">Macro Planning</span>
+                            <small>Long-term neural optimization</small>
+                        </div>
                     </button>
-                    <button class="dropdown-item" id="micro-scheduler-btn">
-                        📝 Daily Logging
-                        <small>Log field services</small>
+                    <button class="dropdown-item neural-item" id="micro-scheduler-btn">
+                        <span class="item-icon">📝</span>
+                        <div class="item-content">
+                            <span class="item-title">Daily Logging</span>
+                            <small>Field service neural tracking</small>
+                        </div>
                     </button>
                 </div>
             </div>
-            <button class="btn-secondary" id="profit-tracker-btn" title="Track daily revenue and expenses">
-                💰 Profit Tracker
+            <button class="btn-neural" id="profit-tracker-btn" title="Track daily revenue and expenses">
+                <span class="btn-icon">💰</span>
+                <span class="btn-text">Profit Core</span>
             </button>
-            <button class="btn-secondary" id="client-tracker-btn" title="View all clients and prospects">
-                👥 Clients
+            <button class="btn-neural" id="client-tracker-btn" title="View all clients and prospects">
+                <span class="btn-icon">👥</span>
+                <span class="btn-text">Client Matrix</span>
             </button>
-            <button class="btn-primary" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
-                + Invoice
+            <button class="btn-primary neural-primary" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
+                <span class="btn-icon">+</span>
+                <span class="btn-text">Generate Invoice</span>
             </button>
         </div>
     </header>
 
     <!-- Main Dashboard -->
     <main class="dashboard-main">
-        <!-- Calendar Hero Section -->
-        <section class="calendar-hero-section">
+        <!-- Neural Calendar Hero Section -->
+        <section class="calendar-hero-section neural-section">
             <div class="section-header">
-                <h2>📅 Appointment Calendar</h2>
-                <div class="calendar-nav-hero">
-                    <button class="btn-secondary" id="prev-month-hero">‹</button>
-                    <span id="current-month-year-hero">January 2025</span>
-                    <button class="btn-secondary" id="next-month-hero">›</button>
-                    <button class="btn-secondary" id="today-btn-calendar-hero">Today</button>
+                <div class="neural-title">
+                    <h2>🧠 Neural Calendar Core</h2>
+                    <div class="ai-status">
+                        <div class="status-indicator active"></div>
+                        <span class="status-text">AI-Powered Scheduling Active</span>
+                    </div>
+                </div>
+                <div class="calendar-nav-hero neural-controls">
+                    <button class="btn-neural" id="prev-month-hero">
+                        <span class="btn-icon">‹</span>
+                    </button>
+                    <div class="neural-month-display">
+                        <span id="current-month-year-hero">January 2025</span>
+                        <div class="month-glow"></div>
+                    </div>
+                    <button class="btn-neural" id="next-month-hero">
+                        <span class="btn-icon">›</span>
+                    </button>
+                    <button class="btn-neural" id="today-btn-calendar-hero">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">Today</span>
+                    </button>
                 </div>
             </div>
             
