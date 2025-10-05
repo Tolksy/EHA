@@ -8,12 +8,14 @@ class ProfitTracker {
     }
 
     init() {
+        this.currentCalendarDate = new Date();
         this.setupEventListeners();
         this.updateCurrentMonthDisplay();
         this.renderProfitChart();
         this.updateSummaryCards();
         this.renderInvoiceList();
         this.checkForSuccessMessage();
+        this.renderCalendarHero();
     }
 
     setupEventListeners() {
@@ -117,17 +119,24 @@ class ProfitTracker {
             this.renderProfitChart();
         });
 
-        // Calendar button
-        document.getElementById('calendar-btn').addEventListener('click', () => {
-            this.openCalendar();
+        // Calendar navigation (hero section)
+        document.getElementById('prev-month-hero').addEventListener('click', () => {
+            this.changeMonthHero(-1);
         });
 
-        // Calendar modal events
+        document.getElementById('next-month-hero').addEventListener('click', () => {
+            this.changeMonthHero(1);
+        });
+
+        document.getElementById('today-btn-calendar-hero').addEventListener('click', () => {
+            this.goToTodayHero();
+        });
+
+        // Calendar modal events (for backup modal)
         document.getElementById('close-calendar').addEventListener('click', () => {
             this.closeCalendar();
         });
 
-        // Calendar navigation
         document.getElementById('prev-month').addEventListener('click', () => {
             this.changeMonth(-1);
         });
@@ -1023,6 +1032,102 @@ class ProfitTracker {
         this.populateClientDropdown();
     }
 
+    // Hero Calendar Methods
+    changeMonthHero(direction) {
+        this.currentCalendarDate.setMonth(this.currentCalendarDate.getMonth() + direction);
+        this.renderCalendarHero();
+    }
+
+    goToTodayHero() {
+        this.currentCalendarDate = new Date();
+        this.renderCalendarHero();
+    }
+
+    renderCalendarHero() {
+        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December'];
+        
+        const year = this.currentCalendarDate.getFullYear();
+        const month = this.currentCalendarDate.getMonth();
+        
+        // Update header
+        document.getElementById('current-month-year-hero').textContent = `${monthNames[month]} ${year}`;
+        
+        // Get calendar data
+        const firstDay = new Date(year, month, 1);
+        const startDate = new Date(firstDay);
+        startDate.setDate(startDate.getDate() - firstDay.getDay()); // Start from Sunday
+        
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        
+        // Clear calendar
+        const calendarDays = document.getElementById('calendar-days-hero');
+        calendarDays.innerHTML = '';
+        
+        // Generate 42 days (6 weeks)
+        for (let i = 0; i < 42; i++) {
+            const currentDate = new Date(startDate);
+            currentDate.setDate(startDate.getDate() + i);
+            
+            const dayElement = document.createElement('div');
+            dayElement.className = 'calendar-day-hero';
+            
+            // Add classes for styling
+            if (currentDate.getMonth() !== month) {
+                dayElement.classList.add('other-month');
+            }
+            
+            if (this.isToday(currentDate)) {
+                dayElement.classList.add('today');
+            }
+            
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const dayAppointments = appointments[dateStr] || [];
+            
+            if (dayAppointments.length > 0) {
+                dayElement.classList.add('has-appointments');
+            }
+            
+            // Day number
+            const dayNumber = document.createElement('div');
+            dayNumber.className = 'day-number-hero';
+            dayNumber.textContent = currentDate.getDate();
+            dayElement.appendChild(dayNumber);
+            
+            // Add appointments (limit to 3 for hero view)
+            dayAppointments.slice(0, 3).forEach(appointment => {
+                const appointmentBlock = document.createElement('div');
+                appointmentBlock.className = `appointment-block-hero ${appointment.color}`;
+                appointmentBlock.innerHTML = `
+                    <span class="appointment-time-hero">${appointment.startTime}</span>
+                    <span class="appointment-client-hero">${appointment.client}</span>
+                `;
+                appointmentBlock.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.showAppointmentDetails(appointment);
+                });
+                dayElement.appendChild(appointmentBlock);
+            });
+            
+            // Show "+X more" if there are more than 3 appointments
+            if (dayAppointments.length > 3) {
+                const moreBlock = document.createElement('div');
+                moreBlock.className = 'appointment-block-hero more-appointments';
+                moreBlock.style.background = '#6c757d';
+                moreBlock.style.fontSize = '0.6rem';
+                moreBlock.textContent = `+${dayAppointments.length - 3} more`;
+                dayElement.appendChild(moreBlock);
+            }
+            
+            // Click handler for adding appointments
+            dayElement.addEventListener('click', () => {
+                this.openAppointmentModal(currentDate);
+            });
+            
+            calendarDays.appendChild(dayElement);
+        }
+    }
+
     closeCalendar() {
         document.getElementById('calendar-modal').style.display = 'none';
         this.closeAppointmentModal();
@@ -1195,6 +1300,7 @@ class ProfitTracker {
         this.showMessage('Appointment scheduled successfully!', 'success');
         this.closeAppointmentModal();
         this.renderCalendar();
+        this.renderCalendarHero();
     }
 
     showAppointmentDetails(appointment) {

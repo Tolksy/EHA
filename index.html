@@ -14,9 +14,6 @@
             <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
         </div>
         <div class="header-right">
-            <button class="btn-secondary" id="calendar-btn" title="Schedule appointments and manage calendar">
-                📅 Calendar
-            </button>
             <button class="btn-secondary" id="profit-tracker-btn" title="Track daily revenue and expenses">
                 💰 Profit Tracker
             </button>
@@ -31,6 +28,35 @@
 
     <!-- Main Dashboard -->
     <main class="dashboard-main">
+        <!-- Calendar Hero Section -->
+        <section class="calendar-hero-section">
+            <div class="section-header">
+                <h2>📅 Appointment Calendar</h2>
+                <div class="calendar-nav-hero">
+                    <button class="btn-secondary" id="prev-month-hero">‹</button>
+                    <span id="current-month-year-hero">January 2025</span>
+                    <button class="btn-secondary" id="next-month-hero">›</button>
+                    <button class="btn-secondary" id="today-btn-calendar-hero">Today</button>
+                </div>
+            </div>
+            
+            <!-- Calendar Grid -->
+            <div class="calendar-grid-hero">
+                <div class="calendar-header-hero">
+                    <div class="day-header-hero">Sun</div>
+                    <div class="day-header-hero">Mon</div>
+                    <div class="day-header-hero">Tue</div>
+                    <div class="day-header-hero">Wed</div>
+                    <div class="day-header-hero">Thu</div>
+                    <div class="day-header-hero">Fri</div>
+                    <div class="day-header-hero">Sat</div>
+                </div>
+                <div class="calendar-days-hero" id="calendar-days-hero">
+                    <!-- Calendar days will be populated here -->
+                </div>
+            </div>
+        </section>
+
         <!-- Profit Tracker Section -->
         <section class="profit-tracker-section">
             <div class="section-header">

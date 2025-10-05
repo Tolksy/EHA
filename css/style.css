@@ -1111,6 +1111,141 @@ body {
     white-space: nowrap;
 }
 
+/* Calendar Hero Section */
+.calendar-hero-section {
+    margin-bottom: 2rem;
+}
+
+.calendar-nav-hero {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.calendar-nav-hero button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.calendar-grid-hero {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.calendar-header-hero {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #2c3e50;
+    color: white;
+}
+
+.day-header-hero {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-days-hero {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    background: #e9ecef;
+}
+
+.calendar-day-hero {
+    min-height: 100px;
+    background: white;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 1px solid #f8f9fa;
+}
+
+.calendar-day-hero:hover {
+    background: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.calendar-day-hero.other-month {
+    background: #f8f9fa;
+    color: #adb5bd;
+}
+
+.calendar-day-hero.today {
+    background: #e3f2fd;
+    border: 2px solid #2196f3;
+}
+
+.calendar-day-hero.has-appointments {
+    background: #f0f8ff;
+}
+
+.day-number-hero {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+    color: #495057;
+}
+
+.calendar-day-hero.other-month .day-number-hero {
+    color: #adb5bd;
+}
+
+.appointment-block-hero {
+    margin-bottom: 0.2rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.appointment-block-hero:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.appointment-block-hero.blue {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+}
+
+.appointment-block-hero.green {
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.appointment-block-hero.orange {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.appointment-block-hero.purple {
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.appointment-time-hero {
+    font-weight: 600;
+    display: block;
+    font-size: 0.65rem;
+}
+
+.appointment-client-hero {
+    font-weight: 500;
+    opacity: 0.9;
+    font-size: 0.65rem;
+}
+
 /* Calendar Styles */
 .calendar-content {
     padding: 1.5rem;
@@ -1448,5 +1583,25 @@ body {
     
     .color-picker {
         grid-template-columns: 1fr;
+    }
+    
+    .calendar-nav-hero {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .calendar-day-hero {
+        min-height: 60px;
+        padding: 0.25rem;
+    }
+    
+    .appointment-block-hero {
+        font-size: 0.6rem;
+        padding: 0.15rem 0.3rem;
+    }
+    
+    .appointment-time-hero,
+    .appointment-client-hero {
+        font-size: 0.55rem;
     }
 }
