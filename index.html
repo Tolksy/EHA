@@ -14,6 +14,9 @@
             <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
         </div>
         <div class="header-right">
+            <button class="btn-secondary" id="profit-tracker-btn" title="Track daily revenue and expenses">
+                💰 Profit Tracker
+            </button>
             <button class="btn-secondary" id="client-tracker-btn" title="View all clients and prospects">
                 👥 Clients
             </button>
@@ -172,6 +175,112 @@
                             <!-- Client rows will be populated here -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue & Expense Tracker Modal -->
+    <div id="profit-tracker-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>Daily Profit Tracker</h3>
+                <button type="button" class="modal-close" id="close-profit-tracker">&times;</button>
+            </div>
+            <div class="profit-tracker-content">
+                <!-- Date Selector -->
+                <div class="date-selector">
+                    <label for="tracker-date">Date:</label>
+                    <input type="date" id="tracker-date" value="">
+                    <button class="btn-secondary" id="today-btn">Today</button>
+                    <button class="btn-secondary" id="add-entry-btn">+ Add Entry</button>
+                </div>
+
+                <!-- Daily Entry Form -->
+                <div class="daily-entry-form" id="daily-entry-form" style="display: none;">
+                    <h4>Daily Revenue & Expenses</h4>
+                    <div class="entry-form-grid">
+                        <div class="revenue-section">
+                            <h5>💰 Revenue</h5>
+                            <div class="entry-list" id="revenue-entries">
+                                <!-- Revenue entries will be added here -->
+                            </div>
+                            <button class="btn-small" id="add-revenue-btn">+ Add Revenue</button>
+                        </div>
+                        
+                        <div class="expense-section">
+                            <h5>💸 Expenses</h5>
+                            <div class="entry-list" id="expense-entries">
+                                <!-- Expense entries will be added here -->
+                            </div>
+                            <button class="btn-small" id="add-expense-btn">+ Add Expense</button>
+                        </div>
+                    </div>
+                    
+                    <div class="daily-notes">
+                        <label for="daily-notes">Daily Notes:</label>
+                        <textarea id="daily-notes" rows="3" placeholder="Notes about purchases, charges, or other business activities..."></textarea>
+                    </div>
+                    
+                    <div class="daily-summary">
+                        <div class="summary-row">
+                            <span>Total Revenue:</span>
+                            <span id="daily-revenue-total">$0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Total Expenses:</span>
+                            <span id="daily-expense-total">$0.00</span>
+                        </div>
+                        <div class="summary-row profit-row">
+                            <span>Daily Profit:</span>
+                            <span id="daily-profit">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="entry-actions">
+                        <button class="btn-cancel" id="cancel-daily-entry">Cancel</button>
+                        <button class="btn-primary" id="save-daily-entry">Save Day</button>
+                    </div>
+                </div>
+
+                <!-- Profit Visualization -->
+                <div class="profit-visualization">
+                    <div class="chart-controls">
+                        <h4>Profit Trends</h4>
+                        <div class="chart-filters">
+                            <select id="chart-period">
+                                <option value="week">Last 7 Days</option>
+                                <option value="month">Last 30 Days</option>
+                                <option value="quarter">Last 90 Days</option>
+                            </select>
+                            <button class="btn-small" id="refresh-chart">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="profit-chart-container">
+                        <canvas id="profit-chart" width="800" height="400"></canvas>
+                    </div>
+                </div>
+
+                <!-- Daily Entries List -->
+                <div class="daily-entries-list">
+                    <h4>Recent Entries</h4>
+                    <div class="entries-table-container">
+                        <table class="entries-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Revenue</th>
+                                    <th>Expenses</th>
+                                    <th>Profit</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="entries-list-tbody">
+                                <!-- Daily entries will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

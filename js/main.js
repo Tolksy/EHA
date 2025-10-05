@@ -67,6 +67,55 @@ class ProfitTracker {
         document.getElementById('status-filter-clients').addEventListener('change', () => {
             this.filterClients();
         });
+
+        // Profit tracker button
+        document.getElementById('profit-tracker-btn').addEventListener('click', () => {
+            this.openProfitTracker();
+        });
+
+        // Profit tracker modal events
+        document.getElementById('close-profit-tracker').addEventListener('click', () => {
+            this.closeProfitTracker();
+        });
+
+        // Date selector events
+        document.getElementById('today-btn').addEventListener('click', () => {
+            this.setTodayDate();
+        });
+
+        document.getElementById('add-entry-btn').addEventListener('click', () => {
+            this.showDailyEntryForm();
+        });
+
+        document.getElementById('tracker-date').addEventListener('change', () => {
+            this.loadDayData();
+        });
+
+        // Entry form events
+        document.getElementById('add-revenue-btn').addEventListener('click', () => {
+            this.addRevenueEntry();
+        });
+
+        document.getElementById('add-expense-btn').addEventListener('click', () => {
+            this.addExpenseEntry();
+        });
+
+        document.getElementById('save-daily-entry').addEventListener('click', () => {
+            this.saveDailyEntry();
+        });
+
+        document.getElementById('cancel-daily-entry').addEventListener('click', () => {
+            this.hideDailyEntryForm();
+        });
+
+        // Chart events
+        document.getElementById('chart-period').addEventListener('change', () => {
+            this.renderProfitChart();
+        });
+
+        document.getElementById('refresh-chart').addEventListener('click', () => {
+            this.renderProfitChart();
+        });
     }
 
     updateCurrentMonthDisplay() {
@@ -550,6 +599,383 @@ class ProfitTracker {
         this.updateClientStats();
         
         this.showMessage(`${interactionType.replace('_', ' ')} recorded!`, 'success');
+    }
+
+    // Profit Tracker Methods
+    openProfitTracker() {
+        document.getElementById('profit-tracker-modal').style.display = 'flex';
+        this.setTodayDate();
+        this.loadDayData();
+        this.renderProfitChart();
+        this.renderEntriesList();
+    }
+
+    closeProfitTracker() {
+        document.getElementById('profit-tracker-modal').style.display = 'none';
+        this.hideDailyEntryForm();
+    }
+
+    setTodayDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tracker-date').value = today;
+        this.loadDayData();
+    }
+
+    showDailyEntryForm() {
+        document.getElementById('daily-entry-form').style.display = 'block';
+        this.clearEntryForm();
+    }
+
+    hideDailyEntryForm() {
+        document.getElementById('daily-entry-form').style.display = 'none';
+        this.clearEntryForm();
+    }
+
+    clearEntryForm() {
+        document.getElementById('revenue-entries').innerHTML = '';
+        document.getElementById('expense-entries').innerHTML = '';
+        document.getElementById('daily-notes').value = '';
+        this.updateDailySummary();
+    }
+
+    loadDayData() {
+        const selectedDate = document.getElementById('tracker-date').value;
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries')) || {};
+        const dayData = dailyEntries[selectedDate];
+
+        if (dayData) {
+            // Load existing data
+            this.loadRevenueEntries(dayData.revenue || []);
+            this.loadExpenseEntries(dayData.expenses || []);
+            document.getElementById('daily-notes').value = dayData.notes || '';
+        } else {
+            // Clear form for new day
+            this.clearEntryForm();
+        }
+        
+        this.updateDailySummary();
+    }
+
+    loadRevenueEntries(revenueData) {
+        const container = document.getElementById('revenue-entries');
+        container.innerHTML = '';
+        revenueData.forEach(entry => {
+            this.addRevenueEntry(entry.description, entry.amount);
+        });
+    }
+
+    loadExpenseEntries(expenseData) {
+        const container = document.getElementById('expense-entries');
+        container.innerHTML = '';
+        expenseData.forEach(entry => {
+            this.addExpenseEntry(entry.description, entry.amount);
+        });
+    }
+
+    addRevenueEntry(description = '', amount = '') {
+        const container = document.getElementById('revenue-entries');
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'entry-item';
+        entryDiv.innerHTML = `
+            <input type="text" placeholder="Revenue description" value="${description}">
+            <input type="number" class="amount-input" placeholder="0.00" value="${amount}" step="0.01" min="0">
+            <button type="button" class="remove-entry" onclick="this.parentElement.remove(); profitTracker.updateDailySummary();">×</button>
+        `;
+        container.appendChild(entryDiv);
+        
+        // Add event listeners
+        const inputs = entryDiv.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => this.updateDailySummary());
+        });
+        
+        this.updateDailySummary();
+    }
+
+    addExpenseEntry(description = '', amount = '') {
+        const container = document.getElementById('expense-entries');
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'entry-item';
+        entryDiv.innerHTML = `
+            <input type="text" placeholder="Expense description" value="${description}">
+            <input type="number" class="amount-input" placeholder="0.00" value="${amount}" step="0.01" min="0">
+            <button type="button" class="remove-entry" onclick="this.parentElement.remove(); profitTracker.updateDailySummary();">×</button>
+        `;
+        container.appendChild(entryDiv);
+        
+        // Add event listeners
+        const inputs = entryDiv.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('input', () => this.updateDailySummary());
+        });
+        
+        this.updateDailySummary();
+    }
+
+    updateDailySummary() {
+        let totalRevenue = 0;
+        let totalExpenses = 0;
+
+        // Calculate revenue total
+        document.querySelectorAll('#revenue-entries .entry-item').forEach(entry => {
+            const amount = parseFloat(entry.querySelector('.amount-input').value) || 0;
+            totalRevenue += amount;
+        });
+
+        // Calculate expense total
+        document.querySelectorAll('#expense-entries .entry-item').forEach(entry => {
+            const amount = parseFloat(entry.querySelector('.amount-input').value) || 0;
+            totalExpenses += amount;
+        });
+
+        const profit = totalRevenue - totalExpenses;
+
+        // Update display
+        document.getElementById('daily-revenue-total').textContent = `$${totalRevenue.toFixed(2)}`;
+        document.getElementById('daily-expense-total').textContent = `$${totalExpenses.toFixed(2)}`;
+        
+        const profitElement = document.getElementById('daily-profit');
+        profitElement.textContent = `$${profit.toFixed(2)}`;
+        profitElement.parentElement.className = profit >= 0 ? 'summary-row profit-row positive' : 'summary-row profit-row negative';
+    }
+
+    saveDailyEntry() {
+        const selectedDate = document.getElementById('tracker-date').value;
+        if (!selectedDate) {
+            this.showMessage('Please select a date', 'error');
+            return;
+        }
+
+        // Collect revenue entries
+        const revenue = [];
+        document.querySelectorAll('#revenue-entries .entry-item').forEach(entry => {
+            const description = entry.querySelector('input[type="text"]').value.trim();
+            const amount = parseFloat(entry.querySelector('.amount-input').value) || 0;
+            if (description && amount > 0) {
+                revenue.push({ description, amount });
+            }
+        });
+
+        // Collect expense entries
+        const expenses = [];
+        document.querySelectorAll('#expense-entries .entry-item').forEach(entry => {
+            const description = entry.querySelector('input[type="text"]').value.trim();
+            const amount = parseFloat(entry.querySelector('.amount-input').value) || 0;
+            if (description && amount > 0) {
+                expenses.push({ description, amount });
+            }
+        });
+
+        // Save to localStorage
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries')) || {};
+        dailyEntries[selectedDate] = {
+            date: selectedDate,
+            revenue,
+            expenses,
+            notes: document.getElementById('daily-notes').value.trim(),
+            totalRevenue: revenue.reduce((sum, item) => sum + item.amount, 0),
+            totalExpenses: expenses.reduce((sum, item) => sum + item.amount, 0),
+            profit: revenue.reduce((sum, item) => sum + item.amount, 0) - expenses.reduce((sum, item) => sum + item.amount, 0)
+        };
+        
+        localStorage.setItem('dailyEntries', JSON.stringify(dailyEntries));
+        
+        this.showMessage('Daily entry saved successfully!', 'success');
+        this.hideDailyEntryForm();
+        this.renderEntriesList();
+        this.renderProfitChart();
+    }
+
+    renderEntriesList() {
+        const tbody = document.getElementById('entries-list-tbody');
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries')) || {};
+        
+        // Sort entries by date (newest first)
+        const sortedEntries = Object.values(dailyEntries).sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        tbody.innerHTML = '';
+        
+        sortedEntries.slice(0, 20).forEach(entry => {
+            const row = document.createElement('tr');
+            const profitClass = entry.profit >= 0 ? 'profit-positive' : 'profit-negative';
+            const notesPreview = entry.notes.length > 50 ? entry.notes.substring(0, 50) + '...' : entry.notes;
+            
+            row.innerHTML = `
+                <td>${new Date(entry.date).toLocaleDateString()}</td>
+                <td>$${entry.totalRevenue.toFixed(2)}</td>
+                <td>$${entry.totalExpenses.toFixed(2)}</td>
+                <td class="${profitClass}">$${entry.profit.toFixed(2)}</td>
+                <td class="notes-preview" title="${entry.notes}">${notesPreview || '-'}</td>
+                <td>
+                    <button class="btn-small" onclick="profitTracker.editDay('${entry.date}')">Edit</button>
+                </td>
+            `;
+            
+            tbody.appendChild(row);
+        });
+    }
+
+    editDay(date) {
+        document.getElementById('tracker-date').value = date;
+        this.loadDayData();
+        this.showDailyEntryForm();
+    }
+
+    renderProfitChart() {
+        const canvas = document.getElementById('profit-chart');
+        const ctx = canvas.getContext('2d');
+        const period = document.getElementById('chart-period').value;
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries')) || {};
+        const chartData = this.getChartData(dailyEntries, period);
+        
+        if (chartData.length === 0) {
+            ctx.fillStyle = '#6c757d';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('No profit data available', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+        
+        this.drawProfitChart(ctx, chartData);
+    }
+
+    getChartData(entries, period) {
+        const days = period === 'week' ? 7 : period === 'month' ? 30 : 90;
+        const data = [];
+        const today = new Date();
+        
+        for (let i = days - 1; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            const entry = entries[dateStr];
+            
+            data.push({
+                date: dateStr,
+                label: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                revenue: entry ? entry.totalRevenue : 0,
+                expenses: entry ? entry.totalExpenses : 0,
+                profit: entry ? entry.profit : 0
+            });
+        }
+        
+        return data;
+    }
+
+    drawProfitChart(ctx, data) {
+        const canvas = ctx.canvas;
+        const padding = 60;
+        const chartWidth = canvas.width - 2 * padding;
+        const chartHeight = canvas.height - 2 * padding;
+        
+        const maxValue = Math.max(
+            Math.max(...data.map(d => d.revenue)),
+            Math.max(...data.map(d => d.expenses)),
+            Math.abs(Math.max(...data.map(d => d.profit))),
+            Math.abs(Math.min(...data.map(d => d.profit)))
+        );
+        
+        const scale = chartHeight / (maxValue * 2); // Double scale for positive/negative
+        
+        // Draw axes
+        ctx.strokeStyle = '#dee2e6';
+        ctx.lineWidth = 2;
+        
+        // Y-axis
+        ctx.beginPath();
+        ctx.moveTo(padding, padding);
+        ctx.lineTo(padding, canvas.height - padding);
+        ctx.stroke();
+        
+        // X-axis
+        ctx.beginPath();
+        ctx.moveTo(padding, canvas.height / 2);
+        ctx.lineTo(canvas.width - padding, canvas.height / 2);
+        ctx.stroke();
+        
+        // Draw revenue line (green)
+        ctx.strokeStyle = '#28a745';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        data.forEach((point, index) => {
+            const x = padding + (index / (data.length - 1)) * chartWidth;
+            const y = canvas.height / 2 - point.revenue * scale;
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        
+        // Draw expense line (red)
+        ctx.strokeStyle = '#dc3545';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        data.forEach((point, index) => {
+            const x = padding + (index / (data.length - 1)) * chartWidth;
+            const y = canvas.height / 2 + point.expenses * scale;
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        
+        // Draw profit line (blue)
+        ctx.strokeStyle = '#007bff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        data.forEach((point, index) => {
+            const x = padding + (index / (data.length - 1)) * chartWidth;
+            const y = canvas.height / 2 - point.profit * scale;
+            if (index === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw labels
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'center';
+        
+        data.forEach((point, index) => {
+            const x = padding + (index / (data.length - 1)) * chartWidth;
+            ctx.fillText(point.label, x, canvas.height - padding + 20);
+        });
+        
+        // Draw legend
+        ctx.fillStyle = '#28a745';
+        ctx.fillRect(padding, padding + 10, 15, 3);
+        ctx.fillStyle = '#495057';
+        ctx.font = '12px Arial';
+        ctx.textAlign = 'left';
+        ctx.fillText('Revenue', padding + 20, padding + 15);
+        
+        ctx.fillStyle = '#dc3545';
+        ctx.fillRect(padding + 80, padding + 10, 15, 3);
+        ctx.fillStyle = '#495057';
+        ctx.fillText('Expenses', padding + 100, padding + 15);
+        
+        ctx.strokeStyle = '#007bff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(padding + 180, padding + 11);
+        ctx.lineTo(padding + 195, padding + 11);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillText('Profit', padding + 200, padding + 15);
     }
 
     showSuccessMessage() {
