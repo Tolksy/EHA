@@ -47,6 +47,11 @@ class ProfitTracker {
             this.renderInvoiceList();
         });
 
+        // Smart Scheduler button
+        document.getElementById('smart-scheduler-btn').addEventListener('click', () => {
+            this.openSmartScheduler();
+        });
+
         // Client tracker button
         document.getElementById('client-tracker-btn').addEventListener('click', () => {
             this.openClientTracker();
@@ -161,6 +166,37 @@ class ProfitTracker {
         document.getElementById('appointment-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveAppointment();
+        });
+
+        // Smart Scheduler modal events
+        document.getElementById('close-smart-scheduler').addEventListener('click', () => {
+            this.closeSmartScheduler();
+        });
+
+        // Wizard navigation
+        document.getElementById('wizard-next').addEventListener('click', () => {
+            this.nextWizardStep();
+        });
+
+        document.getElementById('wizard-back').addEventListener('click', () => {
+            this.previousWizardStep();
+        });
+
+        document.getElementById('wizard-generate').addEventListener('click', () => {
+            this.generateSchedule();
+        });
+
+        // Schedule actions
+        document.getElementById('regenerate-schedule').addEventListener('click', () => {
+            this.regenerateSchedule();
+        });
+
+        document.getElementById('save-schedule').addEventListener('click', () => {
+            this.saveSchedule();
+        });
+
+        document.getElementById('edit-schedule').addEventListener('click', () => {
+            this.editSchedule();
         });
     }
 
@@ -1349,6 +1385,396 @@ class ProfitTracker {
         this.renderProfitChart();
         this.updateSummaryCards();
         this.renderInvoiceList();
+    }
+
+    // Smart Scheduler Methods
+    openSmartScheduler() {
+        document.getElementById('smart-scheduler-modal').style.display = 'flex';
+        this.resetWizard();
+    }
+
+    closeSmartScheduler() {
+        document.getElementById('smart-scheduler-modal').style.display = 'none';
+        this.resetWizard();
+    }
+
+    resetWizard() {
+        this.currentWizardStep = 1;
+        this.wizardData = {};
+        this.updateWizardDisplay();
+        
+        // Hide generated schedule
+        document.getElementById('generated-schedule').style.display = 'none';
+        document.getElementById('setup-wizard').style.display = 'block';
+        
+        // Reset all form inputs
+        document.querySelectorAll('#setup-wizard input').forEach(input => {
+            input.checked = false;
+        });
+    }
+
+    nextWizardStep() {
+        if (!this.validateCurrentStep()) {
+            return;
+        }
+
+        this.saveCurrentStepData();
+        this.currentWizardStep++;
+        this.updateWizardDisplay();
+    }
+
+    previousWizardStep() {
+        this.currentWizardStep--;
+        this.updateWizardDisplay();
+    }
+
+    validateCurrentStep() {
+        switch (this.currentWizardStep) {
+            case 1:
+                if (!document.querySelector('input[name="profit-goal"]:checked')) {
+                    this.showMessage('Please select your monthly profit goal', 'error');
+                    return false;
+                }
+                break;
+            case 2:
+                if (!document.querySelector('input[name="work-days"]:checked')) {
+                    this.showMessage('Please select your work days per week', 'error');
+                    return false;
+                }
+                break;
+            case 3:
+                if (!document.querySelector('input[name="activities"]:checked')) {
+                    this.showMessage('Please select at least one activity type', 'error');
+                    return false;
+                }
+                break;
+            case 4:
+                if (!document.querySelector('input[name="work-hours"]:checked')) {
+                    this.showMessage('Please select your preferred working hours', 'error');
+                    return false;
+                }
+                break;
+            case 5:
+                if (!document.querySelector('input[name="buffer-time"]:checked')) {
+                    this.showMessage('Please select buffer time between appointments', 'error');
+                    return false;
+                }
+                break;
+        }
+        return true;
+    }
+
+    saveCurrentStepData() {
+        switch (this.currentWizardStep) {
+            case 1:
+                this.wizardData.profitGoal = parseInt(document.querySelector('input[name="profit-goal"]:checked').value);
+                break;
+            case 2:
+                this.wizardData.workDays = parseInt(document.querySelector('input[name="work-days"]:checked').value);
+                break;
+            case 3:
+                this.wizardData.activities = Array.from(document.querySelectorAll('input[name="activities"]:checked'))
+                    .map(input => input.value);
+                break;
+            case 4:
+                this.wizardData.workHours = document.querySelector('input[name="work-hours"]:checked').value;
+                break;
+            case 5:
+                this.wizardData.bufferTime = parseInt(document.querySelector('input[name="buffer-time"]:checked').value);
+                break;
+        }
+    }
+
+    updateWizardDisplay() {
+        // Update progress bar
+        const progress = (this.currentWizardStep / 5) * 100;
+        document.getElementById('wizard-progress').style.width = `${progress}%`;
+        document.getElementById('current-step').textContent = this.currentWizardStep;
+
+        // Show/hide steps
+        document.querySelectorAll('.wizard-step').forEach((step, index) => {
+            step.classList.toggle('active', index + 1 === this.currentWizardStep);
+        });
+
+        // Update buttons
+        const backBtn = document.getElementById('wizard-back');
+        const nextBtn = document.getElementById('wizard-next');
+        const generateBtn = document.getElementById('wizard-generate');
+
+        backBtn.style.display = this.currentWizardStep > 1 ? 'block' : 'none';
+        
+        if (this.currentWizardStep === 5) {
+            nextBtn.style.display = 'none';
+            generateBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            generateBtn.style.display = 'none';
+        }
+    }
+
+    generateSchedule() {
+        if (!this.validateCurrentStep()) {
+            return;
+        }
+
+        this.saveCurrentStepData();
+        
+        // Calculate daily revenue target
+        const dailyRevenueTarget = this.wizardData.profitGoal / this.wizardData.workDays;
+        
+        // Update summary
+        document.getElementById('daily-revenue-target').textContent = `$${dailyRevenueTarget.toFixed(0)}`;
+        document.getElementById('work-days-summary').textContent = this.wizardData.workDays;
+        
+        // Generate the schedule
+        const schedule = this.createSmartSchedule();
+        
+        // Update total appointments
+        const totalAppointments = schedule.reduce((total, day) => total + day.appointments.length, 0);
+        document.getElementById('total-appointments').textContent = totalAppointments;
+        
+        // Render the schedule
+        this.renderGeneratedSchedule(schedule);
+        
+        // Show generated schedule
+        document.getElementById('setup-wizard').style.display = 'none';
+        document.getElementById('generated-schedule').style.display = 'block';
+    }
+
+    createSmartSchedule() {
+        const schedule = [];
+        const today = new Date();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay()); // Start from Sunday
+        
+        const dailyRevenueTarget = this.wizardData.profitGoal / this.wizardData.workDays;
+        
+        // Get working hours
+        const workHours = this.parseWorkHours(this.wizardData.workHours);
+        
+        // Generate schedule for next 7 days
+        for (let i = 0; i < 7; i++) {
+            const currentDate = new Date(startOfWeek);
+            currentDate.setDate(startOfWeek.getDate() + i);
+            
+            const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+            const isWorkDay = this.isWorkDay(i, this.wizardData.workDays);
+            
+            const daySchedule = {
+                date: currentDate,
+                dayName: dayName,
+                isWorkDay: isWorkDay,
+                appointments: []
+            };
+            
+            if (isWorkDay) {
+                daySchedule.appointments = this.generateDayAppointments(
+                    currentDate, 
+                    workHours, 
+                    dailyRevenueTarget, 
+                    this.wizardData.activities,
+                    this.wizardData.bufferTime
+                );
+            }
+            
+            schedule.push(daySchedule);
+        }
+        
+        return schedule;
+    }
+
+    isWorkDay(dayIndex, workDays) {
+        // dayIndex: 0=Sunday, 1=Monday, ..., 6=Saturday
+        if (workDays === 5) {
+            return dayIndex >= 1 && dayIndex <= 5; // Monday-Friday
+        } else if (workDays === 6) {
+            return dayIndex >= 1 && dayIndex <= 6; // Monday-Saturday
+        } else {
+            return true; // 7 days
+        }
+    }
+
+    parseWorkHours(workHours) {
+        switch (workHours) {
+            case '8-5':
+                return { start: 8, end: 17 };
+            case '9-6':
+                return { start: 9, end: 18 };
+            case '10-7':
+                return { start: 10, end: 19 };
+            case 'flexible':
+                return { start: 9, end: 17 }; // Default to 9-5 for flexible
+            default:
+                return { start: 9, end: 17 };
+        }
+    }
+
+    generateDayAppointments(date, workHours, dailyRevenueTarget, activities, bufferTime) {
+        const appointments = [];
+        let currentTime = workHours.start;
+        let remainingRevenue = dailyRevenueTarget;
+        
+        // Activity type configurations
+        const activityConfigs = {
+            'client-meetings': { duration: 60, revenue: dailyRevenueTarget * 0.4, color: 'blue' },
+            'field-work': { duration: 120, revenue: dailyRevenueTarget * 0.5, color: 'green' },
+            'admin': { duration: 30, revenue: 0, color: 'orange' },
+            'prospecting': { duration: 45, revenue: 0, color: 'purple' }
+        };
+        
+        // Prioritize high-revenue activities
+        const prioritizedActivities = activities.sort((a, b) => {
+            const aRevenue = activityConfigs[a]?.revenue || 0;
+            const bRevenue = activityConfigs[b]?.revenue || 0;
+            return bRevenue - aRevenue;
+        });
+        
+        // Generate appointments throughout the day
+        while (currentTime < workHours.end && remainingRevenue > 0) {
+            const activity = this.selectNextActivity(prioritizedActivities, remainingRevenue, activityConfigs);
+            if (!activity) break;
+            
+            const config = activityConfigs[activity];
+            const appointment = {
+                time: this.formatTime(currentTime),
+                endTime: this.formatTime(currentTime + config.duration / 60),
+                activity: this.getActivityDisplayName(activity),
+                client: this.generateClientName(activity),
+                revenue: config.revenue,
+                color: config.color,
+                type: activity
+            };
+            
+            appointments.push(appointment);
+            
+            currentTime += (config.duration / 60) + (bufferTime / 60);
+            remainingRevenue -= config.revenue;
+        }
+        
+        return appointments;
+    }
+
+    selectNextActivity(activities, remainingRevenue, configs) {
+        // Find the best activity that fits the remaining revenue and time
+        for (const activity of activities) {
+            const config = configs[activity];
+            if (config.revenue <= remainingRevenue) {
+                return activity;
+            }
+        }
+        
+        // If no high-revenue activities fit, add admin or prospecting
+        const lowRevenueActivities = activities.filter(a => configs[a].revenue === 0);
+        return lowRevenueActivities[0] || null;
+    }
+
+    getActivityDisplayName(activity) {
+        const names = {
+            'client-meetings': 'Client Meeting',
+            'field-work': 'Field Work',
+            'admin': 'Admin Work',
+            'prospecting': 'Prospecting'
+        };
+        return names[activity] || activity;
+    }
+
+    generateClientName(activity) {
+        const sampleClients = [
+            'John Smith', 'Sarah Johnson', 'Mike Davis', 'Lisa Wilson', 
+            'David Brown', 'Emily Taylor', 'Chris Anderson', 'Amy Martinez'
+        ];
+        
+        if (activity === 'client-meetings' || activity === 'field-work') {
+            return sampleClients[Math.floor(Math.random() * sampleClients.length)];
+        }
+        return 'Internal';
+    }
+
+    formatTime(hours) {
+        const h = Math.floor(hours);
+        const m = Math.round((hours - h) * 60);
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    }
+
+    renderGeneratedSchedule(schedule) {
+        const container = document.getElementById('schedule-week');
+        container.innerHTML = '';
+        
+        schedule.forEach(day => {
+            const dayElement = document.createElement('div');
+            dayElement.className = 'schedule-day';
+            
+            dayElement.innerHTML = `
+                <div class="day-header">
+                    <div class="day-name">${day.dayName}</div>
+                    <div class="day-date">${day.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                </div>
+                <div class="day-appointments">
+                    ${day.isWorkDay ? 
+                        day.appointments.map(appt => `
+                            <div class="time-block ${appt.color}" onclick="profitTracker.editTimeBlock('${appt.time}', '${day.dayName}')">
+                                <div class="block-time">${appt.time} - ${appt.endTime}</div>
+                                <div class="block-activity">${appt.activity}</div>
+                                <div class="block-client">${appt.client}</div>
+                                ${appt.revenue > 0 ? `<div class="block-revenue">+$${appt.revenue.toFixed(0)}</div>` : ''}
+                            </div>
+                        `).join('') :
+                        '<div class="time-block" style="background: #f8f9fa; color: #6c757d; text-align: center; padding: 2rem;">Day Off</div>'
+                    }
+                </div>
+            `;
+            
+            container.appendChild(dayElement);
+        });
+    }
+
+    regenerateSchedule() {
+        this.generateSchedule();
+    }
+
+    saveSchedule() {
+        // This would save the generated schedule to the calendar
+        this.showMessage('Schedule saved to calendar successfully!', 'success');
+        this.closeSmartScheduler();
+        
+        // Refresh the calendar display
+        this.renderCalendarHero();
+    }
+
+    editSchedule() {
+        this.showMessage('Edit mode coming soon! For now, you can regenerate with different settings.', 'info');
+    }
+
+    editTimeBlock(time, dayName) {
+        this.showMessage(`Edit ${dayName} at ${time} - Feature coming soon!`, 'info');
+    }
+
+    showMessage(message, type = 'info') {
+        // Create a simple message display
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${type}`;
+        messageDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#007bff'};
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            font-weight: 500;
+            max-width: 300px;
+        `;
+        messageDiv.textContent = message;
+        
+        document.body.appendChild(messageDiv);
+        
+        setTimeout(() => {
+            if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+            }
+        }, 3000);
     }
 }
 

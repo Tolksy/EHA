@@ -14,6 +14,9 @@
             <button class="refresh-btn" title="Refresh" onclick="window.location.reload()">↻</button>
         </div>
         <div class="header-right">
+            <button class="btn-secondary" id="smart-scheduler-btn" title="AI-powered smart scheduling">
+                🧠 Smart Scheduler
+            </button>
             <button class="btn-secondary" id="profit-tracker-btn" title="Track daily revenue and expenses">
                 💰 Profit Tracker
             </button>
@@ -414,6 +417,243 @@
                                 <button type="submit" class="btn-primary" id="save-appointment">Save Appointment</button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Scheduler Modal -->
+    <div id="smart-scheduler-modal" class="modal" style="display: none;">
+        <div class="modal-content large-modal">
+            <div class="modal-header">
+                <h3>🧠 Smart Scheduler</h3>
+                <button type="button" class="modal-close" id="close-smart-scheduler">&times;</button>
+            </div>
+            <div class="smart-scheduler-content">
+                <!-- Setup Wizard -->
+                <div id="setup-wizard" class="setup-wizard">
+                    <div class="wizard-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="wizard-progress"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="current-step">1</span> of 5
+                        </div>
+                    </div>
+                    
+                    <div class="wizard-content">
+                        <!-- Step 1: Monthly Profit Goal -->
+                        <div class="wizard-step active" id="step-1">
+                            <h4>💰 What's your monthly profit goal?</h4>
+                            <p>This helps us calculate your daily revenue targets</p>
+                            <div class="goal-options">
+                                <label class="goal-option">
+                                    <input type="radio" name="profit-goal" value="5000">
+                                    <div class="option-card">
+                                        <div class="option-amount">$5,000</div>
+                                        <div class="option-desc">Getting Started</div>
+                                    </div>
+                                </label>
+                                <label class="goal-option">
+                                    <input type="radio" name="profit-goal" value="10000">
+                                    <div class="option-card">
+                                        <div class="option-amount">$10,000</div>
+                                        <div class="option-desc">Growing Business</div>
+                                    </div>
+                                </label>
+                                <label class="goal-option">
+                                    <input type="radio" name="profit-goal" value="15000">
+                                    <div class="option-card">
+                                        <div class="option-amount">$15,000</div>
+                                        <div class="option-desc">Established</div>
+                                    </div>
+                                </label>
+                                <label class="goal-option">
+                                    <input type="radio" name="profit-goal" value="20000">
+                                    <div class="option-card">
+                                        <div class="option-amount">$20,000+</div>
+                                        <div class="option-desc">Scaling Up</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Work Days -->
+                        <div class="wizard-step" id="step-2">
+                            <h4>📅 How many days do you work per week?</h4>
+                            <p>We'll distribute your schedule across these days</p>
+                            <div class="workday-options">
+                                <label class="workday-option">
+                                    <input type="radio" name="work-days" value="5">
+                                    <div class="option-card">
+                                        <div class="option-icon">📝</div>
+                                        <div class="option-title">5 Days</div>
+                                        <div class="option-desc">Monday - Friday</div>
+                                    </div>
+                                </label>
+                                <label class="workday-option">
+                                    <input type="radio" name="work-days" value="6">
+                                    <div class="option-card">
+                                        <div class="option-icon">⚡</div>
+                                        <div class="option-title">6 Days</div>
+                                        <div class="option-desc">Monday - Saturday</div>
+                                    </div>
+                                </label>
+                                <label class="workday-option">
+                                    <input type="radio" name="work-days" value="7">
+                                    <div class="option-card">
+                                        <div class="option-icon">🔥</div>
+                                        <div class="option-title">7 Days</div>
+                                        <div class="option-desc">Full Week</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Activity Types -->
+                        <div class="wizard-step" id="step-3">
+                            <h4>🎯 What are your main activity types?</h4>
+                            <p>Select all that apply - we'll color-code your schedule</p>
+                            <div class="activity-options">
+                                <label class="activity-option">
+                                    <input type="checkbox" name="activities" value="client-meetings">
+                                    <div class="activity-card blue">
+                                        <div class="activity-icon">🤝</div>
+                                        <div class="activity-title">Client Meetings</div>
+                                        <div class="activity-desc">Consultations, calls, presentations</div>
+                                    </div>
+                                </label>
+                                <label class="activity-option">
+                                    <input type="checkbox" name="activities" value="field-work">
+                                    <div class="activity-card green">
+                                        <div class="activity-icon">🔧</div>
+                                        <div class="activity-title">Field Work</div>
+                                        <div class="activity-desc">On-site services, installations</div>
+                                    </div>
+                                </label>
+                                <label class="activity-option">
+                                    <input type="checkbox" name="activities" value="admin">
+                                    <div class="activity-card orange">
+                                        <div class="activity-icon">📋</div>
+                                        <div class="activity-title">Admin Work</div>
+                                        <div class="activity-desc">Paperwork, emails, planning</div>
+                                    </div>
+                                </label>
+                                <label class="activity-option">
+                                    <input type="checkbox" name="activities" value="prospecting">
+                                    <div class="activity-card purple">
+                                        <div class="activity-icon">🎯</div>
+                                        <div class="activity-title">Prospecting</div>
+                                        <div class="activity-desc">Lead generation, networking</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Working Hours -->
+                        <div class="wizard-step" id="step-4">
+                            <h4>⏰ What are your preferred working hours?</h4>
+                            <p>We'll schedule your high-value activities during these times</p>
+                            <div class="hours-options">
+                                <label class="hours-option">
+                                    <input type="radio" name="work-hours" value="8-5">
+                                    <div class="option-card">
+                                        <div class="option-time">8:00 AM - 5:00 PM</div>
+                                        <div class="option-desc">Traditional Business Hours</div>
+                                    </div>
+                                </label>
+                                <label class="hours-option">
+                                    <input type="radio" name="work-hours" value="9-6">
+                                    <div class="option-card">
+                                        <div class="option-time">9:00 AM - 6:00 PM</div>
+                                        <div class="option-desc">Slightly Later Start</div>
+                                    </div>
+                                </label>
+                                <label class="hours-option">
+                                    <input type="radio" name="work-hours" value="10-7">
+                                    <div class="option-card">
+                                        <div class="option-time">10:00 AM - 7:00 PM</div>
+                                        <div class="option-desc">Late Start, Late Finish</div>
+                                    </div>
+                                </label>
+                                <label class="hours-option">
+                                    <input type="radio" name="work-hours" value="flexible">
+                                    <div class="option-card">
+                                        <div class="option-time">Flexible</div>
+                                        <div class="option-desc">I adapt to client needs</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Buffer Time -->
+                        <div class="wizard-step" id="step-5">
+                            <h4>⏱️ How much buffer time between appointments?</h4>
+                            <p>This prevents scheduling conflicts and allows for travel/prep time</p>
+                            <div class="buffer-options">
+                                <label class="buffer-option">
+                                    <input type="radio" name="buffer-time" value="15">
+                                    <div class="option-card">
+                                        <div class="option-duration">15 minutes</div>
+                                        <div class="option-desc">Quick transitions</div>
+                                    </div>
+                                </label>
+                                <label class="buffer-option">
+                                    <input type="radio" name="buffer-time" value="30">
+                                    <div class="option-card">
+                                        <div class="option-duration">30 minutes</div>
+                                        <div class="option-desc">Comfortable spacing</div>
+                                    </div>
+                                </label>
+                                <label class="buffer-option">
+                                    <input type="radio" name="buffer-time" value="60">
+                                    <div class="option-card">
+                                        <div class="option-duration">1 hour</div>
+                                        <div class="option-desc">Lots of breathing room</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="wizard-actions">
+                        <button type="button" class="btn-secondary" id="wizard-back" style="display: none;">← Back</button>
+                        <button type="button" class="btn-primary" id="wizard-next">Next →</button>
+                        <button type="button" class="btn-primary" id="wizard-generate" style="display: none;">🚀 Generate Schedule</button>
+                    </div>
+                </div>
+
+                <!-- Generated Schedule -->
+                <div id="generated-schedule" class="generated-schedule" style="display: none;">
+                    <div class="schedule-header">
+                        <h4>🎯 Your Smart Schedule</h4>
+                        <p>Based on your preferences, here's your optimized 1-week schedule:</p>
+                    </div>
+                    
+                    <div class="schedule-summary">
+                        <div class="summary-item">
+                            <div class="summary-label">Daily Revenue Target</div>
+                            <div class="summary-value" id="daily-revenue-target">$0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Work Days</div>
+                            <div class="summary-value" id="work-days-summary">0</div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="summary-label">Total Appointments</div>
+                            <div class="summary-value" id="total-appointments">0</div>
+                        </div>
+                    </div>
+                    
+                    <div class="schedule-week" id="schedule-week">
+                        <!-- Generated schedule will appear here -->
+                    </div>
+                    
+                    <div class="schedule-actions">
+                        <button type="button" class="btn-secondary" id="regenerate-schedule">🔄 Regenerate</button>
+                        <button type="button" class="btn-primary" id="save-schedule">💾 Save to Calendar</button>
+                        <button type="button" class="btn-secondary" id="edit-schedule">✏️ Edit Schedule</button>
                     </div>
                 </div>
             </div>

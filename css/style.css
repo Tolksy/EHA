@@ -1487,6 +1487,387 @@ body {
     border-bottom: 5px solid #2c3e50;
 }
 
+/* Smart Scheduler Styles */
+.smart-scheduler-content {
+    padding: 1.5rem;
+}
+
+/* Setup Wizard Styles */
+.setup-wizard {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.wizard-progress {
+    margin-bottom: 2rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #007bff, #28a745);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 20%;
+}
+
+.progress-text {
+    text-align: center;
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.wizard-content {
+    margin-bottom: 2rem;
+}
+
+.wizard-step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.wizard-step.active {
+    display: block;
+}
+
+.wizard-step h4 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.wizard-step p {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Option Cards */
+.goal-options, .workday-options, .hours-options, .buffer-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.activity-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.goal-option, .workday-option, .hours-option, .buffer-option, .activity-option {
+    cursor: pointer;
+}
+
+.goal-option input, .workday-option input, .hours-option input, .buffer-option input, .activity-option input {
+    display: none;
+}
+
+.option-card, .activity-card {
+    padding: 1.5rem;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    text-align: center;
+    transition: all 0.3s ease;
+    background: white;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.goal-option:hover .option-card,
+.workday-option:hover .option-card,
+.hours-option:hover .option-card,
+.buffer-option:hover .option-card,
+.activity-option:hover .activity-card {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.15);
+}
+
+.goal-option input:checked + .option-card,
+.workday-option input:checked + .option-card,
+.hours-option input:checked + .option-card,
+.buffer-option input:checked + .option-card {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+}
+
+.activity-option input:checked + .activity-card {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.2);
+    transform: scale(1.02);
+}
+
+.option-amount, .option-time, .option-duration {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.option-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.option-desc {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.option-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Activity Cards with Color Coding */
+.activity-card.blue {
+    border-color: #2196f3;
+}
+
+.activity-card.blue:hover,
+.activity-option input:checked + .activity-card.blue {
+    border-color: #1976d2;
+    background: #e3f2fd;
+}
+
+.activity-card.green {
+    border-color: #4caf50;
+}
+
+.activity-card.green:hover,
+.activity-option input:checked + .activity-card.green {
+    border-color: #388e3c;
+    background: #e8f5e8;
+}
+
+.activity-card.orange {
+    border-color: #ff9800;
+}
+
+.activity-card.orange:hover,
+.activity-option input:checked + .activity-card.orange {
+    border-color: #f57c00;
+    background: #fff3e0;
+}
+
+.activity-card.purple {
+    border-color: #9c27b0;
+}
+
+.activity-card.purple:hover,
+.activity-option input:checked + .activity-card.purple {
+    border-color: #7b1fa2;
+    background: #f3e5f5;
+}
+
+.activity-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.activity-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.activity-desc {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Wizard Actions */
+.wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Generated Schedule Styles */
+.generated-schedule {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.schedule-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.schedule-header h4 {
+    font-size: 1.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-header p {
+    color: #6c757d;
+}
+
+.schedule-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.summary-item {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.summary-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.schedule-week {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.schedule-day {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.day-header {
+    background: #2c3e50;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.day-header .day-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+}
+
+.day-header .day-date {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.day-appointments {
+    padding: 1rem;
+}
+
+.time-block {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left: 4px solid;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.time-block:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.time-block.blue {
+    background: #e3f2fd;
+    border-left-color: #2196f3;
+}
+
+.time-block.green {
+    background: #e8f5e8;
+    border-left-color: #4caf50;
+}
+
+.time-block.orange {
+    background: #fff3e0;
+    border-left-color: #ff9800;
+}
+
+.time-block.purple {
+    background: #f3e5f5;
+    border-left-color: #9c27b0;
+}
+
+.block-time {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.9rem;
+}
+
+.block-activity {
+    font-weight: 500;
+    color: #495057;
+    margin: 0.25rem 0;
+}
+
+.block-client {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.block-revenue {
+    font-size: 0.8rem;
+    color: #28a745;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+.schedule-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .dashboard-header, .invoice-header {
@@ -1603,5 +1984,36 @@ body {
     .appointment-time-hero,
     .appointment-client-hero {
         font-size: 0.55rem;
+    }
+    
+    /* Smart Scheduler Responsive */
+    .goal-options, .workday-options, .hours-options, .buffer-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .activity-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule-week {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .schedule-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .wizard-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .option-card, .activity-card {
+        padding: 1rem;
     }
 }
