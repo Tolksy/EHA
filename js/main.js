@@ -86,6 +86,11 @@ class ProfitTracker {
             this.filterClients();
         });
 
+        // Add customer button
+        document.getElementById('add-customer-btn').addEventListener('click', () => {
+            this.openAddCustomerModal();
+        });
+
         // Profit tracker button
         document.getElementById('profit-tracker-btn').addEventListener('click', () => {
             this.openProfitTracker();
@@ -258,6 +263,20 @@ class ProfitTracker {
         // Add employee
         document.getElementById('add-employee-btn').addEventListener('click', () => {
             this.addEmployee();
+        });
+
+        // Add customer modal events
+        document.getElementById('close-add-customer').addEventListener('click', () => {
+            this.closeAddCustomerModal();
+        });
+
+        document.getElementById('cancel-add-customer').addEventListener('click', () => {
+            this.closeAddCustomerModal();
+        });
+
+        document.getElementById('add-customer-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveNewCustomer();
         });
 
         // Close dropdown when clicking outside
@@ -2250,6 +2269,73 @@ class ProfitTracker {
         this.showMessage('Services logged successfully!', 'success');
         this.closeDailyLogging();
         this.renderCalendarHero();
+    }
+
+    // Add Customer Methods
+    openAddCustomerModal() {
+        document.getElementById('add-customer-modal').style.display = 'flex';
+        this.clearAddCustomerForm();
+    }
+
+    closeAddCustomerModal() {
+        document.getElementById('add-customer-modal').style.display = 'none';
+        this.clearAddCustomerForm();
+    }
+
+    clearAddCustomerForm() {
+        document.getElementById('add-customer-form').reset();
+        // Set default warmth score
+        document.getElementById('customer-warmth').value = '5';
+        // Set default status
+        document.getElementById('customer-status').value = 'prospect';
+    }
+
+    saveNewCustomer() {
+        const customerData = {
+            id: Date.now().toString(),
+            name: document.getElementById('customer-name').value.trim(),
+            company: document.getElementById('customer-company').value.trim(),
+            email: document.getElementById('customer-email').value.trim(),
+            phone: document.getElementById('customer-phone').value.trim(),
+            address: document.getElementById('customer-address').value.trim(),
+            warmthScore: parseInt(document.getElementById('customer-warmth').value),
+            status: document.getElementById('customer-status').value,
+            notes: document.getElementById('customer-notes').value.trim(),
+            lastContact: new Date().toISOString().split('T')[0],
+            totalInvoices: 0,
+            totalAmount: 0
+        };
+
+        // Validate required fields
+        if (!customerData.name) {
+            this.showMessage('Please enter customer name', 'error');
+            return;
+        }
+
+        // Load existing customers
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        
+        // Check for duplicate email if provided
+        if (customerData.email) {
+            const existingCustomer = customers.find(c => c.email === customerData.email);
+            if (existingCustomer) {
+                this.showMessage('A customer with this email already exists', 'error');
+                return;
+            }
+        }
+
+        // Add new customer
+        customers.push(customerData);
+        localStorage.setItem('customers', JSON.stringify(customers));
+
+        // Update client tracker if it's open
+        if (document.getElementById('client-tracker-modal').style.display === 'flex') {
+            this.loadClients();
+            this.updateClientStats();
+        }
+
+        this.showMessage('Customer added successfully!', 'success');
+        this.closeAddCustomerModal();
     }
 }
 

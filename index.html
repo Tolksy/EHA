@@ -202,6 +202,7 @@
                         <option value="client">Active Clients</option>
                         <option value="prospect">Prospects</option>
                     </select>
+                    <button class="btn-primary" id="add-customer-btn">+ Add Customer</button>
                 </div>
                 <div class="client-list-container">
                     <table class="client-table">
@@ -856,6 +857,74 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Customer Modal -->
+    <div id="add-customer-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>👤 Add New Customer</h3>
+                <button type="button" class="modal-close" id="close-add-customer">&times;</button>
+            </div>
+            <form id="add-customer-form">
+                <div class="form-group">
+                    <label for="customer-name">Full Name *</label>
+                    <input type="text" id="customer-name" required placeholder="Enter customer's full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer-company">Company</label>
+                    <input type="text" id="customer-company" placeholder="Enter company name (optional)">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customer-email">Email</label>
+                        <input type="email" id="customer-email" placeholder="customer@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-phone">Phone</label>
+                        <input type="tel" id="customer-phone" placeholder="(555) 123-4567">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer-address">Address</label>
+                    <textarea id="customer-address" rows="3" placeholder="Street address, city, state, zip"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customer-warmth">Warmth Score</label>
+                        <select id="customer-warmth">
+                            <option value="5">5 - Neutral</option>
+                            <option value="6">6 - Warm</option>
+                            <option value="7">7 - Warm</option>
+                            <option value="8">8 - Hot</option>
+                            <option value="9">9 - Hot</option>
+                            <option value="10">10 - Very Hot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-status">Status</label>
+                        <select id="customer-status">
+                            <option value="prospect">Prospect</option>
+                            <option value="client">Active Client</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer-notes">Notes</label>
+                    <textarea id="customer-notes" rows="3" placeholder="Any additional notes about this customer..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancel-add-customer">Cancel</button>
+                    <button type="submit" class="btn-primary" id="save-customer">💾 Save Customer</button>
+                </div>
+            </form>
         </div>
     </div>
 

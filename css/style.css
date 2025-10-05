@@ -748,6 +748,7 @@ body {
     gap: 1rem;
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
+    align-items: center;
 }
 
 .client-filters input,
@@ -2170,6 +2171,11 @@ body {
     
     .client-filters {
         flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .client-filters button {
+        margin-top: 1rem;
     }
     
     .client-filters input,
