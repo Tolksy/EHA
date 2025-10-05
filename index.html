@@ -74,14 +74,14 @@
 
     <!-- Main Dashboard -->
     <main class="dashboard-main">
-        <!-- Neural Calendar Hero Section -->
-        <section class="calendar-hero-section neural-section">
+        <!-- Neural Task & Calendar Management -->
+        <section class="task-calendar-section neural-section">
             <div class="section-header">
                 <div class="neural-title">
-                    <h2>🧠 Neural Calendar Core</h2>
+                    <h2>🧠 Neural Task & Calendar Core</h2>
                     <div class="ai-status">
                         <div class="status-indicator active"></div>
-                        <span class="status-text">AI-Powered Scheduling Active</span>
+                        <span class="status-text">Drag & Drop Task Management Active</span>
                     </div>
                 </div>
                 <div class="calendar-nav-hero neural-controls">
@@ -102,8 +102,56 @@
                 </div>
             </div>
             
-            <!-- Calendar Grid -->
-            <div class="calendar-grid-hero">
+            <!-- Two-Panel Layout -->
+            <div class="task-calendar-container">
+                <!-- Left Panel: Task List -->
+                <div class="task-panel">
+                    <div class="panel-header">
+                        <h3>📋 Task Pipeline</h3>
+                        <button class="btn-neural" id="add-task-btn">
+                            <span class="btn-icon">+</span>
+                            <span class="btn-text">Add Task</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Task Categories -->
+                    <div class="task-categories">
+                        <div class="category-section">
+                            <h4 class="category-title billable">💰 Billable Work</h4>
+                            <div class="task-list" id="billable-tasks" data-category="billable">
+                                <!-- Billable tasks will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="category-section">
+                            <h4 class="category-title sales">🎯 Sales & Prospecting</h4>
+                            <div class="task-list" id="sales-tasks" data-category="sales">
+                                <!-- Sales tasks will be added here -->
+                            </div>
+                        </div>
+                        
+                        <div class="category-section">
+                            <h4 class="category-title admin">⚙️ Admin & Planning</h4>
+                            <div class="task-list" id="admin-tasks" data-category="admin">
+                                <!-- Admin tasks will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Panel: Calendar -->
+                <div class="calendar-panel">
+                    <div class="panel-header">
+                        <h3>📅 Calendar Grid</h3>
+                        <div class="calendar-stats">
+                            <span class="stat-item">Tasks: <span id="scheduled-count">0</span></span>
+                            <span class="stat-item">Hours: <span id="total-hours">0</span></span>
+                            <span class="stat-item">Revenue: $<span id="total-revenue">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Calendar Grid -->
+                    <div class="calendar-grid-hero">
                 <div class="calendar-header-hero">
                     <div class="day-header-hero">Sun</div>
                     <div class="day-header-hero">Mon</div>
@@ -115,6 +163,15 @@
                 </div>
                 <div class="calendar-days-hero" id="calendar-days-hero">
                     <!-- Calendar days will be populated here -->
+                </div>
+                    </div>
+                </div>
+                
+                <!-- Trash Bin -->
+                <div class="trash-bin" id="trash-bin">
+                    <div class="trash-icon">🗑️</div>
+                    <span class="trash-label">Trash</span>
+                    <div class="trash-count" id="trash-count">0</div>
                 </div>
             </div>
         </section>
@@ -904,6 +961,63 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="add-task-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 Add New Task</h3>
+                <button type="button" class="modal-close" id="close-add-task">&times;</button>
+            </div>
+            <form id="add-task-form">
+                <div class="form-group">
+                    <label for="task-title">Task Title *</label>
+                    <input type="text" id="task-title" required placeholder="e.g., Install HVAC system for John Smith">
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-client">Client/Customer</label>
+                    <input type="text" id="task-client" placeholder="Who is this task for?">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-category">Category *</label>
+                        <select id="task-category" required>
+                            <option value="billable">💰 Billable Work</option>
+                            <option value="sales">🎯 Sales & Prospecting</option>
+                            <option value="admin">⚙️ Admin & Planning</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="task-duration">Duration (hours)</label>
+                        <input type="number" id="task-duration" step="0.5" min="0.5" max="24" placeholder="2.5">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-rate">Rate ($/hour)</label>
+                        <input type="number" id="task-rate" step="0.01" placeholder="75.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="task-total">Total Amount</label>
+                        <input type="number" id="task-total" step="0.01" placeholder="187.50" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-description">Description</label>
+                    <textarea id="task-description" rows="3" placeholder="Additional details about this task..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="cancel-add-task">Cancel</button>
+                    <button type="submit" class="btn-primary neural-primary" id="save-task">💾 Add Task</button>
+                </div>
+            </form>
         </div>
     </div>
 

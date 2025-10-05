@@ -265,6 +265,33 @@ class ProfitTracker {
             this.addEmployee();
         });
 
+        // Add task modal events
+        document.getElementById('add-task-btn').addEventListener('click', () => {
+            this.openAddTaskModal();
+        });
+
+        document.getElementById('close-add-task').addEventListener('click', () => {
+            this.closeAddTaskModal();
+        });
+
+        document.getElementById('cancel-add-task').addEventListener('click', () => {
+            this.closeAddTaskModal();
+        });
+
+        document.getElementById('add-task-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveNewTask();
+        });
+
+        // Task form calculations
+        document.getElementById('task-duration').addEventListener('input', () => {
+            this.calculateTaskTotal();
+        });
+
+        document.getElementById('task-rate').addEventListener('input', () => {
+            this.calculateTaskTotal();
+        });
+
         // Add customer modal events
         document.getElementById('close-add-customer').addEventListener('click', () => {
             this.closeAddCustomerModal();
@@ -2337,11 +2364,256 @@ class ProfitTracker {
         this.showMessage('Customer added successfully!', 'success');
         this.closeAddCustomerModal();
     }
+
+    // Task Management Methods
+    openAddTaskModal() {
+        document.getElementById('add-task-modal').style.display = 'flex';
+        this.clearAddTaskForm();
+    }
+
+    closeAddTaskModal() {
+        document.getElementById('add-task-modal').style.display = 'none';
+        this.clearAddTaskForm();
+    }
+
+    clearAddTaskForm() {
+        document.getElementById('add-task-form').reset();
+        // Set default values
+        document.getElementById('task-category').value = 'billable';
+        document.getElementById('task-duration').value = '2';
+        document.getElementById('task-rate').value = '75';
+        this.calculateTaskTotal();
+    }
+
+    calculateTaskTotal() {
+        const duration = parseFloat(document.getElementById('task-duration').value) || 0;
+        const rate = parseFloat(document.getElementById('task-rate').value) || 0;
+        const total = duration * rate;
+        document.getElementById('task-total').value = total.toFixed(2);
+    }
+
+    saveNewTask() {
+        const taskData = {
+            id: Date.now().toString(),
+            title: document.getElementById('task-title').value.trim(),
+            client: document.getElementById('task-client').value.trim(),
+            category: document.getElementById('task-category').value,
+            duration: parseFloat(document.getElementById('task-duration').value),
+            rate: parseFloat(document.getElementById('task-rate').value),
+            total: parseFloat(document.getElementById('task-total').value),
+            description: document.getElementById('task-description').value.trim(),
+            createdAt: new Date().toISOString(),
+            scheduled: false,
+            scheduledDate: null,
+            scheduledTime: null
+        };
+
+        // Validate required fields
+        if (!taskData.title) {
+            this.showMessage('Please enter task title', 'error');
+            return;
+        }
+
+        if (!taskData.duration || taskData.duration <= 0) {
+            this.showMessage('Please enter valid duration', 'error');
+            return;
+        }
+
+        // Load existing tasks
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        
+        // Add new task
+        tasks.push(taskData);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+
+        // Update task display
+        this.loadTasks();
+
+        this.showMessage('Task added successfully!', 'success');
+        this.closeAddTaskModal();
+    }
+
+    loadTasks() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        
+        // Clear existing tasks
+        document.querySelectorAll('.task-list').forEach(list => {
+            list.innerHTML = '';
+        });
+
+        // Group tasks by category
+        const billableTasks = tasks.filter(task => task.category === 'billable' && !task.scheduled);
+        const salesTasks = tasks.filter(task => task.category === 'sales' && !task.scheduled);
+        const adminTasks = tasks.filter(task => task.category === 'admin' && !task.scheduled);
+
+        // Render tasks
+        this.renderTaskList('billable-tasks', billableTasks);
+        this.renderTaskList('sales-tasks', salesTasks);
+        this.renderTaskList('admin-tasks', adminTasks);
+    }
+
+    renderTaskList(containerId, tasks) {
+        const container = document.getElementById(containerId);
+        
+        tasks.forEach(task => {
+            const taskElement = document.createElement('div');
+            taskElement.className = 'task-item';
+            taskElement.draggable = true;
+            taskElement.dataset.taskId = task.id;
+            
+            taskElement.innerHTML = `
+                <div class="task-header">
+                    <h4 class="task-title">${task.title}</h4>
+                    <span class="task-drag-handle">⋮⋮</span>
+                </div>
+                <div class="task-details">
+                    ${task.client ? `<div class="task-detail"><strong>Client:</strong> ${task.client}</div>` : ''}
+                    <div class="task-detail"><strong>Duration:</strong> ${task.duration}h</div>
+                    <div class="task-detail"><strong>Rate:</strong> $${task.rate}/h</div>
+                    <div class="task-detail"><strong>Total:</strong> $${task.total.toFixed(2)}</div>
+                </div>
+            `;
+
+            // Add drag event listeners
+            taskElement.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', task.id);
+                taskElement.classList.add('dragging');
+            });
+
+            taskElement.addEventListener('dragend', () => {
+                taskElement.classList.remove('dragging');
+            });
+
+            container.appendChild(taskElement);
+        });
+    }
+
+    initializeDragAndDrop() {
+        // Make calendar days droppable
+        const calendarDays = document.querySelectorAll('.calendar-day');
+        calendarDays.forEach(day => {
+            day.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                day.classList.add('drag-over');
+            });
+
+            day.addEventListener('dragleave', () => {
+                day.classList.remove('drag-over');
+            });
+
+            day.addEventListener('drop', (e) => {
+                e.preventDefault();
+                day.classList.remove('drag-over');
+                
+                const taskId = e.dataTransfer.getData('text/plain');
+                const dateStr = day.dataset.date;
+                
+                if (taskId && dateStr) {
+                    this.scheduleTask(taskId, dateStr);
+                }
+            });
+        });
+
+        // Make trash bin droppable
+        const trashBin = document.getElementById('trash-bin');
+        trashBin.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            trashBin.classList.add('drag-over');
+        });
+
+        trashBin.addEventListener('dragleave', () => {
+            trashBin.classList.remove('drag-over');
+        });
+
+        trashBin.addEventListener('drop', (e) => {
+            e.preventDefault();
+            trashBin.classList.remove('drag-over');
+            
+            const taskId = e.dataTransfer.getData('text/plain');
+            if (taskId) {
+                this.moveTaskToTrash(taskId);
+            }
+        });
+    }
+
+    scheduleTask(taskId, dateStr) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const taskIndex = tasks.findIndex(task => task.id === taskId);
+        
+        if (taskIndex !== -1) {
+            tasks[taskIndex].scheduled = true;
+            tasks[taskIndex].scheduledDate = dateStr;
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            
+            // Update task display
+            this.loadTasks();
+            
+            // Update calendar
+            this.renderCalendarHero();
+            
+            // Update stats
+            this.updateCalendarStats();
+            
+            this.showMessage('Task scheduled successfully!', 'success');
+        }
+    }
+
+    moveTaskToTrash(taskId) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const taskIndex = tasks.findIndex(task => task.id === taskId);
+        
+        if (taskIndex !== -1) {
+            tasks[taskIndex].trashed = true;
+            tasks[taskIndex].trashedAt = new Date().toISOString();
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            
+            // Update task display
+            this.loadTasks();
+            
+            // Update trash count
+            this.updateTrashCount();
+            
+            this.showMessage('Task moved to trash', 'info');
+        }
+    }
+
+    updateTrashCount() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const trashedCount = tasks.filter(task => task.trashed).length;
+        document.getElementById('trash-count').textContent = trashedCount;
+    }
+
+    updateCalendarStats() {
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const scheduledTasks = tasks.filter(task => task.scheduled && !task.trashed);
+        
+        const totalTasks = scheduledTasks.length;
+        const totalHours = scheduledTasks.reduce((sum, task) => sum + task.duration, 0);
+        const totalRevenue = scheduledTasks.reduce((sum, task) => sum + task.total, 0);
+        
+        document.getElementById('scheduled-count').textContent = totalTasks;
+        document.getElementById('total-hours').textContent = totalHours.toFixed(1);
+        document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2);
+    }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.profitTracker = new ProfitTracker();
+    
+    // Initialize the dashboard
+    window.profitTracker.init();
+    window.profitTracker.renderCalendarHero();
+    window.profitTracker.loadInvoices();
+    window.profitTracker.updateSummaryStats();
+    
+    // Initialize task management
+    window.profitTracker.loadTasks();
+    window.profitTracker.updateTrashCount();
+    window.profitTracker.updateCalendarStats();
+    window.profitTracker.initializeDragAndDrop();
     
     // Refresh data when returning from invoice page
     window.addEventListener('focus', () => {

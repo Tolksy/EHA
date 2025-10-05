@@ -569,6 +569,300 @@ body {
     50% { opacity: 0.4; }
 }
 
+/* Task & Calendar Container */
+.task-calendar-container {
+    display: grid;
+    grid-template-columns: 350px 1fr;
+    gap: 2rem;
+    min-height: 600px;
+}
+
+/* Task Panel */
+.task-panel {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.panel-header h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0;
+}
+
+/* Task Categories */
+.task-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.category-section {
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.category-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+.category-title.billable {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+.category-title.sales {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.category-title.admin {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+    border: 1px solid rgba(108, 117, 125, 0.4);
+}
+
+/* Task List */
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 100px;
+}
+
+/* Individual Task */
+.task-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: grab;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.task-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #00ffff, #9333ea);
+}
+
+.task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
+    border-color: rgba(0, 255, 255, 0.6);
+}
+
+.task-item:active {
+    cursor: grabbing;
+}
+
+.task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.task-title {
+    font-weight: 600;
+    color: #e8f4f8;
+    font-size: 0.9rem;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.task-drag-handle {
+    color: rgba(232, 244, 248, 0.5);
+    font-size: 1rem;
+    cursor: grab;
+}
+
+.task-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: rgba(232, 244, 248, 0.7);
+}
+
+.task-detail {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.task-detail strong {
+    color: #00ffff;
+}
+
+/* Calendar Panel */
+.calendar-panel {
+    background: rgba(10, 10, 15, 0.8);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    box-shadow: 
+        0 8px 32px rgba(0, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
+.calendar-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+}
+
+.stat-item {
+    color: rgba(232, 244, 248, 0.8);
+    background: rgba(0, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+}
+
+.stat-item span {
+    color: #00ffff;
+    font-weight: 600;
+}
+
+/* Trash Bin */
+.trash-bin {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 80px;
+    height: 80px;
+    background: rgba(220, 53, 69, 0.9);
+    border: 2px solid rgba(220, 53, 69, 0.6);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    z-index: 1000;
+}
+
+.trash-bin:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(220, 53, 69, 0.5);
+}
+
+.trash-bin.drag-over {
+    background: rgba(220, 53, 69, 1);
+    transform: scale(1.2);
+    box-shadow: 0 8px 25px rgba(220, 53, 69, 0.7);
+}
+
+.trash-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.trash-label {
+    font-size: 0.7rem;
+    color: white;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.trash-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ffc107;
+    color: #000;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+/* Drag and Drop States */
+.task-item.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+    z-index: 1000;
+}
+
+.calendar-day.drag-over {
+    background: rgba(0, 255, 255, 0.2);
+    border: 2px dashed rgba(0, 255, 255, 0.6);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .task-calendar-container {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .task-panel {
+        max-height: 300px;
+    }
+    
+    .trash-bin {
+        bottom: 1rem;
+        right: 1rem;
+        width: 60px;
+        height: 60px;
+    }
+    
+    .trash-icon {
+        font-size: 1.2rem;
+    }
+    
+    .trash-label {
+        font-size: 0.6rem;
+    }
+}
+
 /* Date Controls */
 .date-controls {
     display: flex;
