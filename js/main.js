@@ -2597,6 +2597,264 @@ class ProfitTracker {
         document.getElementById('total-hours').textContent = totalHours.toFixed(1);
         document.getElementById('total-revenue').textContent = totalRevenue.toFixed(2);
     }
+
+    // Game Mechanics
+    initializeGame() {
+        this.playerData = JSON.parse(localStorage.getItem('playerData')) || {
+            level: 1,
+            xp: 0,
+            totalXp: 0,
+            title: 'Startup Founder',
+            completedTasks: 0,
+            totalRevenue: 0,
+            achievements: []
+        };
+        
+        this.updatePlayerProfile();
+        this.updateBusinessStats();
+        this.updateAchievements();
+    }
+
+    updatePlayerProfile() {
+        document.getElementById('player-level').textContent = this.playerData.level;
+        document.getElementById('player-title').textContent = this.playerData.title;
+        
+        // Calculate XP for current level
+        const xpNeeded = this.playerData.level * 100;
+        const currentLevelXp = this.playerData.xp % 100;
+        const progress = (currentLevelXp / 100) * 100;
+        
+        document.getElementById('xp-fill').style.width = `${progress}%`;
+        document.getElementById('xp-text').textContent = `${currentLevelXp}/${100} XP`;
+    }
+
+    updateBusinessStats() {
+        document.getElementById('empire-revenue').textContent = `$${this.playerData.totalRevenue.toLocaleString()}`;
+        document.getElementById('tasks-completed').textContent = this.playerData.completedTasks;
+        document.getElementById('achievement-count').textContent = this.playerData.achievements.length;
+        
+        // Calculate growth rate (simplified)
+        const growthRate = this.playerData.completedTasks > 0 ? Math.min(100, (this.playerData.totalRevenue / 1000) * 10) : 0;
+        document.getElementById('empire-growth').textContent = `${growthRate.toFixed(1)}%`;
+    }
+
+    addXP(amount, source = 'task') {
+        this.playerData.xp += amount;
+        this.playerData.totalXp += amount;
+        
+        // Check for level up
+        const newLevel = Math.floor(this.playerData.totalXp / 100) + 1;
+        if (newLevel > this.playerData.level) {
+            this.levelUp(newLevel);
+        }
+        
+        this.updatePlayerProfile();
+        this.savePlayerData();
+        
+        // Show XP notification
+        this.showXPNotification(amount, source);
+    }
+
+    levelUp(newLevel) {
+        this.playerData.level = newLevel;
+        
+        // Update title based on level
+        const titles = [
+            'Startup Founder',
+            'Business Builder',
+            'Revenue Generator',
+            'Task Master',
+            'Scheduling Pro',
+            'Business Tycoon',
+            'Empire Builder',
+            'Master CEO'
+        ];
+        
+        this.playerData.title = titles[Math.min(newLevel - 1, titles.length - 1)];
+        
+        // Show level up notification
+        this.showLevelUpNotification(newLevel);
+        
+        // Check for level-based achievements
+        this.checkAchievements();
+    }
+
+    showXPNotification(amount, source) {
+        const notification = document.createElement('div');
+        notification.className = 'xp-notification';
+        notification.innerHTML = `
+            <div class="xp-icon">+${amount} XP</div>
+            <div class="xp-source">${source}</div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate notification
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateY(-20px)';
+        }, 100);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 3000);
+    }
+
+    showLevelUpNotification(level) {
+        const notification = document.createElement('div');
+        notification.className = 'level-up-notification';
+        notification.innerHTML = `
+            <div class="level-up-content">
+                <div class="level-up-icon">🎉</div>
+                <div class="level-up-text">
+                    <h3>LEVEL UP!</h3>
+                    <p>You reached Level ${level}</p>
+                    <p class="new-title">${this.playerData.title}</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+        }, 4000);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 5000);
+    }
+
+    checkAchievements() {
+        const achievements = [
+            {
+                id: 'first-task',
+                condition: () => this.playerData.completedTasks >= 1,
+                xp: 50
+            },
+            {
+                id: 'revenue-milestone',
+                condition: () => this.playerData.totalRevenue >= 1000,
+                xp: 100
+            },
+            {
+                id: 'task-master',
+                condition: () => this.playerData.completedTasks >= 10,
+                xp: 200
+            },
+            {
+                id: 'scheduling-pro',
+                condition: () => this.playerData.completedTasks >= 5,
+                xp: 150
+            }
+        ];
+
+        achievements.forEach(achievement => {
+            if (achievement.condition() && !this.playerData.achievements.includes(achievement.id)) {
+                this.unlockAchievement(achievement);
+            }
+        });
+    }
+
+    unlockAchievement(achievement) {
+        this.playerData.achievements.push(achievement.id);
+        this.addXP(achievement.xp, 'achievement');
+        
+        // Show achievement notification
+        this.showAchievementNotification(achievement);
+        
+        // Update achievements display
+        this.updateAchievements();
+    }
+
+    showAchievementNotification(achievement) {
+        const notification = document.createElement('div');
+        notification.className = 'achievement-notification';
+        notification.innerHTML = `
+            <div class="achievement-content">
+                <div class="achievement-icon">🏆</div>
+                <div class="achievement-text">
+                    <h4>Achievement Unlocked!</h4>
+                    <p>${achievement.id.replace('-', ' ').toUpperCase()}</p>
+                    <span class="achievement-xp">+${achievement.xp} XP</span>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+        }, 4000);
+        
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 5000);
+    }
+
+    updateAchievements() {
+        const achievementElements = {
+            'first-task': {
+                progress: Math.min(100, (this.playerData.completedTasks / 1) * 100),
+                text: `${Math.min(this.playerData.completedTasks, 1)}/1`
+            },
+            'revenue-milestone': {
+                progress: Math.min(100, (this.playerData.totalRevenue / 1000) * 100),
+                text: `$${Math.min(this.playerData.totalRevenue, 1000)}/$1,000`
+            },
+            'task-master': {
+                progress: Math.min(100, (this.playerData.completedTasks / 10) * 100),
+                text: `${Math.min(this.playerData.completedTasks, 10)}/10`
+            },
+            'scheduling-pro': {
+                progress: Math.min(100, (this.playerData.completedTasks / 5) * 100),
+                text: `${Math.min(this.playerData.completedTasks, 5)}/5`
+            }
+        };
+
+        Object.keys(achievementElements).forEach(id => {
+            const element = document.getElementById(id);
+            const progress = achievementElements[id].progress;
+            const text = achievementElements[id].text;
+            
+            if (element) {
+                const progressFill = element.querySelector('.progress-fill');
+                const progressText = element.querySelector('.progress-text');
+                
+                if (progressFill) {
+                    progressFill.style.width = `${progress}%`;
+                }
+                
+                if (progressText) {
+                    progressText.textContent = text;
+                }
+                
+                // Add completed class if 100%
+                if (progress >= 100) {
+                    element.classList.add('completed');
+                }
+            }
+        });
+    }
+
+    completeTask(taskValue = 0) {
+        this.playerData.completedTasks++;
+        this.playerData.totalRevenue += taskValue;
+        
+        // Award XP based on task value
+        const baseXP = 10;
+        const valueXP = Math.floor(taskValue / 10);
+        const totalXP = baseXP + valueXP;
+        
+        this.addXP(totalXP, 'task completion');
+        this.updateBusinessStats();
+        this.checkAchievements();
+        this.savePlayerData();
+    }
+
+    savePlayerData() {
+        localStorage.setItem('playerData', JSON.stringify(this.playerData));
+    }
 }
 
 // Initialize the application when DOM is loaded
@@ -2614,6 +2872,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.profitTracker.updateTrashCount();
     window.profitTracker.updateCalendarStats();
     window.profitTracker.initializeDragAndDrop();
+    
+    // Initialize game mechanics
+    window.profitTracker.initializeGame();
     
     // Refresh data when returning from invoice page
     window.addEventListener('focus', () => {
