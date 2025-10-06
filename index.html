@@ -7,26 +7,19 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <!-- Neural Network Background -->
-    <div class="neural-bg">
-        <div class="neural-grid"></div>
-        <div class="neural-particles"></div>
-        <div class="neural-connections"></div>
+    <!-- Elegant Background -->
+    <div class="elegant-bg">
+        <div class="elegant-grid"></div>
     </div>
 
     <!-- Top Header Bar -->
-    <header class="dashboard-header neural-header">
+    <header class="dashboard-header elegant-header">
         <div class="header-left">
-            <div class="brain-logo">
-                <div class="neural-brain">
-                    <div class="brain-core"></div>
-                    <div class="neural-path neural-path-1"></div>
-                    <div class="neural-path neural-path-2"></div>
-                    <div class="neural-path neural-path-3"></div>
-                </div>
+            <div class="elegant-logo">
+                <div class="logo-icon">EHA</div>
                 <div class="logo-text">
-                    <h1>Business Tycoon</h1>
-                    <span class="subtitle">Build Your Empire</span>
+                    <h1>Business Manager</h1>
+                    <span class="subtitle">Professional Dashboard</span>
                 </div>
             </div>
             
@@ -46,117 +39,75 @@
                     <span class="xp-text" id="xp-text">0/100 XP</span>
                 </div>
             </div>
-            <button class="refresh-btn neural-btn" title="Neural Sync" onclick="window.location.reload()">
-                <span class="neural-icon">⚡</span>
+            <button class="btn-elegant" title="Refresh" onclick="window.location.reload()">
+                <span class="btn-icon">↻</span>
             </button>
         </div>
         <div class="header-right">
             <div class="scheduler-dropdown">
-                <button class="btn-neural" id="smart-scheduler-btn" title="AI-powered smart scheduling">
-                    <span class="btn-icon">🧠</span>
-                    <span class="btn-text">Neural Scheduler</span>
-                    <span class="btn-arrow">▼</span>
+                <button class="btn-elegant" id="smart-scheduler-btn" title="Smart scheduling">
+                    <span class="btn-text">Scheduler</span>
+                    <span class="btn-icon">▼</span>
                 </button>
-                <div class="dropdown-menu neural-dropdown" id="scheduler-dropdown-menu">
-                    <button class="dropdown-item neural-item" id="macro-scheduler-btn">
-                        <span class="item-icon">📅</span>
-                        <div class="item-content">
-                            <span class="item-title">Macro Planning</span>
-                            <small>Long-term neural optimization</small>
-                        </div>
+                <div class="dropdown-menu" id="scheduler-dropdown-menu">
+                    <button class="dropdown-item" id="macro-scheduler-btn">
+                        <span class="btn-text">Macro Planning</span>
+                        <small>Long-term scheduling</small>
                     </button>
-                    <button class="dropdown-item neural-item" id="micro-scheduler-btn">
-                        <span class="item-icon">📝</span>
-                        <div class="item-content">
-                            <span class="item-title">Daily Logging</span>
-                            <small>Field service neural tracking</small>
-                        </div>
+                    <button class="dropdown-item" id="micro-scheduler-btn">
+                        <span class="btn-text">Daily Logging</span>
+                        <small>Field service tracking</small>
                     </button>
                 </div>
             </div>
-            <button class="btn-neural" id="profit-tracker-btn" title="Track daily revenue and expenses">
-                <span class="btn-icon">💰</span>
-                <span class="btn-text">Profit Core</span>
+            <button class="btn-elegant" id="profit-tracker-btn" title="Track revenue and expenses">
+                <span class="btn-text">Profit Tracker</span>
             </button>
-            <button class="btn-neural" id="client-tracker-btn" title="View all clients and prospects">
-                <span class="btn-icon">👥</span>
-                <span class="btn-text">Client Matrix</span>
+            <button class="btn-elegant" id="client-tracker-btn" title="View clients and prospects">
+                <span class="btn-text">Clients</span>
             </button>
-            <button class="btn-primary neural-primary" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
-                <span class="btn-icon">+</span>
-                <span class="btn-text">Generate Invoice</span>
+            <button class="btn-primary-elegant" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
+                <span class="btn-text">New Invoice</span>
             </button>
         </div>
     </header>
 
     <!-- Main Dashboard -->
     <main class="dashboard-main">
-        <!-- Business Empire Dashboard -->
-        <section class="business-dashboard neural-section">
+        <!-- Business Overview -->
+        <section class="business-overview">
             <div class="section-header">
-                <div class="neural-title">
-                    <h2>🏢 Your Business Empire</h2>
-                    <div class="ai-status">
-                        <div class="status-indicator active"></div>
-                        <span class="status-text">Empire Status: Growing</span>
-                    </div>
+                <h2>Business Overview</h2>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="empire-revenue">$0</div>
+                    <div class="stat-label">Total Revenue</div>
                 </div>
-                <div class="business-stats">
-                    <div class="stat-card game-stat">
-                        <div class="stat-icon">💰</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="empire-revenue">$0</div>
-                            <div class="stat-label">Total Revenue</div>
-                        </div>
-                    </div>
-                    <div class="stat-card game-stat">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="empire-growth">0%</div>
-                            <div class="stat-label">Growth Rate</div>
-                        </div>
-                    </div>
-                    <div class="stat-card game-stat">
-                        <div class="stat-icon">🎯</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="tasks-completed">0</div>
-                            <div class="stat-label">Tasks Completed</div>
-                        </div>
-                    </div>
-                    <div class="stat-card game-stat">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-content">
-                            <div class="stat-value" id="achievement-count">0</div>
-                            <div class="stat-label">Achievements</div>
-                        </div>
-                    </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="tasks-completed">0</div>
+                    <div class="stat-label">Tasks Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="achievement-count">0</div>
+                    <div class="stat-label">Milestones</div>
                 </div>
             </div>
         </section>
 
-        <!-- Neural Task & Calendar Management -->
-        <section class="task-calendar-section neural-section">
+        <!-- Task & Calendar Management -->
+        <section class="task-calendar-section">
             <div class="section-header">
-                <div class="neural-title">
-                    <h2>🎮 Task Command Center</h2>
-                    <div class="ai-status">
-                        <div class="status-indicator active"></div>
-                        <span class="status-text">Drag & Drop Mission Control Active</span>
-                    </div>
-                </div>
-                <div class="calendar-nav-hero neural-controls">
-                    <button class="btn-neural" id="prev-month-hero">
+                <h2>Task & Calendar</h2>
+                <div class="calendar-nav">
+                    <button class="btn-elegant" id="prev-month-hero">
                         <span class="btn-icon">‹</span>
                     </button>
-                    <div class="neural-month-display">
-                        <span id="current-month-year-hero">January 2025</span>
-                        <div class="month-glow"></div>
-                    </div>
-                    <button class="btn-neural" id="next-month-hero">
+                    <span id="current-month-year-hero">January 2025</span>
+                    <button class="btn-elegant" id="next-month-hero">
                         <span class="btn-icon">›</span>
                     </button>
-                    <button class="btn-neural" id="today-btn-calendar-hero">
-                        <span class="btn-icon">⚡</span>
+                    <button class="btn-elegant" id="today-btn-calendar-hero">
                         <span class="btn-text">Today</span>
                     </button>
                 </div>
@@ -167,9 +118,8 @@
                 <!-- Left Panel: Task List -->
                 <div class="task-panel">
                     <div class="panel-header">
-                        <h3>📋 Task Pipeline</h3>
-                        <button class="btn-neural" id="add-task-btn">
-                            <span class="btn-icon">+</span>
+                        <h3>Tasks</h3>
+                        <button class="btn-primary-elegant" id="add-task-btn">
                             <span class="btn-text">Add Task</span>
                         </button>
                     </div>
@@ -177,21 +127,21 @@
                     <!-- Task Categories -->
                     <div class="task-categories">
                         <div class="category-section">
-                            <h4 class="category-title billable">💰 Billable Work</h4>
+                            <h4 class="category-title">Billable Work</h4>
                             <div class="task-list" id="billable-tasks" data-category="billable">
                                 <!-- Billable tasks will be added here -->
                             </div>
                         </div>
                         
                         <div class="category-section">
-                            <h4 class="category-title sales">🎯 Sales & Prospecting</h4>
+                            <h4 class="category-title">Sales & Prospecting</h4>
                             <div class="task-list" id="sales-tasks" data-category="sales">
                                 <!-- Sales tasks will be added here -->
                             </div>
                         </div>
                         
                         <div class="category-section">
-                            <h4 class="category-title admin">⚙️ Admin & Planning</h4>
+                            <h4 class="category-title">Admin & Planning</h4>
                             <div class="task-list" id="admin-tasks" data-category="admin">
                                 <!-- Admin tasks will be added here -->
                             </div>
@@ -202,7 +152,7 @@
                 <!-- Right Panel: Calendar -->
                 <div class="calendar-panel">
                     <div class="panel-header">
-                        <h3>📅 Calendar Grid</h3>
+                        <h3>Calendar</h3>
                         <div class="calendar-stats">
                             <span class="stat-item">Tasks: <span id="scheduled-count">0</span></span>
                             <span class="stat-item">Hours: <span id="total-hours">0</span></span>
@@ -236,74 +186,6 @@
             </div>
         </section>
 
-        <!-- Achievements Section -->
-        <section class="achievements-section neural-section">
-            <div class="section-header">
-                <h2>🏆 Achievements & Milestones</h2>
-                <button class="btn-neural" id="view-all-achievements">
-                    <span class="btn-icon">🏆</span>
-                    <span class="btn-text">View All</span>
-                </button>
-            </div>
-            
-            <div class="achievements-grid">
-                <div class="achievement-card" id="first-task">
-                    <div class="achievement-icon">🎯</div>
-                    <div class="achievement-content">
-                        <h4>First Mission</h4>
-                        <p>Complete your first task</p>
-                        <div class="achievement-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="progress-text">0/1</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="achievement-card" id="revenue-milestone">
-                    <div class="achievement-icon">💰</div>
-                    <div class="achievement-content">
-                        <h4>Revenue Builder</h4>
-                        <p>Earn $1,000 in revenue</p>
-                        <div class="achievement-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="progress-text">$0/$1,000</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="achievement-card" id="task-master">
-                    <div class="achievement-icon">⚡</div>
-                    <div class="achievement-content">
-                        <h4>Task Master</h4>
-                        <p>Complete 10 tasks</p>
-                        <div class="achievement-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="progress-text">0/10</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="achievement-card" id="scheduling-pro">
-                    <div class="achievement-icon">📅</div>
-                    <div class="achievement-content">
-                        <h4>Scheduling Pro</h4>
-                        <p>Schedule 5 tasks in one day</p>
-                        <div class="achievement-progress">
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 0%"></div>
-                            </div>
-                            <span class="progress-text">0/5</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
         <!-- Profit Tracker Section -->
         <section class="profit-tracker-section">

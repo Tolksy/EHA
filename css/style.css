@@ -8,105 +8,58 @@
 }
 
 body {
-    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: #0a0a0f;
-    color: #e8f4f8;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #fafafa;
+    color: #1a1a1a;
     line-height: 1.6;
     overflow-x: hidden;
 }
 
-/* Neural Network Background */
-.neural-bg {
+/* Elegant Background */
+.elegant-bg {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
-    background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 50%, #16213e 100%);
+    background: #fafafa;
 }
 
-.neural-grid {
+.elegant-grid {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-image: 
-        linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
-    animation: gridMove 20s linear infinite;
+        linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+    background-size: 24px 24px;
 }
 
-.neural-particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle at 20% 80%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(0, 255, 255, 0.05) 0%, transparent 50%);
-    animation: particleFloat 15s ease-in-out infinite;
-}
-
-.neural-connections {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        linear-gradient(45deg, transparent 49%, rgba(0, 255, 255, 0.02) 50%, transparent 51%),
-        linear-gradient(-45deg, transparent 49%, rgba(147, 51, 234, 0.02) 50%, transparent 51%);
-    background-size: 100px 100px;
-    animation: connectionPulse 25s ease-in-out infinite;
-}
-
-@keyframes gridMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(50px, 50px); }
-}
-
-@keyframes particleFloat {
-    0%, 100% { opacity: 0.3; transform: scale(1); }
-    50% { opacity: 0.6; transform: scale(1.1); }
-}
-
-@keyframes connectionPulse {
-    0%, 100% { opacity: 0.2; }
-    50% { opacity: 0.4; }
-}
-
-/* Neural Header Styles */
-.neural-header {
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-    padding: 1rem 2rem;
+/* Elegant Header Styles */
+.elegant-header {
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 
-        0 8px 32px rgba(0, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 100;
 }
 
 .dashboard-header, .invoice-header {
-    background: rgba(10, 10, 15, 0.95);
-    backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
-    padding: 1rem 2rem;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e5e5;
+    padding: 1.5rem 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 
-        0 8px 32px rgba(0, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     position: sticky;
     top: 0;
     z-index: 100;
@@ -118,104 +71,41 @@ body {
     gap: 1rem;
 }
 
-/* Brain Logo */
-.brain-logo {
+/* Elegant Logo */
+.elegant-logo {
     display: flex;
     align-items: center;
     gap: 1rem;
 }
 
-.neural-brain {
-    position: relative;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(0, 255, 255, 0.3) 0%, rgba(147, 51, 234, 0.2) 100%);
-    border: 2px solid rgba(0, 255, 255, 0.4);
-    animation: brainPulse 3s ease-in-out infinite;
-}
-
-.brain-core {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    background: radial-gradient(circle, #00ffff 0%, #9333ea 100%);
-    border-radius: 50%;
-    box-shadow: 
-        0 0 20px rgba(0, 255, 255, 0.6),
-        0 0 40px rgba(147, 51, 234, 0.4);
-}
-
-.neural-path {
-    position: absolute;
-    background: linear-gradient(45deg, rgba(0, 255, 255, 0.6), rgba(147, 51, 234, 0.6));
-    border-radius: 2px;
-    animation: neuralFlow 2s ease-in-out infinite;
-}
-
-.neural-path-1 {
-    width: 30px;
-    height: 2px;
-    top: 15px;
-    left: 5px;
-    transform: rotate(15deg);
-    animation-delay: 0s;
-}
-
-.neural-path-2 {
-    width: 25px;
-    height: 2px;
-    bottom: 12px;
-    right: 8px;
-    transform: rotate(-20deg);
-    animation-delay: 0.5s;
-}
-
-.neural-path-3 {
-    width: 20px;
-    height: 2px;
-    top: 25px;
-    right: 5px;
-    transform: rotate(45deg);
-    animation-delay: 1s;
-}
-
-@keyframes brainPulse {
-    0%, 100% { 
-        box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-        transform: scale(1);
-    }
-    50% { 
-        box-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
-        transform: scale(1.05);
-    }
-}
-
-@keyframes neuralFlow {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 1; }
+.logo-icon {
+    width: 32px;
+    height: 32px;
+    background: #1a1a1a;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 0.9rem;
 }
 
 .logo-text h1 {
     font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    font-weight: 600;
+    color: #1a1a1a;
     margin: 0;
-    text-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    letter-spacing: -0.02em;
 }
 
 .subtitle {
-    font-size: 0.8rem;
-    color: rgba(232, 244, 248, 0.7);
+    font-size: 0.75rem;
+    color: #666666;
     font-weight: 400;
     letter-spacing: 0.5px;
     text-transform: uppercase;
+    margin-top: 0.125rem;
 }
 
 .header-right {
@@ -224,115 +114,60 @@ body {
     align-items: center;
 }
 
-/* Neural Button Styles */
-.btn-neural {
-    background: rgba(0, 255, 255, 0.1);
-    color: #00ffff;
-    border: 1px solid rgba(0, 255, 255, 0.3);
+/* Elegant Button Styles */
+.btn-elegant {
+    background: #ffffff;
+    color: #1a1a1a;
+    border: 1px solid #e5e5e5;
     padding: 0.75rem 1.5rem;
-    border-radius: 8px;
-    font-size: 0.9rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    position: relative;
-    overflow: hidden;
 }
 
-.btn-neural::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
-    transition: left 0.5s ease;
+.btn-elegant:hover {
+    background: #f8f8f8;
+    border-color: #d0d0d0;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.btn-neural:hover::before {
-    left: 100%;
-}
-
-.btn-neural:hover {
-    background: rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.6);
-    box-shadow: 
-        0 0 20px rgba(0, 255, 255, 0.3),
-        inset 0 0 20px rgba(0, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
-
-.neural-primary {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%);
+.btn-primary-elegant {
+    background: #1a1a1a;
     color: #ffffff;
-    border: 1px solid rgba(0, 255, 255, 0.4);
-    box-shadow: 
-        0 4px 15px rgba(0, 255, 255, 0.2),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid #1a1a1a;
 }
 
-.neural-primary:hover {
-    background: linear-gradient(135deg, rgba(0, 255, 255, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
-    box-shadow: 
-        0 6px 25px rgba(0, 255, 255, 0.4),
-        0 0 30px rgba(147, 51, 234, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    transform: translateY(-3px);
+.btn-primary-elegant:hover {
+    background: #333333;
+    border-color: #333333;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn-icon {
-    font-size: 1.1rem;
-    filter: drop-shadow(0 0 5px rgba(0, 255, 255, 0.5));
+    font-size: 1rem;
 }
 
 .btn-text {
-    font-weight: 600;
-    letter-spacing: 0.5px;
+    font-weight: 500;
 }
 
-.neural-btn {
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    padding: 0.5rem;
-    border-radius: 8px;
-    color: #00ffff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.neural-btn:hover {
-    background: rgba(0, 255, 255, 0.2);
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
-    transform: scale(1.1);
-}
-
-.neural-icon {
-    font-size: 1.2rem;
-    animation: neuralSpin 2s linear infinite;
-}
-
-@keyframes neuralSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Player Profile Styles */
+/* Elegant Player Profile */
 .player-profile {
     display: flex;
     align-items: center;
     gap: 1rem;
-    background: rgba(0, 255, 255, 0.1);
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    border-radius: 12px;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
     padding: 0.75rem 1rem;
-    backdrop-filter: blur(10px);
 }
 
 .player-avatar {
@@ -342,22 +177,20 @@ body {
 }
 
 .avatar-circle {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
+    background: #1a1a1a;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(0, 255, 255, 0.6);
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    border: 2px solid #e5e5e5;
 }
 
 .avatar-level {
-    font-weight: 700;
-    font-size: 1.1rem;
+    font-weight: 600;
+    font-size: 0.9rem;
     color: white;
-    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .player-info {
@@ -367,91 +200,76 @@ body {
 
 .player-name {
     font-weight: 600;
-    color: #00ffff;
-    font-size: 0.9rem;
+    color: #1a1a1a;
+    font-size: 0.875rem;
 }
 
 .player-title {
-    font-size: 0.8rem;
-    color: rgba(232, 244, 248, 0.7);
+    font-size: 0.75rem;
+    color: #666666;
 }
 
 .xp-bar {
     position: relative;
-    width: 120px;
-    height: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 4px;
+    width: 100px;
+    height: 6px;
+    background: #f0f0f0;
+    border-radius: 3px;
     overflow: hidden;
-    border: 1px solid rgba(0, 255, 255, 0.3);
+    border: 1px solid #e5e5e5;
 }
 
 .xp-fill {
     height: 100%;
-    background: linear-gradient(90deg, #00ffff, #9333ea);
-    border-radius: 4px;
-    transition: width 0.5s ease;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    background: #1a1a1a;
+    border-radius: 3px;
+    transition: width 0.3s ease;
 }
 
 .xp-text {
     position: absolute;
-    top: -20px;
+    top: -18px;
     left: 0;
-    font-size: 0.7rem;
-    color: rgba(232, 244, 248, 0.8);
+    font-size: 0.65rem;
+    color: #666666;
     white-space: nowrap;
 }
 
-/* Business Dashboard */
-.business-dashboard {
+/* Business Overview */
+.business-overview {
     margin-bottom: 2rem;
 }
 
-.business-stats {
+.stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1rem;
 }
 
-.game-stat {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    background: rgba(0, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    border-radius: 12px;
-    padding: 1rem;
-    transition: all 0.3s ease;
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s ease;
 }
 
-.game-stat:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
-}
-
-.stat-icon {
-    font-size: 2rem;
-    filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
-}
-
-.stat-content {
-    flex: 1;
+.stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .stat-value {
-    font-size: 1.5rem;
-    font-weight: 700;
-    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 0.25rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
 }
 
 .stat-label {
-    font-size: 0.8rem;
-    color: rgba(232, 244, 248, 0.7);
+    font-size: 0.875rem;
+    color: #666666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -967,16 +785,13 @@ body {
 
 /* Task Panel */
 .task-panel {
-    background: rgba(10, 10, 15, 0.8);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    box-shadow: 
-        0 8px 32px rgba(0, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
     padding: 1.5rem;
     overflow-y: auto;
     max-height: 80vh;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .panel-header {
@@ -985,16 +800,13 @@ body {
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+    border-bottom: 1px solid #e5e5e5;
 }
 
 .panel-header h3 {
-    font-size: 1.2rem;
+    font-size: 1.125rem;
     font-weight: 600;
-    background: linear-gradient(135deg, #00ffff 0%, #9333ea 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #1a1a1a;
     margin: 0;
 }
 
@@ -1006,38 +818,19 @@ body {
 }
 
 .category-section {
-    background: rgba(0, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 255, 0.2);
-    border-radius: 12px;
+    background: #f8f8f8;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
     padding: 1rem;
 }
 
 .category-title {
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
     margin: 0 0 1rem 0;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    text-align: center;
+    color: #1a1a1a;
+    text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.category-title.billable {
-    background: rgba(0, 255, 136, 0.2);
-    color: #00ff88;
-    border: 1px solid rgba(0, 255, 136, 0.4);
-}
-
-.category-title.sales {
-    background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
-    border: 1px solid rgba(255, 193, 7, 0.4);
-}
-
-.category-title.admin {
-    background: rgba(108, 117, 125, 0.2);
-    color: #6c757d;
-    border: 1px solid rgba(108, 117, 125, 0.4);
 }
 
 /* Task List */
@@ -1050,14 +843,13 @@ body {
 
 /* Individual Task */
 .task-item {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
     padding: 1rem;
     cursor: grab;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     position: relative;
-    overflow: hidden;
 }
 
 .task-item::before {
@@ -1065,15 +857,15 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 4px;
+    width: 3px;
     height: 100%;
-    background: linear-gradient(180deg, #00ffff, #9333ea);
+    background: #1a1a1a;
 }
 
 .task-item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.2);
-    border-color: rgba(0, 255, 255, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: #d0d0d0;
 }
 
 .task-item:active {
@@ -1089,14 +881,14 @@ body {
 
 .task-title {
     font-weight: 600;
-    color: #e8f4f8;
-    font-size: 0.9rem;
+    color: #1a1a1a;
+    font-size: 0.875rem;
     line-height: 1.3;
     margin: 0;
 }
 
 .task-drag-handle {
-    color: rgba(232, 244, 248, 0.5);
+    color: #999999;
     font-size: 1rem;
     cursor: grab;
 }
@@ -1105,8 +897,8 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
-    font-size: 0.8rem;
-    color: rgba(232, 244, 248, 0.7);
+    font-size: 0.75rem;
+    color: #666666;
 }
 
 .task-detail {
@@ -1116,39 +908,36 @@ body {
 }
 
 .task-detail strong {
-    color: #00ffff;
+    color: #1a1a1a;
 }
 
 /* Calendar Panel */
 .calendar-panel {
-    background: rgba(10, 10, 15, 0.8);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
-    border: 1px solid rgba(0, 255, 255, 0.3);
-    box-shadow: 
-        0 8px 32px rgba(0, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
     padding: 1.5rem;
     overflow-y: auto;
     max-height: 80vh;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .calendar-stats {
     display: flex;
     gap: 1rem;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
 .stat-item {
-    color: rgba(232, 244, 248, 0.8);
-    background: rgba(0, 255, 255, 0.1);
+    color: #666666;
+    background: #f8f8f8;
     padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 4px;
+    border: 1px solid #e5e5e5;
 }
 
 .stat-item span {
-    color: #00ffff;
+    color: #1a1a1a;
     font-weight: 600;
 }
 
