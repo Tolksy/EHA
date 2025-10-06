@@ -1,0 +1,167 @@
+/* Workflow Guide Styles */
+.workflow-guide-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.workflow-progress {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.workflow-progress .progress-bar {
+    height: 8px;
+    background: #e5e5e5;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.workflow-progress .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s ease;
+}
+
+.workflow-progress .progress-text {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.workflow-steps {
+    margin-bottom: 2rem;
+}
+
+.workflow-step {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.workflow-step.active {
+    display: block;
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.step-header h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.step-content {
+    line-height: 1.6;
+}
+
+.step-content p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.step-actions {
+    display: grid;
+    gap: 1rem;
+}
+
+.action-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    transition: all 0.2s ease;
+}
+
+.action-item:hover {
+    background: #f0f2f5;
+    transform: translateX(5px);
+}
+
+.action-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.action-text {
+    flex: 1;
+}
+
+.action-text strong {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.action-text p {
+    margin-bottom: 1rem;
+    color: #666;
+    font-size: 0.95rem;
+}
+
+.workflow-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2rem;
+    border-top: 1px solid #e5e5e5;
+}
+
+.workflow-step-indicators {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.step-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ddd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.step-indicator.active {
+    background: #667eea;
+    transform: scale(1.2);
+}
+
+.step-indicator:hover {
+    background: #667eea;
+    opacity: 0.7;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
