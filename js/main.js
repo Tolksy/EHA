@@ -16,6 +16,7 @@ class ProfitTracker {
         this.renderInvoiceList();
         this.checkForSuccessMessage();
         this.renderCalendarHero();
+        this.checkDailyWorkflowPreference();
     }
 
     setupEventListeners() {
@@ -352,6 +353,11 @@ class ProfitTracker {
             this.openWorkflowGuide();
         });
 
+        // Daily workflow button
+        document.getElementById('daily-workflow-btn').addEventListener('click', () => {
+            this.startDailyWorkflow();
+        });
+
         // Workflow guide modal events
         document.getElementById('close-workflow-guide').addEventListener('click', () => {
             this.closeWorkflowGuide();
@@ -375,6 +381,17 @@ class ProfitTracker {
                 const step = parseInt(e.target.dataset.step);
                 this.goToWorkflowStep(step);
             });
+        });
+
+        // Daily workflow toggle
+        document.getElementById('daily-workflow-toggle').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                localStorage.setItem('useDailyWorkflow', 'true');
+                this.showMessage('✅ Daily workflow enabled! The guide will open automatically each day.', 'success');
+            } else {
+                localStorage.setItem('useDailyWorkflow', 'false');
+                this.showMessage('❌ Daily workflow disabled. You can still access it manually.', 'info');
+            }
         });
 
         // Close dropdown when clicking outside
@@ -2649,6 +2666,7 @@ class ProfitTracker {
         document.getElementById('workflow-guide-modal').style.display = 'flex';
         this.currentWorkflowStep = 1;
         this.updateWorkflowDisplay();
+        this.loadWorkflowSettings();
     }
 
     closeWorkflowGuide() {
@@ -2715,6 +2733,88 @@ class ProfitTracker {
         } else {
             nextBtn.style.display = 'block';
             finishBtn.style.display = 'none';
+        }
+    }
+
+    openWorkflowAction(action) {
+        // Close the workflow guide first
+        this.closeWorkflowGuide();
+        
+        // Small delay to allow modal to close
+        setTimeout(() => {
+            switch(action) {
+                case 'add-client':
+                    this.openClientTracker();
+                    setTimeout(() => this.openAddCustomerModal(), 100);
+                    break;
+                    
+                case 'add-job':
+                    this.openClientTracker();
+                    setTimeout(() => {
+                        this.switchTab('jobs');
+                        setTimeout(() => this.openAddJobModal(), 100);
+                    }, 100);
+                    break;
+                    
+                case 'add-task':
+                    this.openAddTaskModal();
+                    break;
+                    
+                case 'daily-logging':
+                    this.openDailyLogging();
+                    break;
+                    
+                case 'profit-tracker':
+                    this.openProfitTracker();
+                    break;
+                    
+                case 'smart-scheduler':
+                    this.openSmartScheduler();
+                    break;
+                    
+                case 'create-invoice':
+                    window.open('invoice.html', '_blank');
+                    break;
+                    
+                default:
+                    console.log('Unknown workflow action:', action);
+            }
+        }, 200);
+    }
+
+    startDailyWorkflow() {
+        // Open workflow guide and set preference for daily use
+        localStorage.setItem('useDailyWorkflow', 'true');
+        this.openWorkflowGuide();
+        
+        // Show a helpful message
+        this.showMessage('🚀 Starting your daily workflow! Use the buttons in each step to navigate efficiently.', 'success');
+    }
+
+    checkDailyWorkflowPreference() {
+        // Check if user wants to auto-open workflow guide
+        const useDailyWorkflow = localStorage.getItem('useDailyWorkflow');
+        const lastWorkflowDate = localStorage.getItem('lastWorkflowDate');
+        const today = new Date().toDateString();
+        
+        // Auto-open workflow guide if:
+        // 1. User has enabled daily workflow preference
+        // 2. It's a new day (not already opened today)
+        if (useDailyWorkflow === 'true' && lastWorkflowDate !== today) {
+            setTimeout(() => {
+                this.openWorkflowGuide();
+                localStorage.setItem('lastWorkflowDate', today);
+            }, 1000); // Small delay to let page load
+        }
+    }
+
+    loadWorkflowSettings() {
+        // Load the current state of daily workflow toggle
+        const useDailyWorkflow = localStorage.getItem('useDailyWorkflow');
+        const toggle = document.getElementById('daily-workflow-toggle');
+        
+        if (toggle) {
+            toggle.checked = useDailyWorkflow === 'true';
         }
     }
 

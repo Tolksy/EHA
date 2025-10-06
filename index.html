@@ -70,6 +70,9 @@
             <button class="btn-elegant" id="workflow-guide-btn" title="Learn the ideal workflow">
                 <span class="btn-text">Workflow Guide</span>
             </button>
+            <button class="btn-primary-elegant" id="daily-workflow-btn" title="Start your daily workflow">
+                <span class="btn-text">🚀 Daily Workflow</span>
+            </button>
             <button class="btn-primary-elegant" id="new-invoice-btn" onclick="window.location.href='invoice.html'">
                 <span class="btn-text">New Invoice</span>
             </button>
@@ -1290,7 +1293,7 @@
                                     <div class="action-text">
                                         <strong>Add Your First Client</strong>
                                         <p>Click "Clients" → "Add Customer" to create your client database</p>
-                                        <button class="btn-small" onclick="profitTracker.openClientTracker(); profitTracker.openAddCustomerModal();">Start Here</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('add-client')">Start Here</button>
                                     </div>
                                 </div>
                             </div>
@@ -1338,7 +1341,7 @@
                                     <div class="action-text">
                                         <strong>Add Jobs</strong>
                                         <p>Click "Clients" → "Jobs" tab → "Add Job"</p>
-                                        <button class="btn-small" onclick="profitTracker.openClientTracker(); profitTracker.switchTab('jobs'); profitTracker.openAddJobModal();">Create Job</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('add-job')">Create Job</button>
                                     </div>
                                 </div>
                                 <div class="action-item">
@@ -1366,7 +1369,7 @@
                                     <div class="action-text">
                                         <strong>Add Tasks</strong>
                                         <p>Click "Add Task" → Select client and job from dropdowns</p>
-                                        <button class="btn-small" onclick="profitTracker.openAddTaskModal();">Create Task</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('add-task')">Create Task</button>
                                     </div>
                                 </div>
                                 <div class="action-item">
@@ -1401,7 +1404,7 @@
                                     <div class="action-text">
                                         <strong>Daily Logging</strong>
                                         <p>Click "Scheduler" → "Daily Logging" to track field work</p>
-                                        <button class="btn-small" onclick="profitTracker.openDailyLogging();">Log Work</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('daily-logging')">Log Work</button>
                                     </div>
                                 </div>
                                 <div class="action-item">
@@ -1409,7 +1412,7 @@
                                     <div class="action-text">
                                         <strong>Profit Tracking</strong>
                                         <p>Click "Profit Tracker" to record daily revenue and expenses</p>
-                                        <button class="btn-small" onclick="profitTracker.openProfitTracker();">Track Profit</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('profit-tracker')">Track Profit</button>
                                     </div>
                                 </div>
                                 <div class="action-item">
@@ -1417,7 +1420,7 @@
                                     <div class="action-text">
                                         <strong>Smart Scheduling</strong>
                                         <p>Use "Scheduler" → "Macro Planning" for automated scheduling</p>
-                                        <button class="btn-small" onclick="profitTracker.openSmartScheduler();">Auto Schedule</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('smart-scheduler')">Auto Schedule</button>
                                     </div>
                                 </div>
                             </div>
@@ -1438,7 +1441,7 @@
                                     <div class="action-text">
                                         <strong>Create Invoices</strong>
                                         <p>Click "New Invoice" to bill completed work</p>
-                                        <button class="btn-small" onclick="window.location.href='invoice.html'">Create Invoice</button>
+                                        <button class="btn-small" onclick="profitTracker.openWorkflowAction('create-invoice')">Create Invoice</button>
                                     </div>
                                 </div>
                                 <div class="action-item">
@@ -1473,6 +1476,20 @@
                     </div>
                     <button type="button" class="btn-primary" id="workflow-next">Next →</button>
                     <button type="button" class="btn-primary" id="workflow-finish" style="display: none;">✅ Complete Guide</button>
+                </div>
+
+                <!-- Daily Workflow Settings -->
+                <div class="workflow-settings">
+                    <div class="settings-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="daily-workflow-toggle">
+                            <span class="checkmark"></span>
+                            <span class="settings-text">
+                                <strong>Auto-open Daily Workflow</strong>
+                                <small>Automatically show this guide each day when you open the app</small>
+                            </span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
