@@ -3632,25 +3632,9 @@ class ProfitTracker {
     }
 
     updateLaborCostSummary() {
-        const employees = JSON.parse(localStorage.getItem('employees')) || [];
-        
-        let totalHours = 0;
-        let totalCost = 0;
-
-        this.journalEmployees.forEach(je => {
-            if (je.name && je.hours > 0) {
-                const employee = employees.find(e => 
-                    e.name.toLowerCase() === je.name.toLowerCase()
-                );
-                if (employee) {
-                    totalHours += je.hours;
-                    totalCost += employee.hourlyRate * je.hours;
-                }
-            }
-        });
-
-        document.getElementById('total-labor-hours').textContent = totalHours.toFixed(1);
-        document.getElementById('total-labor-cost').textContent = '$' + totalCost.toFixed(2);
+        // Labor costs are now only displayed on the calendar, not in the form
+        // This function is kept for compatibility but doesn't update any UI elements
+        return;
     }
 
     closeDailyJournal() {

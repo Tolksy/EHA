@@ -82,9 +82,23 @@
     <!-- Main Dashboard -->
     <main class="dashboard-main">
         <!-- Daily Journal Button -->
-        <div class="daily-journal-container" style="text-align: center; margin: 20px 0;">
-            <button class="btn-primary-elegant" id="daily-journal-btn" title="Log your daily business activities">
-                <span class="btn-text">📝 Daily Business Journal</span>
+        <div class="daily-journal-container" style="text-align: center; margin: 30px 0; padding: 20px;">
+            <button id="daily-journal-btn" title="Log your daily business activities" style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                padding: 18px 40px;
+                font-size: 18px;
+                font-weight: 600;
+                border-radius: 12px;
+                cursor: pointer;
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+                transition: all 0.3s ease;
+                transform: translateY(0);
+            " onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 28px rgba(102, 126, 234, 0.5)'"
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(102, 126, 234, 0.4)'">
+                <span style="font-size: 22px; margin-right: 8px;">📝</span>
+                <span>Daily Business Journal</span>
             </button>
         </div>
 
@@ -1567,18 +1581,6 @@
                     <label>Who was on site today?</label>
                     <div id="onsite-employees-list" style="margin-bottom: 10px;">
                         <!-- Employee entries will be added here -->
-                    </div>
-                    
-                    <!-- Labor Cost Summary -->
-                    <div style="margin-top: 10px; padding: 10px; background: #f0f0f0; border-radius: 4px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                            <strong>Total Labor Hours:</strong>
-                            <span id="total-labor-hours">0</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between;">
-                            <strong>Total Labor Cost:</strong>
-                            <span id="total-labor-cost" style="color: #dc3545; font-weight: bold;">$0.00</span>
-                        </div>
                     </div>
                 </div>
                 
