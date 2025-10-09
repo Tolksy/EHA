@@ -394,6 +394,25 @@ class ProfitTracker {
             }
         });
 
+        // Daily Business Journal button
+        document.getElementById('daily-journal-btn').addEventListener('click', () => {
+            this.openDailyJournal();
+        });
+
+        // Daily Business Journal modal events
+        document.getElementById('close-daily-journal').addEventListener('click', () => {
+            this.closeDailyJournal();
+        });
+
+        document.getElementById('cancel-daily-journal').addEventListener('click', () => {
+            this.closeDailyJournal();
+        });
+
+        document.getElementById('daily-journal-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveDailyJournal();
+        });
+
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.scheduler-dropdown')) {
@@ -3341,6 +3360,136 @@ class ProfitTracker {
 
     savePlayerData() {
         localStorage.setItem('playerData', JSON.stringify(this.playerData));
+    }
+
+    // Daily Business Journal Methods
+    openDailyJournal() {
+        const modal = document.getElementById('daily-journal-modal');
+        modal.style.display = 'flex';
+        
+        // Set today's date by default
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('journal-date').value = today;
+        
+        // Clear form fields
+        document.getElementById('journal-customer').value = '';
+        document.getElementById('journal-onsite').value = '';
+        document.getElementById('journal-hours').value = '';
+        document.getElementById('journal-description').value = '';
+        
+        // Display recent journal entries
+        this.displayJournalEntries();
+    }
+
+    closeDailyJournal() {
+        const modal = document.getElementById('daily-journal-modal');
+        modal.style.display = 'none';
+    }
+
+    saveDailyJournal() {
+        // Get form values
+        const date = document.getElementById('journal-date').value;
+        const customer = document.getElementById('journal-customer').value.trim();
+        const onsite = document.getElementById('journal-onsite').value.trim();
+        const hours = parseFloat(document.getElementById('journal-hours').value);
+        const description = document.getElementById('journal-description').value.trim();
+
+        // Validate inputs
+        if (!date || !customer || !onsite || !hours || !description) {
+            this.showMessage('⚠️ Please fill in all fields', 'warning');
+            return;
+        }
+
+        // Create journal entry object
+        const entry = {
+            id: Date.now(),
+            date: date,
+            customer: customer,
+            onsite: onsite,
+            hours: hours,
+            description: description,
+            timestamp: new Date().toISOString()
+        };
+
+        // Get existing journal entries from localStorage
+        let journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
+        
+        // Add new entry to the beginning of the array
+        journalEntries.unshift(entry);
+        
+        // Save to localStorage
+        localStorage.setItem('dailyJournalEntries', JSON.stringify(journalEntries));
+
+        // Show success message
+        this.showMessage('✅ Daily journal entry saved successfully!', 'success');
+
+        // Clear form
+        document.getElementById('journal-customer').value = '';
+        document.getElementById('journal-onsite').value = '';
+        document.getElementById('journal-hours').value = '';
+        document.getElementById('journal-description').value = '';
+
+        // Refresh the entries display
+        this.displayJournalEntries();
+
+        // Award XP for completing journal entry
+        if (this.playerData) {
+            this.addXP(15, 'daily journal entry');
+        }
+    }
+
+    displayJournalEntries() {
+        const entriesList = document.getElementById('journal-entries-list');
+        const journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
+
+        if (journalEntries.length === 0) {
+            entriesList.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No journal entries yet. Create your first entry!</p>';
+            return;
+        }
+
+        // Display the most recent 10 entries
+        const recentEntries = journalEntries.slice(0, 10);
+        
+        entriesList.innerHTML = recentEntries.map(entry => {
+            const entryDate = new Date(entry.date);
+            const formattedDate = entryDate.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+
+            return `
+                <div class="journal-entry-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: #f9f9f9;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <strong style="color: #333; font-size: 16px;">${formattedDate}</strong>
+                        <button class="btn-small" onclick="profitTracker.deleteJournalEntry(${entry.id})" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Customer:</strong> ${entry.customer}
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>On Site:</strong> ${entry.onsite}
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Hours Worked:</strong> ${entry.hours} hours
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <strong>Description:</strong> ${entry.description}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    deleteJournalEntry(entryId) {
+        if (confirm('Are you sure you want to delete this journal entry?')) {
+            let journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
+            journalEntries = journalEntries.filter(entry => entry.id !== entryId);
+            localStorage.setItem('dailyJournalEntries', JSON.stringify(journalEntries));
+            this.displayJournalEntries();
+            this.showMessage('🗑️ Journal entry deleted', 'info');
+        }
     }
 }
 
