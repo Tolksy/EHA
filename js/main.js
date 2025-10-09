@@ -428,11 +428,6 @@ class ProfitTracker {
             this.saveNewEmployee();
         });
 
-        // Add employee to journal
-        document.getElementById('add-employee-to-journal').addEventListener('click', () => {
-            this.addEmployeeToJournal();
-        });
-
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.scheduler-dropdown')) {
@@ -3568,62 +3563,41 @@ class ProfitTracker {
         document.getElementById('customer-dropdown').style.display = 'none';
     }
 
-    addEmployeeToJournal() {
-        const employees = JSON.parse(localStorage.getItem('employees')) || [];
-        
-        if (employees.length === 0) {
-            if (confirm('No employees found. Would you like to add employees now?')) {
-                this.openEmployeeManagement();
-            }
-            return;
-        }
-
-        // Create employee selection
-        const employeeId = Date.now();
-        const journalEmployee = {
-            id: employeeId,
-            employeeId: '',
-            hours: 0
-        };
-
-        this.journalEmployees.push(journalEmployee);
-        this.renderJournalEmployees();
-    }
-
     renderJournalEmployees() {
         const container = document.getElementById('onsite-employees-list');
         const employees = JSON.parse(localStorage.getItem('employees')) || [];
 
+        // Always ensure there's at least one empty row
         if (this.journalEmployees.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: #888; padding: 10px; font-style: italic;">No employees added yet. Click "+ Add Employee" below.</p>';
-            this.updateLaborCostSummary();
-            return;
+            this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
         }
 
         container.innerHTML = this.journalEmployees.map((je, index) => {
-            const selectedEmployee = employees.find(e => e.id === je.employeeId);
-            const cost = selectedEmployee ? (selectedEmployee.hourlyRate * je.hours) : 0;
+            // Find matching employee by name to get rate
+            const matchedEmployee = employees.find(e => 
+                e.name.toLowerCase() === je.name.toLowerCase()
+            );
+            const cost = matchedEmployee ? (matchedEmployee.hourlyRate * je.hours) : 0;
+            const rateDisplay = matchedEmployee ? ` @ $${matchedEmployee.hourlyRate.toFixed(2)}/hr` : '';
 
             return `
-                <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: center; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px;">
-                    <select onchange="profitTracker.updateJournalEmployee(${index}, 'employeeId', this.value)" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                        <option value="">Select Employee</option>
-                        ${employees.map(emp => `
-                            <option value="${emp.id}" ${je.employeeId === emp.id ? 'selected' : ''}>
-                                ${emp.name} ($${emp.hourlyRate.toFixed(2)}/hr)
-                            </option>
-                        `).join('')}
-                    </select>
+                <div class="employee-row">
+                    <input type="text" 
+                           value="${je.name}" 
+                           placeholder="Employee name"
+                           oninput="profitTracker.updateJournalEmployee(${index}, 'name', this.value)"
+                           list="employee-names-${index}">
+                    <datalist id="employee-names-${index}">
+                        ${employees.map(emp => `<option value="${emp.name}">`).join('')}
+                    </datalist>
                     <input type="number" 
-                           value="${je.hours}" 
+                           value="${je.hours || ''}" 
                            step="0.5" 
                            min="0" 
                            placeholder="Hours"
-                           onchange="profitTracker.updateJournalEmployee(${index}, 'hours', this.value)"
-                           style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span style="font-weight: bold; color: #dc3545; min-width: 60px;">$${cost.toFixed(2)}</span>
-                        <button type="button" onclick="profitTracker.removeJournalEmployee(${index})" style="background: #ff4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                           oninput="profitTracker.updateJournalEmployee(${index}, 'hours', this.value)">
+                    <div class="cost-display">
+                        ${cost > 0 ? `$${cost.toFixed(2)}${rateDisplay}` : ''}
                     </div>
                 </div>
             `;
@@ -3638,11 +3612,22 @@ class ProfitTracker {
         } else {
             this.journalEmployees[index][field] = value;
         }
-        this.renderJournalEmployees();
-    }
-
-    removeJournalEmployee(index) {
-        this.journalEmployees.splice(index, 1);
+        
+        // Auto-create new row if this is the last row and it has content
+        const lastIndex = this.journalEmployees.length - 1;
+        const lastEmployee = this.journalEmployees[lastIndex];
+        
+        if (lastEmployee.name || lastEmployee.hours > 0) {
+            // Add new empty row
+            this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
+        }
+        
+        // Remove empty rows except the last one
+        this.journalEmployees = this.journalEmployees.filter((je, i) => {
+            if (i === this.journalEmployees.length - 1) return true; // Keep last row
+            return je.name || je.hours > 0; // Keep rows with content
+        });
+        
         this.renderJournalEmployees();
     }
 
@@ -3653,10 +3638,14 @@ class ProfitTracker {
         let totalCost = 0;
 
         this.journalEmployees.forEach(je => {
-            const employee = employees.find(e => e.id === je.employeeId);
-            if (employee) {
-                totalHours += je.hours;
-                totalCost += employee.hourlyRate * je.hours;
+            if (je.name && je.hours > 0) {
+                const employee = employees.find(e => 
+                    e.name.toLowerCase() === je.name.toLowerCase()
+                );
+                if (employee) {
+                    totalHours += je.hours;
+                    totalCost += employee.hourlyRate * je.hours;
+                }
             }
         });
 
@@ -3681,38 +3670,72 @@ class ProfitTracker {
             return;
         }
 
+        // Filter out empty employee rows
+        const validEmployees = this.journalEmployees.filter(je => je.name && je.hours > 0);
+        
         // Validate employees
-        if (this.journalEmployees.length === 0) {
-            this.showMessage('⚠️ Please add at least one employee', 'warning');
+        if (validEmployees.length === 0) {
+            this.showMessage('⚠️ Please add at least one employee with hours worked', 'warning');
             return;
         }
 
-        // Check that all employees are selected and have hours
-        const invalidEmployees = this.journalEmployees.filter(je => !je.employeeId || je.hours <= 0);
-        if (invalidEmployees.length > 0) {
-            this.showMessage('⚠️ Please select employees and enter valid hours for all entries', 'warning');
-            return;
-        }
-
-        // Calculate labor costs
-        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        // Get employee database
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+        
+        // Calculate labor costs and auto-create employees if needed
         let totalLaborHours = 0;
         let totalLaborCost = 0;
+        let employeeDetails;
         
-        const employeeDetails = this.journalEmployees.map(je => {
-            const employee = employees.find(e => e.id === je.employeeId);
-            const cost = employee.hourlyRate * je.hours;
-            totalLaborHours += je.hours;
-            totalLaborCost += cost;
-            
-            return {
-                employeeId: je.employeeId,
-                employeeName: employee.name,
-                hours: je.hours,
-                rate: employee.hourlyRate,
-                cost: cost
-            };
-        });
+        try {
+            employeeDetails = validEmployees.map(je => {
+                // Find or create employee
+                let employee = employees.find(e => 
+                    e.name.toLowerCase() === je.name.toLowerCase()
+                );
+                
+                // If employee doesn't exist, prompt for rate and create
+                if (!employee) {
+                    const rate = prompt(`"${je.name}" is not in the employee database.\n\nEnter hourly rate for ${je.name}:`, '20.00');
+                    if (rate === null) {
+                        throw new Error('Cancelled'); // User cancelled
+                    }
+                    const hourlyRate = parseFloat(rate);
+                    if (isNaN(hourlyRate) || hourlyRate <= 0) {
+                        throw new Error(`Invalid rate for ${je.name}`);
+                    }
+                    
+                    // Create new employee
+                    employee = {
+                        id: Date.now().toString() + Math.random(),
+                        name: je.name,
+                        hourlyRate: hourlyRate,
+                        createdAt: new Date().toISOString()
+                    };
+                    employees.push(employee);
+                    localStorage.setItem('employees', JSON.stringify(employees));
+                }
+                
+                const cost = employee.hourlyRate * je.hours;
+                totalLaborHours += je.hours;
+                totalLaborCost += cost;
+                
+                return {
+                    employeeId: employee.id,
+                    employeeName: employee.name,
+                    hours: je.hours,
+                    rate: employee.hourlyRate,
+                    cost: cost
+                };
+            });
+        } catch (error) {
+            if (error.message === 'Cancelled') {
+                this.showMessage('⚠️ Journal entry cancelled', 'info');
+            } else {
+                this.showMessage('⚠️ ' + error.message, 'warning');
+            }
+            return;
+        }
 
         // Step 1: Create or find customer in client database
         const customerId = this.createOrUpdateCustomer(customer);
