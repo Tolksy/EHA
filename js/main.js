@@ -5,6 +5,7 @@ class ProfitTracker {
         this.currentDate = new Date();
         this.savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
         this.journalEmployees = []; // Track employees in daily journal
+        this.journalCustomers = []; // Track customers in daily journal
         this.init();
     }
 
@@ -412,6 +413,16 @@ class ProfitTracker {
         document.getElementById('daily-journal-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveDailyJournal();
+        });
+
+        // Number of employees input
+        document.getElementById('num-employees').addEventListener('change', (e) => {
+            this.createEmployeeFields(parseInt(e.target.value) || 0);
+        });
+
+        // Number of customers input
+        document.getElementById('num-customers').addEventListener('change', (e) => {
+            this.createCustomerFields(parseInt(e.target.value) || 0);
         });
 
         // Manage Employees button
@@ -3498,18 +3509,160 @@ class ProfitTracker {
         document.getElementById('journal-date').value = today;
         
         // Clear form fields
-        document.getElementById('journal-customer').value = '';
+        document.getElementById('num-customers').value = '';
+        document.getElementById('num-employees').value = '';
         document.getElementById('journal-description').value = '';
         
-        // Reset employee list
-        this.journalEmployees = [];
-        this.renderJournalEmployees();
+        // Hide and clear customer/employee fields
+        document.getElementById('customer-fields-container').style.display = 'none';
+        document.getElementById('employee-fields-container').style.display = 'none';
+        document.getElementById('customers-list').innerHTML = '';
+        document.getElementById('onsite-employees-list').innerHTML = '';
         
-        // Setup customer autocomplete
-        this.setupCustomerAutocomplete();
+        // Reset arrays
+        this.journalCustomers = [];
+        this.journalEmployees = [];
         
         // Display recent journal entries
         this.displayJournalEntries();
+    }
+
+    createCustomerFields(numCustomers) {
+        const container = document.getElementById('customers-list');
+        const fieldsContainer = document.getElementById('customer-fields-container');
+        
+        if (numCustomers <= 0) {
+            fieldsContainer.style.display = 'none';
+            this.journalCustomers = [];
+            return;
+        }
+        
+        fieldsContainer.style.display = 'block';
+        
+        // Create customer objects
+        this.journalCustomers = [];
+        for (let i = 0; i < numCustomers; i++) {
+            this.journalCustomers.push({ id: Date.now() + i, name: '' });
+        }
+        
+        // Render customer fields
+        this.renderCustomerFields();
+    }
+
+    renderCustomerFields() {
+        const container = document.getElementById('customers-list');
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        
+        container.innerHTML = this.journalCustomers.map((jc, index) => {
+            return `
+                <div class="employee-row" style="margin-bottom: 10px;">
+                    <div style="position: relative; grid-column: span 3;">
+                        <input type="text" 
+                               id="customer-name-${index}"
+                               value="${jc.name}" 
+                               placeholder="Customer ${index + 1} name..."
+                               oninput="profitTracker.updateJournalCustomer(${index}, this.value)"
+                               onfocus="profitTracker.showCustomerFieldSuggestions(${index})"
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <div id="customer-field-suggestions-${index}" class="employee-suggestions-dropdown" style="display: none;"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    showCustomerFieldSuggestions(index) {
+        const input = document.getElementById(`customer-name-${index}`);
+        const dropdown = document.getElementById(`customer-field-suggestions-${index}`);
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        
+        if (customers.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        const searchTerm = input.value.toLowerCase().trim();
+        
+        // Filter customers
+        const matches = customers.filter(c => 
+            searchTerm === '' || 
+            c.name.toLowerCase().includes(searchTerm) || 
+            (c.company && c.company.toLowerCase().includes(searchTerm))
+        ).slice(0, 8);
+
+        if (matches.length > 0) {
+            dropdown.innerHTML = matches.map(customer => {
+                const lastContact = customer.lastContact ? 
+                    new Date(customer.lastContact).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
+                    'Never';
+                    
+                return `
+                    <div class="suggestion-item" 
+                         onclick="profitTracker.selectCustomerField(${index}, '${customer.name.replace(/'/g, "\\'")}')"
+                         style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"
+                         onmouseover="this.style.background='#f0f0f0'"
+                         onmouseout="this.style.background='white'">
+                        <strong>${customer.name}</strong>
+                        ${customer.company ? `<br><small style="color: #666;">${customer.company}</small>` : ''}
+                        <small style="float: right; color: #999;">Last: ${lastContact}</small>
+                    </div>
+                `;
+            }).join('');
+            dropdown.style.display = 'block';
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = '100%';
+            dropdown.style.left = '0';
+            dropdown.style.right = '0';
+            dropdown.style.background = 'white';
+            dropdown.style.border = '1px solid #ddd';
+            dropdown.style.borderRadius = '4px';
+            dropdown.style.maxHeight = '200px';
+            dropdown.style.overflowY = 'auto';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+
+    selectCustomerField(index, name) {
+        this.journalCustomers[index].name = name;
+        const input = document.getElementById(`customer-name-${index}`);
+        if (input) input.value = name;
+        
+        const dropdown = document.getElementById(`customer-field-suggestions-${index}`);
+        if (dropdown) dropdown.style.display = 'none';
+    }
+
+    updateJournalCustomer(index, value) {
+        this.journalCustomers[index].name = value;
+        this.showCustomerFieldSuggestions(index);
+    }
+
+    createEmployeeFields(numEmployees) {
+        const container = document.getElementById('onsite-employees-list');
+        const fieldsContainer = document.getElementById('employee-fields-container');
+        
+        if (numEmployees <= 0) {
+            fieldsContainer.style.display = 'none';
+            this.journalEmployees = [];
+            return;
+        }
+        
+        fieldsContainer.style.display = 'block';
+        
+        // Create employee objects
+        this.journalEmployees = [];
+        for (let i = 0; i < numEmployees; i++) {
+            this.journalEmployees.push({ 
+                id: Date.now() + i, 
+                name: '', 
+                hours: 0 
+            });
+        }
+        
+        // Render employee fields
+        this.renderJournalEmployees();
     }
 
     setupCustomerAutocomplete() {
@@ -3821,12 +3974,18 @@ class ProfitTracker {
     saveDailyJournal() {
         // Get form values
         const date = document.getElementById('journal-date').value;
-        const customer = document.getElementById('journal-customer').value.trim();
         const description = document.getElementById('journal-description').value.trim();
 
         // Validate inputs
-        if (!date || !customer || !description) {
-            this.showMessage('⚠️ Please fill in date, customer, and description', 'warning');
+        if (!date || !description) {
+            this.showMessage('⚠️ Please fill in date and description', 'warning');
+            return;
+        }
+
+        // Validate customers
+        const validCustomers = this.journalCustomers.filter(jc => jc.name && jc.name.trim() !== '');
+        if (validCustomers.length === 0) {
+            this.showMessage('⚠️ Please enter at least one customer name', 'warning');
             return;
         }
 
@@ -3897,15 +4056,20 @@ class ProfitTracker {
             return;
         }
 
-        // Step 1: Create or find customer in client database
-        const customerId = this.createOrUpdateCustomer(customer);
+        // Step 1: Create or find customers in client database
+        const customerDetails = validCustomers.map(jc => {
+            const customerId = this.createOrUpdateCustomer(jc.name);
+            return {
+                customerId: customerId,
+                customerName: jc.name
+            };
+        });
 
         // Step 2: Create journal entry object
         const entry = {
             id: Date.now(),
             date: date,
-            customer: customer,
-            customerId: customerId,
+            customers: customerDetails,
             employees: employeeDetails,
             totalLaborHours: totalLaborHours,
             totalLaborCost: totalLaborCost,
@@ -3928,10 +4092,13 @@ class ProfitTracker {
         this.showMessage(`✅ Journal saved! Labor cost: $${totalLaborCost.toFixed(2)} tracked as expense!`, 'success');
 
         // Clear form
-        document.getElementById('journal-customer').value = '';
+        document.getElementById('num-customers').value = '';
+        document.getElementById('num-employees').value = '';
         document.getElementById('journal-description').value = '';
+        document.getElementById('customer-fields-container').style.display = 'none';
+        document.getElementById('employee-fields-container').style.display = 'none';
+        this.journalCustomers = [];
         this.journalEmployees = [];
-        this.renderJournalEmployees();
 
         // Refresh displays
         this.displayJournalEntries();
@@ -4029,17 +4196,22 @@ class ProfitTracker {
             `${e.employeeName}: ${e.hours}h @ $${e.rate.toFixed(2)}/hr = $${e.cost.toFixed(2)}`
         ).join('\n');
 
+        // Create customer list string
+        const customerInfo = journalEntry.customers ? 
+            journalEntry.customers.map(c => c.customerName).join(', ') : 
+            (journalEntry.customer || 'Unknown');
+
         // Create a new task for the calendar
         const calendarTask = {
             id: `journal-${journalEntry.id}`,
-            title: `${journalEntry.customer} - ${journalEntry.description}`,
-            clientId: journalEntry.customerId,
+            title: `${customerInfo} - ${journalEntry.description}`,
+            clientId: journalEntry.customers ? journalEntry.customers[0].customerId : journalEntry.customerId,
             jobId: '',
             category: 'billable',
             duration: journalEntry.totalLaborHours,
             rate: 0, // Can be filled in later
             total: 0,
-            description: `Employees On Site:\n${employeeInfo}\n\nTotal Labor Cost: $${journalEntry.totalLaborCost.toFixed(2)}\n\n${journalEntry.description}`,
+            description: `Customers: ${customerInfo}\n\nEmployees On Site:\n${employeeInfo}\n\nTotal Labor Cost: $${journalEntry.totalLaborCost.toFixed(2)}\n\n${journalEntry.description}`,
             createdAt: journalEntry.timestamp,
             scheduled: true,
             scheduledDate: journalEntry.date,
@@ -4100,6 +4272,14 @@ class ProfitTracker {
                 employeeInfo = `<div style="margin-left: 15px; color: #666; font-size: 13px;">${entry.onsite} - ${entry.hours} hours</div>`;
             }
 
+            // Handle customers (new multi-customer format or old single customer format)
+            let customerDisplay = '';
+            if (entry.customers && entry.customers.length > 0) {
+                customerDisplay = entry.customers.map(c => c.customerName).join(', ');
+            } else if (entry.customer) {
+                customerDisplay = entry.customer;
+            }
+
             return `
                 <div class="journal-entry-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: #f9f9f9;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -4112,7 +4292,7 @@ class ProfitTracker {
                         <button class="btn-small" onclick="profitTracker.deleteJournalEntry(${entry.id})" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                     </div>
                     <div style="margin-bottom: 8px;">
-                        <strong>Customer:</strong> ${entry.customer}
+                        <strong>Customer${entry.customers && entry.customers.length > 1 ? 's' : ''}:</strong> ${customerDisplay}
                     </div>
                     <div style="margin-bottom: 8px;">
                         <strong>Employees On Site:</strong>

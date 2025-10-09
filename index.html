@@ -1571,14 +1571,34 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="journal-customer">Who was your customer today?</label>
-                    <input type="text" id="journal-customer" required placeholder="Enter customer name or select from list" autocomplete="off">
-                    <datalist id="customer-suggestions"></datalist>
-                    <div id="customer-dropdown" style="display: none; position: relative; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
+                    <label for="num-customers">How many customers did you work with today?</label>
+                    <input type="number" 
+                           id="num-customers" 
+                           min="1" 
+                           max="10" 
+                           placeholder="Enter number of customers"
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; width: 150px; margin-bottom: 15px;">
+                </div>
+                
+                <div class="form-group" id="customer-fields-container" style="display: none;">
+                    <label>Who were your customers?</label>
+                    <div id="customers-list" style="margin-bottom: 10px;">
+                        <!-- Customer entries will be added here -->
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>Who was on site today?</label>
+                    <label for="num-employees">How many employees were on site?</label>
+                    <input type="number" 
+                           id="num-employees" 
+                           min="1" 
+                           max="20" 
+                           placeholder="Enter number of employees"
+                           style="padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; width: 150px; margin-bottom: 15px;">
+                </div>
+                
+                <div class="form-group" id="employee-fields-container" style="display: none;">
+                    <label>Who was on site?</label>
                     <div id="onsite-employees-list" style="margin-bottom: 10px;">
                         <!-- Employee entries will be added here -->
                     </div>
