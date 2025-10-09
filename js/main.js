@@ -19,6 +19,132 @@ class ProfitTracker {
         this.checkDailyWorkflowPreference();
     }
 
+    // Daily Input Feature
+    openDailyInput() {
+        const modal = document.getElementById('daily-input-modal');
+        modal.style.display = 'flex';
+        this.resetDailyInputForm();
+        this.populateDailyInputCustomers();
+        this.addWorkerRowIfEmpty();
+    }
+
+    closeDailyInput() {
+        const modal = document.getElementById('daily-input-modal');
+        modal.style.display = 'none';
+    }
+
+    resetDailyInputForm() {
+        const dateInput = document.getElementById('daily-input-date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.value = today;
+        document.getElementById('daily-input-customer').value = '';
+        document.getElementById('daily-input-address').value = '';
+        document.getElementById('worker-rows').innerHTML = '';
+        document.getElementById('daily-input-total-hours').textContent = '0';
+    }
+
+    populateDailyInputCustomers() {
+        const select = document.getElementById('daily-input-customer');
+        const current = select.value; // keep selection if any
+        select.innerHTML = '<option value="">Select a customer</option>';
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        customers.forEach(c => {
+            const option = document.createElement('option');
+            option.value = c.id;
+            option.textContent = c.company ? `${c.name} (${c.company})` : c.name;
+            select.appendChild(option);
+        });
+        if (current) select.value = current;
+    }
+
+    handleDailyInputCustomerChange() {
+        const customerId = document.getElementById('daily-input-customer').value;
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customer = customers.find(c => c.id === customerId);
+        document.getElementById('daily-input-address').value = customer ? (customer.address || '') : '';
+    }
+
+    addWorkerRowIfEmpty() {
+        const tbody = document.getElementById('worker-rows');
+        if (!tbody.querySelector('tr')) {
+            // Add default row for Myself
+            this.addWorkerRow('Myself', '8');
+        }
+    }
+
+    addWorkerRow(name = '', hours = '') {
+        const tbody = document.getElementById('worker-rows');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>
+                <input type="text" class="worker-name" placeholder="Worker name" value="${name}">
+            </td>
+            <td>
+                <input type="number" class="worker-hours" min="0" step="0.25" placeholder="0" value="${hours}">
+            </td>
+            <td>
+                <button type="button" class="delete-line" title="Remove">🗑️</button>
+            </td>
+        `;
+
+        // Wire events
+        row.querySelector('.worker-hours').addEventListener('input', () => this.updateDailyInputTotals());
+        row.querySelector('.worker-name').addEventListener('input', () => {});
+        row.querySelector('.delete-line').addEventListener('click', () => {
+            row.remove();
+            this.updateDailyInputTotals();
+        });
+
+        tbody.appendChild(row);
+        this.updateDailyInputTotals();
+    }
+
+    updateDailyInputTotals() {
+        const hoursInputs = document.querySelectorAll('#worker-rows .worker-hours');
+        let total = 0;
+        hoursInputs.forEach(input => {
+            const value = parseFloat(input.value);
+            if (!isNaN(value)) total += value;
+        });
+        document.getElementById('daily-input-total-hours').textContent = total.toFixed(2).replace(/\.00$/, '');
+    }
+
+    saveDailyInput() {
+        const date = document.getElementById('daily-input-date').value;
+        const customerId = document.getElementById('daily-input-customer').value;
+        const address = document.getElementById('daily-input-address').value.trim();
+
+        if (!date) { this.showMessage('Please select a date', 'error'); return; }
+        if (!customerId) { this.showMessage('Please select a customer', 'error'); return; }
+
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const customer = customers.find(c => c.id === customerId);
+
+        const workers = Array.from(document.querySelectorAll('#worker-rows tr')).map(tr => ({
+            name: tr.querySelector('.worker-name').value.trim(),
+            hours: parseFloat(tr.querySelector('.worker-hours').value) || 0
+        })).filter(w => w.name || w.hours > 0);
+
+        if (workers.length === 0) { this.showMessage('Add at least one worker entry', 'error'); return; }
+
+        const totalHours = workers.reduce((sum, w) => sum + w.hours, 0);
+
+        const dailySiteEntries = JSON.parse(localStorage.getItem('dailySiteEntries')) || {};
+        dailySiteEntries[date] = dailySiteEntries[date] || [];
+        dailySiteEntries[date].push({
+            id: Date.now(),
+            customerId,
+            customerName: customer ? customer.name : '',
+            address,
+            workers,
+            totalHours
+        });
+        localStorage.setItem('dailySiteEntries', JSON.stringify(dailySiteEntries));
+
+        this.showMessage('Daily input saved', 'success');
+        this.closeDailyInput();
+    }
+
     setupEventListeners() {
         // Month navigation
         document.getElementById('prev-month').addEventListener('click', () => {
@@ -356,6 +482,29 @@ class ProfitTracker {
         // Daily workflow button
         document.getElementById('daily-workflow-btn').addEventListener('click', () => {
             this.startDailyWorkflow();
+        });
+
+        // Daily Input modal events
+        document.getElementById('daily-input-btn').addEventListener('click', () => {
+            this.openDailyInput();
+        });
+        document.getElementById('close-daily-input').addEventListener('click', () => {
+            this.closeDailyInput();
+        });
+        document.getElementById('cancel-daily-input').addEventListener('click', () => {
+            this.closeDailyInput();
+        });
+        document.getElementById('save-daily-input').addEventListener('click', () => {
+            this.saveDailyInput();
+        });
+        document.getElementById('add-worker-btn').addEventListener('click', () => {
+            this.addWorkerRow();
+        });
+        document.getElementById('daily-input-customer').addEventListener('change', () => {
+            this.handleDailyInputCustomerChange();
+        });
+        document.getElementById('daily-input-date').addEventListener('change', () => {
+            // keep for potential date-specific behavior
         });
 
         // Workflow guide modal events
