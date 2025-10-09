@@ -583,6 +583,8 @@ body {
     .header-right {
         width: 100%;
         justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
     }
     
     .modal-content {
@@ -592,5 +594,92 @@ body {
     
     .form-row {
         grid-template-columns: 1fr;
+    }
+
+    /* Reduce content padding for small screens */
+    .dashboard-main, .invoice-main {
+        padding: 1rem;
+    }
+
+    /* Section headers stack nicely */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Buttons wrap and fill available width comfortably */
+    .header-right .btn-elegant,
+    .header-right .btn-primary-elegant,
+    .header-right .btn-secondary,
+    .header-right .btn-primary {
+        flex: 1 1 auto;
+    }
+
+    /* Task & calendar panels become vertical; remove fixed heights */
+    .task-calendar-container {
+        grid-template-columns: 1fr;
+        min-height: auto;
+    }
+
+    .task-panel,
+    .calendar-panel {
+        max-height: unset;
+    }
+
+    .calendar-stats {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    /* Horizontal scrolling for calendars on small screens */
+    .calendar-panel,
+    .calendar-content {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .calendar-grid-hero,
+    .calendar-header-hero,
+    .calendar-grid {
+        min-width: 700px;
+    }
+
+    /* Tables: enable horizontal scroll and prevent squishing */
+    .invoice-table-container,
+    .line-items-section {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .invoice-table,
+    .line-items-table {
+        min-width: 720px;
+    }
+
+    /* Charts/canvas scale to fit width */
+    .profit-chart-container canvas,
+    canvas#profit-chart {
+        width: 100% !important;
+        height: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .btn-elegant,
+    .btn-primary-elegant,
+    .btn-secondary,
+    .btn-primary,
+    .btn-cancel {
+        padding: 0.625rem 0.875rem;
+        font-size: 0.85rem;
+    }
+
+    .logo-text h1 {
+        font-size: 1.2rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
     }
 }
