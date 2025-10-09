@@ -3620,6 +3620,9 @@ class ProfitTracker {
         const container = document.getElementById('onsite-employees-list');
         const employees = JSON.parse(localStorage.getItem('employees')) || [];
 
+        // Debug: Log current state
+        console.log('Rendering employees. Count:', this.journalEmployees.length, 'Data:', this.journalEmployees);
+
         // Always ensure there's at least one empty row
         if (this.journalEmployees.length === 0) {
             this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
@@ -3707,6 +3710,7 @@ class ProfitTracker {
     }
 
     selectEmployeeSuggestion(index, name, rate) {
+        // Set the employee name
         this.journalEmployees[index].name = name;
         
         // Auto-fill hours with default 8 if empty
@@ -3718,43 +3722,89 @@ class ProfitTracker {
         const dropdown = document.getElementById(`employee-suggestions-${index}`);
         if (dropdown) dropdown.style.display = 'none';
         
-        // Auto-create new row since this row now has content
-        const lastIndex = this.journalEmployees.length - 1;
-        if (index === lastIndex) {
-            this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
+        // IF: This is the last row (which it usually is)
+        // THEN: Auto-create new empty row below
+        const isLastRow = index === this.journalEmployees.length - 1;
+        if (isLastRow) {
+            this.journalEmployees.push({ 
+                id: Date.now() + Math.random(), 
+                name: '', 
+                hours: 0 
+            });
         }
         
+        // Re-render to show the new row
         this.renderJournalEmployees();
     }
 
     updateJournalEmployee(index, field, value) {
+        const previousRowCount = this.journalEmployees.length;
+        
+        // Update the field value
         if (field === 'hours') {
             this.journalEmployees[index][field] = parseFloat(value) || 0;
         } else {
             this.journalEmployees[index][field] = value;
-            // Show suggestions as user types
+            // Show suggestions as user types (without re-rendering)
             this.showEmployeeSuggestions(index);
         }
         
-        // IF: This row has ANY content (name OR hours)
-        // THEN: Auto-create new empty row if this is the last row
-        const lastIndex = this.journalEmployees.length - 1;
+        // Check if we need to add a new row
+        // IF: This is the last row AND it has ANY content
+        // THEN: Add a new empty row below it
+        const isLastRow = index === this.journalEmployees.length - 1;
+        const currentRow = this.journalEmployees[index];
+        const hasContent = currentRow.name.trim() !== '' || currentRow.hours > 0;
         
-        if (index === lastIndex) {
-            const currentRow = this.journalEmployees[index];
-            // If either name has content OR hours > 0, add new row
-            if (currentRow.name.trim() !== '' || currentRow.hours > 0) {
-                this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
-            }
+        let rowWasAdded = false;
+        if (isLastRow && hasContent) {
+            console.log('AUTO-CREATING NEW ROW - Last row has content:', currentRow);
+            // Add new empty row
+            this.journalEmployees.push({ 
+                id: Date.now() + Math.random(), 
+                name: '', 
+                hours: 0 
+            });
+            rowWasAdded = true;
         }
         
-        // Remove empty rows except the last one
+        // Clean up: Remove any empty rows that are NOT the last row
+        const totalRows = this.journalEmployees.length;
+        const beforeFilter = [...this.journalEmployees];
         this.journalEmployees = this.journalEmployees.filter((je, i) => {
-            if (i === this.journalEmployees.length - 1) return true; // Keep last row
-            return je.name.trim() !== '' || je.hours > 0; // Keep rows with content
+            // Always keep the last row
+            if (i === totalRows - 1) return true;
+            // Keep rows that have content
+            return je.name.trim() !== '' || je.hours > 0;
         });
         
-        this.renderJournalEmployees();
+        const rowCountChanged = this.journalEmployees.length !== previousRowCount;
+        const rowWasRemoved = this.journalEmployees.length < beforeFilter.length;
+        
+        // Only re-render if rows were added or removed, not on every keystroke
+        if (rowWasAdded || rowWasRemoved || rowCountChanged || field === 'hours') {
+            console.log('RE-RENDERING - Row count changed from', previousRowCount, 'to', this.journalEmployees.length);
+            this.renderJournalEmployees();
+        } else {
+            // Just update the cost display without full re-render
+            this.updateEmployeeCostDisplay(index);
+        }
+    }
+    
+    updateEmployeeCostDisplay(index) {
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        const je = this.journalEmployees[index];
+        const matchedEmployee = employees.find(e => 
+            e.name.toLowerCase().trim() === je.name.toLowerCase().trim()
+        );
+        const cost = matchedEmployee ? (matchedEmployee.hourlyRate * je.hours) : 0;
+        const rateDisplay = matchedEmployee ? ` @ $${matchedEmployee.hourlyRate.toFixed(2)}/hr` : '';
+        
+        // Update just the cost display element if it exists
+        const costElement = document.querySelector(`.employee-row:nth-child(${index + 1}) .cost-display`);
+        if (costElement) {
+            costElement.textContent = cost > 0 ? `$${cost.toFixed(2)}${rateDisplay}` : '';
+        }
     }
 
     updateLaborCostSummary() {
