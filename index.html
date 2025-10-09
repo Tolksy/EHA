@@ -1502,11 +1502,52 @@
         </div>
     </div>
 
-    <!-- Daily Business Journal Modal -->
-    <div id="daily-journal-modal" class="modal" style="display: none;">
+    <!-- Employee Management Modal -->
+    <div id="employee-management-modal" class="modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
+                <h3>👷 Employee Management</h3>
+                <button type="button" class="modal-close" id="close-employee-management">&times;</button>
+            </div>
+            
+            <div class="employee-management-content">
+                <p>Manage your employees and their hourly rates for automatic labor cost tracking.</p>
+                
+                <!-- Add Employee Form -->
+                <div class="add-employee-form" style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h4>Add New Employee</h4>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: end;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="new-employee-name">Name</label>
+                            <input type="text" id="new-employee-name" placeholder="Employee name" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="new-employee-rate">Hourly Rate ($)</label>
+                            <input type="number" id="new-employee-rate" step="0.01" min="0" placeholder="15.00" required>
+                        </div>
+                        <button type="button" class="btn-primary" id="save-new-employee">Add</button>
+                    </div>
+                </div>
+                
+                <!-- Employee List -->
+                <div class="employee-list-section">
+                    <h4>Current Employees</h4>
+                    <div id="employees-list-display">
+                        <!-- Employee list will be displayed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Business Journal Modal -->
+    <div id="daily-journal-modal" class="modal" style="display: none; align-items: flex-start; padding: 20px 0; overflow-y: auto;">
+        <div class="modal-content" style="margin: auto; max-height: none;">
+            <div class="modal-header">
                 <h3>📝 Daily Business Journal</h3>
+                <button type="button" class="btn-secondary" id="manage-employees-btn" style="margin-right: 10px;" title="Manage employee rates">
+                    👷 Manage Employees
+                </button>
                 <button type="button" class="modal-close" id="close-daily-journal">&times;</button>
             </div>
             <form id="daily-journal-form">
@@ -1517,17 +1558,31 @@
 
                 <div class="form-group">
                     <label for="journal-customer">Who was your customer today?</label>
-                    <input type="text" id="journal-customer" required placeholder="Enter customer name">
+                    <input type="text" id="journal-customer" required placeholder="Enter customer name or select from list" autocomplete="off">
+                    <datalist id="customer-suggestions"></datalist>
+                    <div id="customer-dropdown" style="display: none; position: relative; border: 1px solid #ddd; border-radius: 4px; max-height: 200px; overflow-y: auto; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);"></div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="journal-onsite">Who was on site?</label>
-                    <input type="text" id="journal-onsite" required placeholder="Enter names of people on site">
-                </div>
-
-                <div class="form-group">
-                    <label for="journal-hours">How many hours did they work?</label>
-                    <input type="number" id="journal-hours" step="0.5" min="0" required placeholder="e.g., 8.5">
+                    <label>Who was on site and how many hours did they work?</label>
+                    <div id="onsite-employees-list" style="margin-bottom: 15px;">
+                        <!-- Employee entries will be added here -->
+                    </div>
+                    <button type="button" class="btn-secondary" id="add-employee-to-journal" style="width: 100%;">
+                        + Add Employee
+                    </button>
+                    
+                    <!-- Labor Cost Summary -->
+                    <div style="margin-top: 15px; padding: 10px; background: #f0f0f0; border-radius: 4px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <strong>Total Labor Hours:</strong>
+                            <span id="total-labor-hours">0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <strong>Total Labor Cost:</strong>
+                            <span id="total-labor-cost" style="color: #dc3545; font-weight: bold;">$0.00</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
@@ -1542,7 +1597,7 @@
             </form>
 
             <!-- Journal Entries List -->
-            <div class="journal-entries-section" style="margin-top: 30px;">
+            <div class="journal-entries-section" style="margin-top: 30px; margin-bottom: 50px; padding-bottom: 20px;">
                 <h4>Recent Journal Entries</h4>
                 <div id="journal-entries-list" style="max-height: 300px; overflow-y: auto;">
                     <!-- Journal entries will be displayed here -->
@@ -1550,6 +1605,29 @@
             </div>
         </div>
     </div>
+    
+    <style>
+        /* Ensure Daily Journal Modal is fully scrollable */
+        #daily-journal-modal .modal-content {
+            overflow: visible;
+        }
+        
+        #daily-journal-modal form {
+            padding-bottom: 30px;
+        }
+        
+        /* Fix for virtual keyboard visibility */
+        @media (max-height: 800px) {
+            #daily-journal-modal {
+                align-items: flex-start !important;
+            }
+            
+            #daily-journal-modal .modal-content {
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 
     <script src="js/main.js"></script>
     <script src="js/virtual-keyboard.js"></script>

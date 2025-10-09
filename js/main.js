@@ -4,6 +4,7 @@ class ProfitTracker {
     constructor() {
         this.currentDate = new Date();
         this.savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
+        this.journalEmployees = []; // Track employees in daily journal
         this.init();
     }
 
@@ -411,6 +412,25 @@ class ProfitTracker {
         document.getElementById('daily-journal-form').addEventListener('submit', (e) => {
             e.preventDefault();
             this.saveDailyJournal();
+        });
+
+        // Manage Employees button
+        document.getElementById('manage-employees-btn').addEventListener('click', () => {
+            this.openEmployeeManagement();
+        });
+
+        // Employee Management modal events
+        document.getElementById('close-employee-management').addEventListener('click', () => {
+            this.closeEmployeeManagement();
+        });
+
+        document.getElementById('save-new-employee').addEventListener('click', () => {
+            this.saveNewEmployee();
+        });
+
+        // Add employee to journal
+        document.getElementById('add-employee-to-journal').addEventListener('click', () => {
+            this.addEmployeeToJournal();
         });
 
         // Close dropdown when clicking outside
@@ -3362,6 +3382,117 @@ class ProfitTracker {
         localStorage.setItem('playerData', JSON.stringify(this.playerData));
     }
 
+    // Employee Management Methods
+    openEmployeeManagement() {
+        const modal = document.getElementById('employee-management-modal');
+        modal.style.display = 'flex';
+        this.displayEmployeesList();
+    }
+
+    closeEmployeeManagement() {
+        const modal = document.getElementById('employee-management-modal');
+        modal.style.display = 'none';
+    }
+
+    saveNewEmployee() {
+        const name = document.getElementById('new-employee-name').value.trim();
+        const rate = parseFloat(document.getElementById('new-employee-rate').value);
+
+        if (!name) {
+            this.showMessage('⚠️ Please enter employee name', 'warning');
+            return;
+        }
+
+        if (!rate || rate <= 0) {
+            this.showMessage('⚠️ Please enter valid hourly rate', 'warning');
+            return;
+        }
+
+        // Load existing employees
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+        // Check for duplicate
+        const exists = employees.find(e => e.name.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            this.showMessage('⚠️ Employee already exists', 'warning');
+            return;
+        }
+
+        // Add new employee
+        const newEmployee = {
+            id: Date.now().toString(),
+            name: name,
+            hourlyRate: rate,
+            createdAt: new Date().toISOString()
+        };
+
+        employees.push(newEmployee);
+        localStorage.setItem('employees', JSON.stringify(employees));
+
+        // Clear form
+        document.getElementById('new-employee-name').value = '';
+        document.getElementById('new-employee-rate').value = '';
+
+        // Refresh display
+        this.displayEmployeesList();
+        this.showMessage('✅ Employee added successfully!', 'success');
+    }
+
+    displayEmployeesList() {
+        const listContainer = document.getElementById('employees-list-display');
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+        if (employees.length === 0) {
+            listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">No employees added yet. Add your first employee above.</p>';
+            return;
+        }
+
+        listContainer.innerHTML = employees.map(emp => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px;">
+                <div>
+                    <strong style="font-size: 15px;">${emp.name}</strong>
+                    <div style="color: #666; font-size: 13px; margin-top: 2px;">$${emp.hourlyRate.toFixed(2)}/hour</div>
+                </div>
+                <div>
+                    <button class="btn-small" onclick="profitTracker.editEmployee('${emp.id}')" style="margin-right: 5px; background: #2196F3;">Edit</button>
+                    <button class="btn-small" onclick="profitTracker.deleteEmployee('${emp.id}')" style="background: #ff4444; color: white;">Delete</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    editEmployee(employeeId) {
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        const employee = employees.find(e => e.id === employeeId);
+        
+        if (!employee) return;
+
+        const newRate = prompt(`Update hourly rate for ${employee.name}:`, employee.hourlyRate);
+        
+        if (newRate === null) return; // Cancelled
+        
+        const rate = parseFloat(newRate);
+        if (isNaN(rate) || rate <= 0) {
+            this.showMessage('⚠️ Invalid rate', 'warning');
+            return;
+        }
+
+        employee.hourlyRate = rate;
+        localStorage.setItem('employees', JSON.stringify(employees));
+        this.displayEmployeesList();
+        this.showMessage('✅ Employee rate updated!', 'success');
+    }
+
+    deleteEmployee(employeeId) {
+        if (!confirm('Are you sure you want to delete this employee?')) return;
+
+        let employees = JSON.parse(localStorage.getItem('employees')) || [];
+        employees = employees.filter(e => e.id !== employeeId);
+        localStorage.setItem('employees', JSON.stringify(employees));
+        this.displayEmployeesList();
+        this.showMessage('🗑️ Employee deleted', 'info');
+    }
+
     // Daily Business Journal Methods
     openDailyJournal() {
         const modal = document.getElementById('daily-journal-modal');
@@ -3373,12 +3504,164 @@ class ProfitTracker {
         
         // Clear form fields
         document.getElementById('journal-customer').value = '';
-        document.getElementById('journal-onsite').value = '';
-        document.getElementById('journal-hours').value = '';
         document.getElementById('journal-description').value = '';
+        
+        // Reset employee list
+        this.journalEmployees = [];
+        this.renderJournalEmployees();
+        
+        // Setup customer autocomplete
+        this.setupCustomerAutocomplete();
         
         // Display recent journal entries
         this.displayJournalEntries();
+    }
+
+    setupCustomerAutocomplete() {
+        const customerInput = document.getElementById('journal-customer');
+        const dropdown = document.getElementById('customer-dropdown');
+
+        // Show dropdown when user types
+        customerInput.addEventListener('input', () => {
+            const searchTerm = customerInput.value.toLowerCase().trim();
+            
+            if (searchTerm.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            // Get customers from database
+            const customers = JSON.parse(localStorage.getItem('customers')) || [];
+            
+            // Filter customers by search term
+            const matches = customers.filter(c => 
+                c.name.toLowerCase().includes(searchTerm)
+            ).slice(0, 5); // Limit to 5 results
+
+            if (matches.length > 0) {
+                dropdown.innerHTML = matches.map(customer => `
+                    <div class="customer-suggestion" 
+                         style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"
+                         onmouseover="this.style.background='#f0f0f0'"
+                         onmouseout="this.style.background='white'"
+                         onclick="profitTracker.selectCustomer('${customer.name.replace(/'/g, "\\'")}')">
+                        <strong>${customer.name}</strong>
+                        ${customer.company ? `<br><small style="color: #666;">${customer.company}</small>` : ''}
+                    </div>
+                `).join('');
+                dropdown.style.display = 'block';
+            } else {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== customerInput && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    }
+
+    selectCustomer(customerName) {
+        document.getElementById('journal-customer').value = customerName;
+        document.getElementById('customer-dropdown').style.display = 'none';
+    }
+
+    addEmployeeToJournal() {
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        
+        if (employees.length === 0) {
+            if (confirm('No employees found. Would you like to add employees now?')) {
+                this.openEmployeeManagement();
+            }
+            return;
+        }
+
+        // Create employee selection
+        const employeeId = Date.now();
+        const journalEmployee = {
+            id: employeeId,
+            employeeId: '',
+            hours: 0
+        };
+
+        this.journalEmployees.push(journalEmployee);
+        this.renderJournalEmployees();
+    }
+
+    renderJournalEmployees() {
+        const container = document.getElementById('onsite-employees-list');
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+        if (this.journalEmployees.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: #888; padding: 10px; font-style: italic;">No employees added yet. Click "+ Add Employee" below.</p>';
+            this.updateLaborCostSummary();
+            return;
+        }
+
+        container.innerHTML = this.journalEmployees.map((je, index) => {
+            const selectedEmployee = employees.find(e => e.id === je.employeeId);
+            const cost = selectedEmployee ? (selectedEmployee.hourlyRate * je.hours) : 0;
+
+            return `
+                <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 10px; align-items: center; padding: 10px; background: white; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px;">
+                    <select onchange="profitTracker.updateJournalEmployee(${index}, 'employeeId', this.value)" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                        <option value="">Select Employee</option>
+                        ${employees.map(emp => `
+                            <option value="${emp.id}" ${je.employeeId === emp.id ? 'selected' : ''}>
+                                ${emp.name} ($${emp.hourlyRate.toFixed(2)}/hr)
+                            </option>
+                        `).join('')}
+                    </select>
+                    <input type="number" 
+                           value="${je.hours}" 
+                           step="0.5" 
+                           min="0" 
+                           placeholder="Hours"
+                           onchange="profitTracker.updateJournalEmployee(${index}, 'hours', this.value)"
+                           style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span style="font-weight: bold; color: #dc3545; min-width: 60px;">$${cost.toFixed(2)}</span>
+                        <button type="button" onclick="profitTracker.removeJournalEmployee(${index})" style="background: #ff4444; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer;">✕</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.updateLaborCostSummary();
+    }
+
+    updateJournalEmployee(index, field, value) {
+        if (field === 'hours') {
+            this.journalEmployees[index][field] = parseFloat(value) || 0;
+        } else {
+            this.journalEmployees[index][field] = value;
+        }
+        this.renderJournalEmployees();
+    }
+
+    removeJournalEmployee(index) {
+        this.journalEmployees.splice(index, 1);
+        this.renderJournalEmployees();
+    }
+
+    updateLaborCostSummary() {
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        
+        let totalHours = 0;
+        let totalCost = 0;
+
+        this.journalEmployees.forEach(je => {
+            const employee = employees.find(e => e.id === je.employeeId);
+            if (employee) {
+                totalHours += je.hours;
+                totalCost += employee.hourlyRate * je.hours;
+            }
+        });
+
+        document.getElementById('total-labor-hours').textContent = totalHours.toFixed(1);
+        document.getElementById('total-labor-cost').textContent = '$' + totalCost.toFixed(2);
     }
 
     closeDailyJournal() {
@@ -3390,51 +3673,215 @@ class ProfitTracker {
         // Get form values
         const date = document.getElementById('journal-date').value;
         const customer = document.getElementById('journal-customer').value.trim();
-        const onsite = document.getElementById('journal-onsite').value.trim();
-        const hours = parseFloat(document.getElementById('journal-hours').value);
         const description = document.getElementById('journal-description').value.trim();
 
         // Validate inputs
-        if (!date || !customer || !onsite || !hours || !description) {
-            this.showMessage('⚠️ Please fill in all fields', 'warning');
+        if (!date || !customer || !description) {
+            this.showMessage('⚠️ Please fill in date, customer, and description', 'warning');
             return;
         }
 
-        // Create journal entry object
+        // Validate employees
+        if (this.journalEmployees.length === 0) {
+            this.showMessage('⚠️ Please add at least one employee', 'warning');
+            return;
+        }
+
+        // Check that all employees are selected and have hours
+        const invalidEmployees = this.journalEmployees.filter(je => !je.employeeId || je.hours <= 0);
+        if (invalidEmployees.length > 0) {
+            this.showMessage('⚠️ Please select employees and enter valid hours for all entries', 'warning');
+            return;
+        }
+
+        // Calculate labor costs
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        let totalLaborHours = 0;
+        let totalLaborCost = 0;
+        
+        const employeeDetails = this.journalEmployees.map(je => {
+            const employee = employees.find(e => e.id === je.employeeId);
+            const cost = employee.hourlyRate * je.hours;
+            totalLaborHours += je.hours;
+            totalLaborCost += cost;
+            
+            return {
+                employeeId: je.employeeId,
+                employeeName: employee.name,
+                hours: je.hours,
+                rate: employee.hourlyRate,
+                cost: cost
+            };
+        });
+
+        // Step 1: Create or find customer in client database
+        const customerId = this.createOrUpdateCustomer(customer);
+
+        // Step 2: Create journal entry object
         const entry = {
             id: Date.now(),
             date: date,
             customer: customer,
-            onsite: onsite,
-            hours: hours,
+            customerId: customerId,
+            employees: employeeDetails,
+            totalLaborHours: totalLaborHours,
+            totalLaborCost: totalLaborCost,
             description: description,
             timestamp: new Date().toISOString()
         };
 
-        // Get existing journal entries from localStorage
+        // Step 3: Save journal entry to localStorage
         let journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
-        
-        // Add new entry to the beginning of the array
         journalEntries.unshift(entry);
-        
-        // Save to localStorage
         localStorage.setItem('dailyJournalEntries', JSON.stringify(journalEntries));
 
+        // Step 4: Track labor as an expense
+        this.trackLaborExpense(date, totalLaborCost, employeeDetails);
+
+        // Step 5: Create a calendar task for this journal entry
+        this.createCalendarTaskFromJournal(entry);
+
         // Show success message
-        this.showMessage('✅ Daily journal entry saved successfully!', 'success');
+        this.showMessage(`✅ Journal saved! Labor cost: $${totalLaborCost.toFixed(2)} tracked as expense!`, 'success');
 
         // Clear form
         document.getElementById('journal-customer').value = '';
-        document.getElementById('journal-onsite').value = '';
-        document.getElementById('journal-hours').value = '';
         document.getElementById('journal-description').value = '';
+        this.journalEmployees = [];
+        this.renderJournalEmployees();
 
-        // Refresh the entries display
+        // Refresh displays
         this.displayJournalEntries();
+        this.renderCalendarHero();
+        this.updateCalendarStats();
 
         // Award XP for completing journal entry
         if (this.playerData) {
-            this.addXP(15, 'daily journal entry');
+            this.addXP(20, 'daily journal entry with labor tracking');
+        }
+    }
+
+    trackLaborExpense(date, totalCost, employeeDetails) {
+        // Get existing daily profit entries
+        let dailyProfitEntries = JSON.parse(localStorage.getItem('dailyProfitEntries')) || [];
+        
+        // Find or create entry for this date
+        let dateEntry = dailyProfitEntries.find(entry => entry.date === date);
+        
+        if (!dateEntry) {
+            dateEntry = {
+                date: date,
+                revenue: [],
+                expenses: [],
+                notes: '',
+                timestamp: new Date().toISOString()
+            };
+            dailyProfitEntries.push(dateEntry);
+        }
+
+        // Add labor expense
+        const laborExpense = {
+            id: Date.now().toString(),
+            description: `Labor: ${employeeDetails.map(e => `${e.employeeName} (${e.hours}h)`).join(', ')}`,
+            amount: totalCost,
+            category: 'labor',
+            timestamp: new Date().toISOString()
+        };
+
+        dateEntry.expenses.push(laborExpense);
+        
+        // Save back to localStorage
+        localStorage.setItem('dailyProfitEntries', JSON.stringify(dailyProfitEntries));
+    }
+
+    createOrUpdateCustomer(customerName) {
+        // Load existing customers
+        let customers = JSON.parse(localStorage.getItem('customers')) || [];
+        
+        // Check if customer already exists (case-insensitive)
+        const existingCustomer = customers.find(c => 
+            c.name.toLowerCase() === customerName.toLowerCase()
+        );
+
+        if (existingCustomer) {
+            // Update last contact date
+            existingCustomer.lastContact = new Date().toISOString().split('T')[0];
+            localStorage.setItem('customers', JSON.stringify(customers));
+            return existingCustomer.id;
+        }
+
+        // Create new customer
+        const newCustomer = {
+            id: Date.now().toString(),
+            name: customerName,
+            company: '',
+            email: '',
+            phone: '',
+            address: '',
+            warmthScore: 7, // Default to warm
+            status: 'client', // Assume they're a client since work was done
+            notes: 'Created automatically from Daily Business Journal',
+            lastContact: new Date().toISOString().split('T')[0],
+            totalInvoices: 0,
+            totalAmount: 0
+        };
+
+        customers.push(newCustomer);
+        localStorage.setItem('customers', JSON.stringify(customers));
+
+        // Reload clients if tracker is open
+        if (this.clients) {
+            this.loadClients();
+        }
+
+        return newCustomer.id;
+    }
+
+    createCalendarTaskFromJournal(journalEntry) {
+        // Load existing tasks
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        // Create employee details string
+        const employeeInfo = journalEntry.employees.map(e => 
+            `${e.employeeName}: ${e.hours}h @ $${e.rate.toFixed(2)}/hr = $${e.cost.toFixed(2)}`
+        ).join('\n');
+
+        // Create a new task for the calendar
+        const calendarTask = {
+            id: `journal-${journalEntry.id}`,
+            title: `${journalEntry.customer} - ${journalEntry.description}`,
+            clientId: journalEntry.customerId,
+            jobId: '',
+            category: 'billable',
+            duration: journalEntry.totalLaborHours,
+            rate: 0, // Can be filled in later
+            total: 0,
+            description: `Employees On Site:\n${employeeInfo}\n\nTotal Labor Cost: $${journalEntry.totalLaborCost.toFixed(2)}\n\n${journalEntry.description}`,
+            createdAt: journalEntry.timestamp,
+            scheduled: true,
+            scheduledDate: journalEntry.date,
+            scheduledTime: '09:00', // Default time
+            completed: true, // Mark as completed since work is already done
+            journalEntry: true, // Flag to identify this came from journal
+            laborCost: journalEntry.totalLaborCost
+        };
+
+        // Check if task already exists for this journal entry
+        const existingTaskIndex = tasks.findIndex(t => t.id === calendarTask.id);
+        
+        if (existingTaskIndex >= 0) {
+            // Update existing task
+            tasks[existingTaskIndex] = calendarTask;
+        } else {
+            // Add new task
+            tasks.push(calendarTask);
+        }
+
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+
+        // Reload tasks display
+        if (this.loadTasks) {
+            this.loadTasks();
         }
     }
 
@@ -3459,21 +3906,47 @@ class ProfitTracker {
                 day: 'numeric' 
             });
 
+            // Handle both old and new format
+            let employeeInfo = '';
+            if (entry.employees && entry.employees.length > 0) {
+                employeeInfo = entry.employees.map(e => 
+                    `<div style="margin-left: 15px; color: #666; font-size: 13px;">• ${e.employeeName}: ${e.hours}h @ $${e.rate.toFixed(2)}/hr = $${e.cost.toFixed(2)}</div>`
+                ).join('');
+            } else if (entry.onsite) {
+                // Old format support
+                employeeInfo = `<div style="margin-left: 15px; color: #666; font-size: 13px;">${entry.onsite} - ${entry.hours} hours</div>`;
+            }
+
             return `
                 <div class="journal-entry-card" style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 10px; background: #f9f9f9;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <strong style="color: #333; font-size: 16px;">${formattedDate}</strong>
+                        <div>
+                            <strong style="color: #333; font-size: 16px;">${formattedDate}</strong>
+                            <span style="margin-left: 10px; padding: 2px 8px; background: #4CAF50; color: white; border-radius: 4px; font-size: 11px;">📅 On Calendar</span>
+                            <span style="margin-left: 5px; padding: 2px 8px; background: #2196F3; color: white; border-radius: 4px; font-size: 11px;">👤 In Client DB</span>
+                            ${entry.totalLaborCost ? `<span style="margin-left: 5px; padding: 2px 8px; background: #dc3545; color: white; border-radius: 4px; font-size: 11px;">💰 Expense Tracked</span>` : ''}
+                        </div>
                         <button class="btn-small" onclick="profitTracker.deleteJournalEntry(${entry.id})" style="background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                     </div>
                     <div style="margin-bottom: 8px;">
                         <strong>Customer:</strong> ${entry.customer}
                     </div>
                     <div style="margin-bottom: 8px;">
-                        <strong>On Site:</strong> ${entry.onsite}
+                        <strong>Employees On Site:</strong>
+                        ${employeeInfo}
                     </div>
-                    <div style="margin-bottom: 8px;">
-                        <strong>Hours Worked:</strong> ${entry.hours} hours
-                    </div>
+                    ${entry.totalLaborHours ? `
+                        <div style="margin-bottom: 8px; background: white; padding: 8px; border-radius: 4px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span><strong>Total Labor Hours:</strong></span>
+                                <span>${entry.totalLaborHours.toFixed(1)}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                                <span><strong>Total Labor Cost:</strong></span>
+                                <span style="color: #dc3545; font-weight: bold;">$${entry.totalLaborCost.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    ` : ''}
                     <div style="margin-bottom: 8px;">
                         <strong>Description:</strong> ${entry.description}
                     </div>
@@ -3483,12 +3956,27 @@ class ProfitTracker {
     }
 
     deleteJournalEntry(entryId) {
-        if (confirm('Are you sure you want to delete this journal entry?')) {
+        if (confirm('Are you sure you want to delete this journal entry? This will also remove it from the calendar and update the client database.')) {
+            // Delete journal entry
             let journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
             journalEntries = journalEntries.filter(entry => entry.id !== entryId);
             localStorage.setItem('dailyJournalEntries', JSON.stringify(journalEntries));
+
+            // Delete associated calendar task
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            tasks = tasks.filter(task => task.id !== `journal-${entryId}`);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+
+            // Refresh all displays
             this.displayJournalEntries();
-            this.showMessage('🗑️ Journal entry deleted', 'info');
+            this.renderCalendarHero();
+            this.updateCalendarStats();
+            
+            if (this.loadTasks) {
+                this.loadTasks();
+            }
+
+            this.showMessage('🗑️ Journal entry, calendar event, and client link removed', 'info');
         }
     }
 }
