@@ -3516,38 +3516,14 @@ class ProfitTracker {
         const customerInput = document.getElementById('journal-customer');
         const dropdown = document.getElementById('customer-dropdown');
 
+        // Show dropdown when user focuses (even if empty)
+        customerInput.addEventListener('focus', () => {
+            this.showCustomerSuggestions();
+        });
+
         // Show dropdown when user types
         customerInput.addEventListener('input', () => {
-            const searchTerm = customerInput.value.toLowerCase().trim();
-            
-            if (searchTerm.length === 0) {
-                dropdown.style.display = 'none';
-                return;
-            }
-
-            // Get customers from database
-            const customers = JSON.parse(localStorage.getItem('customers')) || [];
-            
-            // Filter customers by search term
-            const matches = customers.filter(c => 
-                c.name.toLowerCase().includes(searchTerm)
-            ).slice(0, 5); // Limit to 5 results
-
-            if (matches.length > 0) {
-                dropdown.innerHTML = matches.map(customer => `
-                    <div class="customer-suggestion" 
-                         style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"
-                         onmouseover="this.style.background='#f0f0f0'"
-                         onmouseout="this.style.background='white'"
-                         onclick="profitTracker.selectCustomer('${customer.name.replace(/'/g, "\\'")}')">
-                        <strong>${customer.name}</strong>
-                        ${customer.company ? `<br><small style="color: #666;">${customer.company}</small>` : ''}
-                    </div>
-                `).join('');
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
+            this.showCustomerSuggestions();
         });
 
         // Hide dropdown when clicking outside
@@ -3558,9 +3534,86 @@ class ProfitTracker {
         });
     }
 
+    showCustomerSuggestions() {
+        const customerInput = document.getElementById('journal-customer');
+        const dropdown = document.getElementById('customer-dropdown');
+        const searchTerm = customerInput.value.toLowerCase().trim();
+        
+        // Get customers from database
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        
+        if (customers.length === 0) {
+            dropdown.innerHTML = `
+                <div style="padding: 15px; text-align: center; color: #888;">
+                    <p>No customers yet.</p>
+                    <small>Type a new customer name to create one automatically.</small>
+                </div>
+            `;
+            dropdown.style.display = 'block';
+            return;
+        }
+        
+        // Filter customers by search term, or show all if search is empty
+        let matches = customers;
+        if (searchTerm.length > 0) {
+            matches = customers.filter(c => 
+                c.name.toLowerCase().includes(searchTerm) || 
+                (c.company && c.company.toLowerCase().includes(searchTerm))
+            );
+        }
+        
+        // Sort by most recent contact
+        matches.sort((a, b) => {
+            const dateA = new Date(a.lastContact || 0);
+            const dateB = new Date(b.lastContact || 0);
+            return dateB - dateA;
+        });
+        
+        // Limit to top 8 results
+        matches = matches.slice(0, 8);
+
+        if (matches.length > 0) {
+            dropdown.innerHTML = matches.map(customer => {
+                const lastContact = customer.lastContact ? 
+                    new Date(customer.lastContact).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 
+                    'Never';
+                
+                return `
+                    <div class="customer-suggestion" 
+                         style="padding: 12px; cursor: pointer; border-bottom: 1px solid #eee;"
+                         onmouseover="this.style.background='#f0f0f0'"
+                         onmouseout="this.style.background='white'"
+                         onclick="profitTracker.selectCustomer('${customer.name.replace(/'/g, "\\'")}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong style="font-size: 15px;">${customer.name}</strong>
+                                ${customer.company ? `<br><small style="color: #666;">${customer.company}</small>` : ''}
+                            </div>
+                            <small style="color: #999;">Last: ${lastContact}</small>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            dropdown.style.display = 'block';
+        } else if (searchTerm.length > 0) {
+            dropdown.innerHTML = `
+                <div style="padding: 15px; text-align: center; color: #888;">
+                    <p>No matching customers found.</p>
+                    <small>Press Save to create "${searchTerm}" as a new customer.</small>
+                </div>
+            `;
+            dropdown.style.display = 'block';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+
     selectCustomer(customerName) {
         document.getElementById('journal-customer').value = customerName;
         document.getElementById('customer-dropdown').style.display = 'none';
+        
+        // Show message that customer was auto-selected
+        this.showMessage(`✅ Customer "${customerName}" selected`, 'success');
     }
 
     renderJournalEmployees() {
@@ -3575,21 +3628,23 @@ class ProfitTracker {
         container.innerHTML = this.journalEmployees.map((je, index) => {
             // Find matching employee by name to get rate
             const matchedEmployee = employees.find(e => 
-                e.name.toLowerCase() === je.name.toLowerCase()
+                e.name.toLowerCase().trim() === je.name.toLowerCase().trim()
             );
             const cost = matchedEmployee ? (matchedEmployee.hourlyRate * je.hours) : 0;
             const rateDisplay = matchedEmployee ? ` @ $${matchedEmployee.hourlyRate.toFixed(2)}/hr` : '';
 
             return `
                 <div class="employee-row">
-                    <input type="text" 
-                           value="${je.name}" 
-                           placeholder="Employee name"
-                           oninput="profitTracker.updateJournalEmployee(${index}, 'name', this.value)"
-                           list="employee-names-${index}">
-                    <datalist id="employee-names-${index}">
-                        ${employees.map(emp => `<option value="${emp.name}">`).join('')}
-                    </datalist>
+                    <div style="position: relative;">
+                        <input type="text" 
+                               id="employee-name-${index}"
+                               value="${je.name}" 
+                               placeholder="Start typing employee name..."
+                               oninput="profitTracker.updateJournalEmployee(${index}, 'name', this.value)"
+                               onfocus="profitTracker.showEmployeeSuggestions(${index})"
+                               style="width: 100%;">
+                        <div id="employee-suggestions-${index}" class="employee-suggestions-dropdown" style="display: none;"></div>
+                    </div>
                     <input type="number" 
                            value="${je.hours || ''}" 
                            step="0.5" 
@@ -3606,26 +3661,97 @@ class ProfitTracker {
         this.updateLaborCostSummary();
     }
 
+    showEmployeeSuggestions(index) {
+        const input = document.getElementById(`employee-name-${index}`);
+        const dropdown = document.getElementById(`employee-suggestions-${index}`);
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        
+        if (employees.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        const searchTerm = input.value.toLowerCase().trim();
+        
+        // Filter employees
+        const matches = employees.filter(e => 
+            e.name.toLowerCase().includes(searchTerm)
+        );
+
+        if (matches.length > 0) {
+            dropdown.innerHTML = matches.map(emp => `
+                <div class="suggestion-item" 
+                     onclick="profitTracker.selectEmployeeSuggestion(${index}, '${emp.name.replace(/'/g, "\\'")}', ${emp.hourlyRate})"
+                     style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;"
+                     onmouseover="this.style.background='#f0f0f0'"
+                     onmouseout="this.style.background='white'">
+                    <strong>${emp.name}</strong><br>
+                    <small style="color: #666;">$${emp.hourlyRate.toFixed(2)}/hr</small>
+                </div>
+            `).join('');
+            dropdown.style.display = 'block';
+            dropdown.style.position = 'absolute';
+            dropdown.style.top = '100%';
+            dropdown.style.left = '0';
+            dropdown.style.right = '0';
+            dropdown.style.background = 'white';
+            dropdown.style.border = '1px solid #ddd';
+            dropdown.style.borderRadius = '4px';
+            dropdown.style.maxHeight = '200px';
+            dropdown.style.overflowY = 'auto';
+            dropdown.style.zIndex = '1000';
+            dropdown.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        } else {
+            dropdown.style.display = 'none';
+        }
+    }
+
+    selectEmployeeSuggestion(index, name, rate) {
+        this.journalEmployees[index].name = name;
+        
+        // Auto-fill hours with default 8 if empty
+        if (!this.journalEmployees[index].hours || this.journalEmployees[index].hours === 0) {
+            this.journalEmployees[index].hours = 8;
+        }
+        
+        // Hide dropdown
+        const dropdown = document.getElementById(`employee-suggestions-${index}`);
+        if (dropdown) dropdown.style.display = 'none';
+        
+        // Auto-create new row since this row now has content
+        const lastIndex = this.journalEmployees.length - 1;
+        if (index === lastIndex) {
+            this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
+        }
+        
+        this.renderJournalEmployees();
+    }
+
     updateJournalEmployee(index, field, value) {
         if (field === 'hours') {
             this.journalEmployees[index][field] = parseFloat(value) || 0;
         } else {
             this.journalEmployees[index][field] = value;
+            // Show suggestions as user types
+            this.showEmployeeSuggestions(index);
         }
         
-        // Auto-create new row if this is the last row and it has content
+        // IF: This row has ANY content (name OR hours)
+        // THEN: Auto-create new empty row if this is the last row
         const lastIndex = this.journalEmployees.length - 1;
-        const lastEmployee = this.journalEmployees[lastIndex];
         
-        if (lastEmployee.name || lastEmployee.hours > 0) {
-            // Add new empty row
-            this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
+        if (index === lastIndex) {
+            const currentRow = this.journalEmployees[index];
+            // If either name has content OR hours > 0, add new row
+            if (currentRow.name.trim() !== '' || currentRow.hours > 0) {
+                this.journalEmployees.push({ id: Date.now(), name: '', hours: 0 });
+            }
         }
         
         // Remove empty rows except the last one
         this.journalEmployees = this.journalEmployees.filter((je, i) => {
             if (i === this.journalEmployees.length - 1) return true; // Keep last row
-            return je.name || je.hours > 0; // Keep rows with content
+            return je.name.trim() !== '' || je.hours > 0; // Keep rows with content
         });
         
         this.renderJournalEmployees();
