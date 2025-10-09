@@ -1389,6 +1389,20 @@ class ProfitTracker {
                     e.stopPropagation();
                     this.showAppointmentDetails(appointment);
                 });
+
+                // Add billing status badge for journal appointments
+                if (appointment.type === 'journal') {
+                    const badge = document.createElement('span');
+                    badge.className = `status-badge ${appointment.billingStatus || 'unbilled'}`;
+                    const label = (appointment.billingStatus || 'unbilled');
+                    badge.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+                    badge.title = 'Click to change billing status';
+                    badge.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        this.cycleJournalBillingStatus(appointment);
+                    });
+                    appointmentBlock.appendChild(badge);
+                }
                 dayElement.appendChild(appointmentBlock);
             });
             
@@ -1490,6 +1504,19 @@ class ProfitTracker {
                     e.stopPropagation();
                     this.showAppointmentDetails(appointment);
                 });
+                // Add billing status badge for journal appointments
+                if (appointment.type === 'journal') {
+                    const badge = document.createElement('span');
+                    badge.className = `status-badge ${appointment.billingStatus || 'unbilled'}`;
+                    const label = (appointment.billingStatus || 'unbilled');
+                    badge.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+                    badge.title = 'Click to change billing status';
+                    badge.addEventListener('click', (ev) => {
+                        ev.stopPropagation();
+                        this.cycleJournalBillingStatus(appointment);
+                    });
+                    appointmentBlock.appendChild(badge);
+                }
                 dayElement.appendChild(appointmentBlock);
             });
             
@@ -4074,7 +4101,9 @@ class ProfitTracker {
             totalLaborHours: totalLaborHours,
             totalLaborCost: totalLaborCost,
             description: description,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            billingStatus: 'unbilled',
+            rate: this.getDefaultBillingRate()
         };
 
         // Step 3: Save journal entry to localStorage
@@ -4084,6 +4113,9 @@ class ProfitTracker {
 
         // Step 4: Track labor as an expense
         this.trackLaborExpense(date, totalLaborCost, employeeDetails);
+
+        // Step 4b: Track forecast revenue from journal hours (unbilled)
+        this.trackJournalForecastRevenue(date, totalLaborHours, customerDetails);
 
         // Step 5: Create a calendar task for this journal entry
         this.createCalendarTaskFromJournal(entry);
@@ -4142,6 +4174,170 @@ class ProfitTracker {
         
         // Save back to localStorage
         localStorage.setItem('dailyProfitEntries', JSON.stringify(dailyProfitEntries));
+
+        // Also reflect in dailyEntries (UI-visible Profit Tracker)
+        this.upsertDailyEntryExpense(date, laborExpense.description, totalCost);
+    }
+
+    getDefaultBillingRate() {
+        const settings = JSON.parse(localStorage.getItem('settings') || '{}');
+        const defaultRate = parseFloat(settings.defaultBillingRate);
+        return !isNaN(defaultRate) && defaultRate > 0 ? defaultRate : 100;
+    }
+
+    trackJournalForecastRevenue(date, totalHours, customerDetails) {
+        if (!totalHours || totalHours <= 0) return;
+
+        const rate = this.getDefaultBillingRate();
+        const amount = totalHours * rate;
+
+        // Load existing daily profit entries
+        let dailyProfitEntries = JSON.parse(localStorage.getItem('dailyProfitEntries')) || [];
+        let dateEntry = dailyProfitEntries.find(entry => entry.date === date);
+
+        if (!dateEntry) {
+            dateEntry = {
+                date: date,
+                revenue: [],
+                expenses: [],
+                notes: '',
+                timestamp: new Date().toISOString()
+            };
+            dailyProfitEntries.push(dateEntry);
+        }
+
+        const customersText = (customerDetails || []).map(c => c.customerName).join(', ');
+        const revenueItem = {
+            id: Date.now().toString() + Math.random(),
+            description: `Forecast revenue (journal): ${customersText || 'Work'}`,
+            amount: amount,
+            category: 'journal_forecast',
+            status: 'unbilled'
+        };
+
+        dateEntry.revenue.push(revenueItem);
+        localStorage.setItem('dailyProfitEntries', JSON.stringify(dailyProfitEntries));
+
+        // Also reflect in dailyEntries (UI-visible Profit Tracker)
+        this.upsertDailyEntryRevenue(date, revenueItem.description, amount);
+
+        // If the Profit Tracker is open on this date, refresh it
+        this.refreshDailyProfitIfOpen(date);
+    }
+
+    refreshDailyProfitIfOpen(date) {
+        const modal = document.getElementById('profit-tracker-modal');
+        if (!modal || modal.style.display === 'none') return;
+        const current = document.getElementById('tracker-date')?.value;
+        if (current === date) {
+            this.loadDayData();
+        }
+    }
+
+    upsertDailyEntryRevenue(date, description, amount) {
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries') || '{}');
+        const entry = dailyEntries[date] || { date, revenue: [], expenses: [], notes: '', totalRevenue: 0, totalExpenses: 0, profit: 0 };
+
+        // Replace existing forecast revenue from journal if present
+        const idx = entry.revenue.findIndex(r => r.description === description);
+        if (idx >= 0) {
+            entry.revenue[idx].amount = amount;
+        } else {
+            entry.revenue.push({ description, amount });
+        }
+
+        entry.totalRevenue = entry.revenue.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+        entry.totalExpenses = entry.expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        entry.profit = entry.totalRevenue - entry.totalExpenses;
+
+        dailyEntries[date] = entry;
+        localStorage.setItem('dailyEntries', JSON.stringify(dailyEntries));
+    }
+
+    upsertDailyEntryExpense(date, description, amount) {
+        const dailyEntries = JSON.parse(localStorage.getItem('dailyEntries') || '{}');
+        const entry = dailyEntries[date] || { date, revenue: [], expenses: [], notes: '', totalRevenue: 0, totalExpenses: 0, profit: 0 };
+
+        const idx = entry.expenses.findIndex(e => e.description === description);
+        if (idx >= 0) {
+            entry.expenses[idx].amount = amount;
+        } else {
+            entry.expenses.push({ description, amount });
+        }
+
+        entry.totalRevenue = entry.revenue.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
+        entry.totalExpenses = entry.expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+        entry.profit = entry.totalRevenue - entry.totalExpenses;
+
+        dailyEntries[date] = entry;
+        localStorage.setItem('dailyEntries', JSON.stringify(dailyEntries));
+    }
+
+    cycleJournalBillingStatus(appointment) {
+        // Cycle status: unbilled -> invoiced -> paid -> unbilled
+        const current = (appointment.billingStatus || 'unbilled');
+        const next = current === 'unbilled' ? 'invoiced' : current === 'invoiced' ? 'paid' : 'unbilled';
+        appointment.billingStatus = next;
+
+        // Update color based on status
+        const statusToColor = (status) => {
+            switch (status) {
+                case 'paid':
+                    return 'green';
+                case 'invoiced':
+                    return 'blue';
+                case 'unbilled':
+                default:
+                    return 'orange';
+            }
+        };
+        appointment.color = statusToColor(next);
+
+        // Persist to appointments store
+        const appointments = JSON.parse(localStorage.getItem('appointments') || '{}');
+        const list = appointments[appointment.date] || [];
+        const idx = list.findIndex(a => a.id === appointment.id);
+        if (idx >= 0) {
+            list[idx] = appointment;
+            appointments[appointment.date] = list;
+            localStorage.setItem('appointments', JSON.stringify(appointments));
+        }
+
+        // Persist to tasks store if linked
+        if (appointment.journalId) {
+            const tasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+            const taskId = `journal-${appointment.journalId}`;
+            const tIdx = tasks.findIndex(t => t.id === taskId);
+            if (tIdx >= 0) {
+                tasks[tIdx].billingStatus = next;
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+        }
+
+        // Sync daily profit entry status for this date (if forecast exists)
+        this.updateJournalForecastStatus(appointment.date, next);
+
+        // Re-render calendar to reflect changes
+        this.renderCalendarHero();
+    }
+
+    updateJournalForecastStatus(date, status) {
+        let dailyProfitEntries = JSON.parse(localStorage.getItem('dailyProfitEntries') || '[]');
+        const idx = dailyProfitEntries.findIndex(e => e.date === date);
+        if (idx === -1) return;
+        const entry = dailyProfitEntries[idx];
+        let changed = false;
+        (entry.revenue || []).forEach(item => {
+            if (item.category === 'journal_forecast') {
+                item.status = status;
+                changed = true;
+            }
+        });
+        if (changed) {
+            dailyProfitEntries[idx] = entry;
+            localStorage.setItem('dailyProfitEntries', JSON.stringify(dailyProfitEntries));
+            this.refreshDailyProfitIfOpen(date);
+        }
     }
 
     createOrUpdateCustomer(customerName) {
@@ -4202,6 +4398,7 @@ class ProfitTracker {
             (journalEntry.customer || 'Unknown');
 
         // Create a new task for the calendar
+        const defaultRate = this.getDefaultBillingRate();
         const calendarTask = {
             id: `journal-${journalEntry.id}`,
             title: `${customerInfo} - ${journalEntry.description}`,
@@ -4209,8 +4406,8 @@ class ProfitTracker {
             jobId: '',
             category: 'billable',
             duration: journalEntry.totalLaborHours,
-            rate: 0, // Can be filled in later
-            total: 0,
+            rate: defaultRate,
+            total: defaultRate * journalEntry.totalLaborHours,
             description: `Customers: ${customerInfo}\n\nEmployees On Site:\n${employeeInfo}\n\nTotal Labor Cost: $${journalEntry.totalLaborCost.toFixed(2)}\n\n${journalEntry.description}`,
             createdAt: journalEntry.timestamp,
             scheduled: true,
@@ -4218,7 +4415,8 @@ class ProfitTracker {
             scheduledTime: '09:00', // Default time
             completed: true, // Mark as completed since work is already done
             journalEntry: true, // Flag to identify this came from journal
-            laborCost: journalEntry.totalLaborCost
+            laborCost: journalEntry.totalLaborCost,
+            billingStatus: 'unbilled'
         };
 
         // Check if task already exists for this journal entry
@@ -4234,10 +4432,66 @@ class ProfitTracker {
 
         localStorage.setItem('tasks', JSON.stringify(tasks));
 
+        // Also create/update a calendar appointment for visual calendar
+        const startTime = '09:00';
+        const endTime = (() => {
+            // add decimal hours to startTime
+            const [h, m] = startTime.split(':').map(Number);
+            const totalMinutesToAdd = Math.round(journalEntry.totalLaborHours * 60);
+            const startMinutes = h * 60 + m;
+            const endMinutes = startMinutes + totalMinutesToAdd;
+            const eh = Math.floor((endMinutes % (24 * 60)) / 60).toString().padStart(2, '0');
+            const em = Math.floor(endMinutes % 60).toString().padStart(2, '0');
+            return `${eh}:${em}`;
+        })();
+
+        const statusToColor = (status) => {
+            switch (status) {
+                case 'paid':
+                    return 'green';
+                case 'invoiced':
+                    return 'blue';
+                case 'unbilled':
+                default:
+                    return 'orange';
+            }
+        };
+
+        const appointment = {
+            id: `journal-${journalEntry.id}`,
+            date: journalEntry.date,
+            client: customerInfo,
+            startTime: startTime,
+            endTime: endTime,
+            color: statusToColor('unbilled'),
+            notes: `Journal: ${journalEntry.description}`,
+            revenue: defaultRate * journalEntry.totalLaborHours,
+            hours: journalEntry.totalLaborHours,
+            type: 'journal',
+            journalId: journalEntry.id,
+            billingStatus: 'unbilled'
+        };
+
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+        if (!appointments[journalEntry.date]) {
+            appointments[journalEntry.date] = [];
+        }
+        const idx = appointments[journalEntry.date].findIndex(a => a.id === appointment.id);
+        if (idx >= 0) {
+            appointments[journalEntry.date][idx] = appointment;
+        } else {
+            appointments[journalEntry.date].push(appointment);
+            appointments[journalEntry.date].sort((a, b) => a.startTime.localeCompare(b.startTime));
+        }
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+
         // Reload tasks display
         if (this.loadTasks) {
             this.loadTasks();
         }
+
+        // Refresh the calendar display
+        this.renderCalendarHero();
     }
 
     displayJournalEntries() {

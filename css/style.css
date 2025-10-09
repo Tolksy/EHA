@@ -45603,6 +45603,20 @@ body {
     white-space: nowrap;
 }
 
+/* Billing status badges on calendar */
+.status-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #fff;
+}
+.status-badge.unbilled { background: #ff9800; }
+.status-badge.invoiced { background: #2196f3; }
+.status-badge.paid { background: #4caf50; }
+
 /* Tab Interface Styles */
 .tracker-tabs {
     display: flex;
