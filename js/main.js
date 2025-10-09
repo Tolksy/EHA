@@ -396,6 +396,11 @@ class ProfitTracker {
             }
         });
 
+        // Day View Modal
+        document.getElementById('close-day-view').addEventListener('click', () => {
+            this.closeDayView();
+        });
+
         // Daily Business Journal button
         document.getElementById('daily-journal-btn').addEventListener('click', () => {
             this.openDailyJournal();
@@ -1402,9 +1407,9 @@ class ProfitTracker {
                 dayElement.appendChild(moreBlock);
             }
             
-            // Click handler for adding appointments
+            // Click handler for opening full-screen day view
             dayElement.addEventListener('click', () => {
-                this.openAppointmentModal(currentDate);
+                this.openDayView(currentDate);
             });
             
             calendarDays.appendChild(dayElement);
@@ -4382,7 +4387,230 @@ class ProfitTracker {
             this.showMessage('🗑️ Journal entry, calendar event, and client link removed', 'info');
         }
     }
+
+    // Full-Screen Day View Methods
+    openDayView(date) {
+        this.selectedDate = date;
+        const modal = document.getElementById('day-view-modal');
+        modal.style.display = 'flex';
+        
+        // Format date for display
+        const dateStr = date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        });
+        document.getElementById('day-view-date').textContent = dateStr;
+        
+        // Load and display day content
+        this.renderDayView(date);
+    }
+
+    closeDayView() {
+        document.getElementById('day-view-modal').style.display = 'none';
+    }
+
+    renderDayView(date) {
+        const dateStr = date.toISOString().split('T')[0];
+        
+        // Load data
+        const journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
+        const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        
+        // Get journal entry for this day
+        const dayJournal = journalEntries.find(entry => entry.date === dateStr);
+        
+        // Get tasks for this day
+        const dayTasks = tasks.filter(task => task.scheduledDate === dateStr);
+        
+        // Render journal section
+        this.renderDayJournal(dayJournal);
+        
+        // Render tasks section
+        this.renderDayTasks(dayTasks);
+        
+        // Update stats
+        this.updateDayStats(dayJournal, dayTasks);
+    }
+
+    renderDayJournal(journal) {
+        const container = document.getElementById('day-journal-content');
+        
+        if (!journal) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <div class="empty-state-text">No journal entry for this day</div>
+                </div>
+            `;
+            return;
+        }
+        
+        // Build customer display
+        let customersHTML = '';
+        if (journal.customers && journal.customers.length > 0) {
+            customersHTML = `
+                <div class="journal-item">
+                    <div class="journal-label">Customers</div>
+                    <div class="journal-customers">
+                        ${journal.customers.map(c => `<span class="customer-tag">${c.customerName}</span>`).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (journal.customer) {
+            customersHTML = `
+                <div class="journal-item">
+                    <div class="journal-label">Customer</div>
+                    <div class="journal-customers">
+                        <span class="customer-tag">${journal.customer}</span>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Build employee display
+        let employeesHTML = '';
+        if (journal.employees && journal.employees.length > 0) {
+            employeesHTML = `
+                <div class="journal-item">
+                    <div class="journal-label">Employees On Site</div>
+                    <div class="journal-employees">
+                        ${journal.employees.map(e => `
+                            <div class="employee-row-display">
+                                <span class="employee-name">${e.employeeName}</span>
+                                <span class="employee-hours">${e.hours}h @ $${e.rate.toFixed(2)}/hr</span>
+                                <span class="employee-cost">$${e.cost.toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Build summary
+        let summaryHTML = '';
+        if (journal.totalLaborHours && journal.totalLaborCost) {
+            summaryHTML = `
+                <div class="journal-summary">
+                    <div class="summary-item">
+                        <div class="summary-label">Total Hours</div>
+                        <div class="summary-value">${journal.totalLaborHours.toFixed(1)}</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Labor Cost</div>
+                        <div class="summary-value cost">$${journal.totalLaborCost.toFixed(2)}</div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = `
+            ${customersHTML}
+            ${employeesHTML}
+            <div class="journal-item">
+                <div class="journal-label">Description</div>
+                <div class="journal-value">${journal.description}</div>
+            </div>
+            ${summaryHTML}
+        `;
+    }
+
+    renderDayTasks(tasks) {
+        const container = document.getElementById('day-tasks-list');
+        
+        if (tasks.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">✓</div>
+                    <div class="empty-state-text">No tasks for this day</div>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = tasks.map(task => `
+            <div class="task-card ${task.completed ? 'completed' : ''}" draggable="true" data-task-id="${task.id}">
+                <span class="task-category ${task.category}">${task.category}</span>
+                <div class="task-header">
+                    <div class="task-title">${task.title}</div>
+                    <div class="task-actions">
+                        <button class="task-action-btn" onclick="profitTracker.toggleTaskComplete('${task.id}')">
+                            ${task.completed ? '↩ Undo' : '✓ Complete'}
+                        </button>
+                        <button class="task-action-btn" onclick="profitTracker.editTask('${task.id}')">✏ Edit</button>
+                    </div>
+                </div>
+                ${task.description ? `<div style="color: #718096; font-size: 14px; margin-top: 8px;">${task.description}</div>` : ''}
+                <div class="task-details">
+                    ${task.duration ? `<div class="task-detail"><span class="task-detail-icon">⏰</span> ${task.duration}h</div>` : ''}
+                    ${task.rate ? `<div class="task-detail"><span class="task-detail-icon">💵</span> $${task.rate}/hr</div>` : ''}
+                    ${task.total ? `<div class="task-detail"><span class="task-detail-icon">💰</span> $${task.total.toFixed(2)}</div>` : ''}
+                    ${task.laborCost ? `<div class="task-detail"><span class="task-detail-icon">👷</span> Labor: $${task.laborCost.toFixed(2)}</div>` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        // Add drag-and-drop functionality
+        this.initTaskDragDrop();
+    }
+
+    updateDayStats(journal, tasks) {
+        // Count tasks
+        document.getElementById('day-tasks-count').textContent = tasks.length;
+        
+        // Calculate total hours
+        let totalHours = 0;
+        if (journal && journal.totalLaborHours) {
+            totalHours += journal.totalLaborHours;
+        }
+        tasks.forEach(task => {
+            if (task.duration) totalHours += task.duration;
+        });
+        document.getElementById('day-hours-count').textContent = totalHours.toFixed(1);
+        
+        // Calculate total revenue (task totals)
+        let totalRevenue = 0;
+        tasks.forEach(task => {
+            if (task.total) totalRevenue += task.total;
+        });
+        document.getElementById('day-revenue-count').textContent = totalRevenue.toFixed(2);
+    }
+
+    initTaskDragDrop() {
+        const taskCards = document.querySelectorAll('.task-card');
+        
+        taskCards.forEach(card => {
+            card.addEventListener('dragstart', (e) => {
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', card.innerHTML);
+            });
+            
+            card.addEventListener('dragend', (e) => {
+                card.classList.remove('dragging');
+            });
+        });
+    }
+
+    toggleTaskComplete(taskId) {
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const task = tasks.find(t => t.id === taskId);
+        
+        if (task) {
+            task.completed = !task.completed;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            this.renderDayView(this.selectedDate);
+            this.renderCalendarHero();
+            this.showMessage(task.completed ? '✅ Task completed!' : '↩ Task reopened', 'success');
+        }
+    }
+
+    editTask(taskId) {
+        this.showMessage('📝 Task editing coming soon! Drag tasks to reorder them.', 'info');
+    }
 }
+
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
