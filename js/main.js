@@ -382,6 +382,35 @@ class ProfitTracker {
             this.closeWorkflowGuide();
         });
 
+        // Workflow action buttons
+        document.getElementById('workflow-start-here-btn').addEventListener('click', () => {
+            this.openWorkflowAction('add-client');
+        });
+
+        document.getElementById('workflow-create-job-btn').addEventListener('click', () => {
+            this.openWorkflowAction('add-job');
+        });
+
+        document.getElementById('workflow-create-task-btn').addEventListener('click', () => {
+            this.openWorkflowAction('add-task');
+        });
+
+        document.getElementById('workflow-log-work-btn').addEventListener('click', () => {
+            this.openWorkflowAction('daily-logging');
+        });
+
+        document.getElementById('workflow-track-profit-btn').addEventListener('click', () => {
+            this.openWorkflowAction('profit-tracker');
+        });
+
+        document.getElementById('workflow-auto-schedule-btn').addEventListener('click', () => {
+            this.openWorkflowAction('smart-scheduler');
+        });
+
+        document.getElementById('workflow-create-invoice-btn').addEventListener('click', () => {
+            this.openWorkflowAction('create-invoice');
+        });
+
         document.getElementById('workflow-next').addEventListener('click', () => {
             this.nextWorkflowStep();
         });
