@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Retro Day Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 12px; background:#f6f6f6; color:#222; }
+        h1, h2 { margin: 8px 0; }
+        button { cursor:pointer; }
+        .cal-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+        .calendar { width:100%; max-width: 980px; border:1px solid #bbb; background:#fff; }
+        .cal-row { display:flex; }
+        .cal-cell { flex:1; min-height:92px; border-right:1px solid #eee; border-top:1px solid #eee; padding:4px; position:relative; }
+        .cal-row .cal-cell:last-child { border-right:none; }
+        .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
+        .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; }
+        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .legend { font-size:12px; margin:8px 0; }
+        .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th, td { border:1px solid #ddd; padding:6px; text-align:left; }
+        th { background:#f4f4f4; }
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
+        .modal-inner { width:360px; background:#fff; border:1px solid #999; padding:10px; }
+        .row { display:flex; gap:6px; align-items:center; margin:6px 0; }
+        label { font-size:12px; min-width:110px; }
+        input[type="text"], input[type="number"], select { width:100%; padding:4px; }
+        .small { font-size:12px; color:#666; }
+        .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+        .capsule { border:1px solid #ccc; padding:2px 6px; border-radius:10px; font-size:11px; display:inline-block; margin-right:6px; }
+        .footer { margin-top:8px; font-size:12px; color:#666; }
+    </style>
+</head>
+<body>
+    <div class="cal-header">
+        <button id="prev">&lt;</button>
+        <h1 id="title" style="flex:1"></h1>
+        <button id="next">&gt;</button>
+    </div>
+    <div class="legend small">Click a day → enter: Customer • Job (color) • Clayton/Ethan hours • Revenue • Expenses → Save</div>
+    <div id="calendar" class="calendar"></div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Jobs (last 5)</h2>
+        <table id="jobs-table">
+            <thead><tr><th>Job</th><th>Client</th><th>Created</th><th>Revenue</th><th>Labor</th><th>Expenses</th><th>Profit</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Customers</h2>
+        <div id="customers-list"></div>
+    </div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Day Entries (this month)</h2>
+        <table id="days-table">
+            <thead><tr><th>Date</th><th>Client</th><th>Job</th><th>Hours</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-inner">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong id="form-date">Edit Day</strong>
+                <button id="close">x</button>
+            </div>
+            <div class="row"><label>Customer</label>
+                <select id="customer"></select>
+            </div>
+            <div class="row"><label>New Customer</label><input id="newCustomer" type="text" placeholder="(optional)"></div>
+
+            <div class="row"><label>Job</label>
+                <select id="job"></select>
+            </div>
+            <div class="row"><label>New Job</label><input id="newJob" type="text" placeholder="(optional)"></div>
+            <div class="row"><label>Job Color</label><input id="jobColor" type="color" value="#2f7afe"></div>
+
+            <div class="row"><label>Clayton hrs</label><input id="hrsC" type="number" step="0.1" min="0" value="0"></div>
+            <div class="row"><label>Ethan hrs</label><input id="hrsE" type="number" step="0.1" min="0" value="0"></div>
+
+            <div class="row"><label>Revenue $</label><input id="revenue" type="number" step="0.01" min="0" value="0"></div>
+            <div class="row"><label>Expense $</label><input id="expenseAmt" type="number" step="0.01" min="0" value="0"></div>
+            <div class="row"><label>Expense note</label><input id="expenseNote" type="text" placeholder="(optional)"></div>
+
+            <div class="actions">
+                <button id="save">Save</button>
+            </div>
+            <div class="footer small">Employees default wages: Clayton $30/h, Ethan $22/h (editable in code later if needed)</div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const $ = (id) => document.getElementById(id);
+        const state = {
+            current: new Date(),
+            selectedISO: null
+        };
+
+        // Minimal storage helpers
+        function load(key, fallback) {
+            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+        }
+        function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+        function getCustomers() { return load('customers', []); }
+        function setCustomers(v) { save('customers', v); }
+        function getJobs() { return load('jobs', []); }
+        function setJobs(v) { save('jobs', v); }
+        function getDays() { return load('dayEntries', {}); }
+        function setDays(v) { save('dayEntries', v); }
+
+        // Employees fixed
+        const EMPLOYEES = [
+            { id:'emp_clayton', name:'Clayton', wage:30 },
+            { id:'emp_ethan', name:'Ethan', wage:22 }
+        ];
+
+        function ymd(date) { return date.toISOString().split('T')[0]; }
+
+        function renderCalendar() {
+            const year = state.current.getFullYear();
+            const month = state.current.getMonth();
+            const title = new Date(year, month, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+            $('title').textContent = title;
+
+            const first = new Date(year, month, 1);
+            const start = new Date(first);
+            start.setDate(first.getDate() - first.getDay());
+            const days = [];
+            for (let i=0; i<42; i++) {
+                const d = new Date(start); d.setDate(start.getDate()+i); days.push(d);
+            }
+            const daysEl = document.createElement('div');
+            // Header row
+            let header = document.createElement('div'); header.className='cal-row';
+            ;['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(w=>{ const c=document.createElement('div'); c.className='cal-cell dow'; c.textContent=w; header.appendChild(c); });
+            daysEl.appendChild(header);
+            // 6 weeks rows
+            for (let w=0; w<6; w++) {
+                const row = document.createElement('div'); row.className='cal-row';
+                for (let d=0; d<7; d++) {
+                    const date = days[w*7+d];
+                    const cell = document.createElement('div'); cell.className='cal-cell';
+                    if (date.getMonth()!==month) cell.style.background='#fbfbfb';
+                    const num = document.createElement('div'); num.className='date'; num.textContent = date.getDate(); cell.appendChild(num);
+
+                    // badge from saved entry
+                    const iso = ymd(date);
+                    const dayEntries = getDays();
+                    const entry = dayEntries[iso];
+                    if (entry) {
+                        const jobs = getJobs();
+                        const job = jobs.find(j => j.id === entry.jobId);
+                        const badge = document.createElement('span');
+                        badge.className='badge';
+                        const color = (job && job.color) ? job.color : '#888';
+                        badge.style.borderLeftColor = color;
+                        const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                        const rev = entry.revenue||0;
+                        badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • $${rev}`;
+                        cell.appendChild(badge);
+                    }
+
+                    cell.addEventListener('click', ()=> openModal(date));
+                    row.appendChild(cell);
+                }
+                daysEl.appendChild(row);
+            }
+            const cal = $('calendar');
+            cal.innerHTML = '';
+            cal.appendChild(daysEl);
+
+            renderJobsTable();
+            renderCustomersList();
+            renderDaysTable(year, month);
+        }
+
+        function ensureCustomer(name) {
+            let customers = getCustomers();
+            let c = customers.find(x => x.name.toLowerCase() === name.toLowerCase());
+            if (!c) { c = { id: `cus_${Date.now()}`, name }; customers.push(c); setCustomers(customers); }
+            return c;
+        }
+        function ensureJob(clientId, name, color) {
+            let jobs = getJobs();
+            let j = jobs.find(x => x.clientId===clientId && x.name.toLowerCase()===name.toLowerCase());
+            if (!j) { j = { id:`job_${Date.now()}`, name, clientId, color: color||'#2f7afe', created: new Date().toISOString() }; jobs.push(j); setJobs(jobs); }
+            return j;
+        }
+
+        function openModal(date) {
+            state.selectedISO = ymd(date);
+            $('form-date').textContent = `Day: ${date.toLocaleDateString()}`;
+            // populate selects
+            const customers = getCustomers();
+            const jobs = getJobs();
+            const custSel = $('customer'); custSel.innerHTML = '';
+            const jobSel = $('job'); jobSel.innerHTML = '';
+            const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='(select)'; custSel.appendChild(opt0);
+            customers.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; custSel.appendChild(o); });
+            const optJ0 = document.createElement('option'); optJ0.value=''; optJ0.textContent='(select)'; jobSel.appendChild(optJ0);
+
+            custSel.onchange = () => {
+                const cid = custSel.value; jobSel.innerHTML=''; const o0=document.createElement('option'); o0.value=''; o0.textContent='(select)'; jobSel.appendChild(o0);
+                jobs.filter(j=>j.clientId===cid).forEach(j=>{ const o=document.createElement('option'); o.value=j.id; o.textContent=j.name; jobSel.appendChild(o); });
+            };
+
+            // load existing entry
+            const day = getDays()[state.selectedISO] || {};
+            if (day.clientId) { custSel.value = day.clientId; custSel.onchange(); }
+            if (day.jobId) { jobSel.value = day.jobId; }
+            $('jobColor').value = (jobs.find(j=>j.id===day.jobId)?.color) || '#2f7afe';
+            const mh = day.manHours||[];
+            $('hrsC').value = (mh.find(m=>m.employeeId==='emp_clayton')?.hours)||0;
+            $('hrsE').value = (mh.find(m=>m.employeeId==='emp_ethan')?.hours)||0;
+            $('revenue').value = day.revenue||0;
+            const exp = (day.expenses && day.expenses[0]) || null;
+            $('expenseAmt').value = exp ? exp.amount : 0;
+            $('expenseNote').value = exp ? exp.note : '';
+
+            $('modal').style.display = 'flex';
+        }
+
+        function closeModal() { $('modal').style.display = 'none'; }
+
+        function saveDay() {
+            const newCustName = $('newCustomer').value.trim();
+            const custSel = $('customer').value;
+            let customerId = custSel;
+            if (!customerId && newCustName) customerId = ensureCustomer(newCustName).id;
+            if (!customerId) { alert('Select or enter a customer'); return; }
+
+            const newJobName = $('newJob').value.trim();
+            const jobSel = $('job').value;
+            let jobId = jobSel;
+            if (!jobId && newJobName) jobId = ensureJob(customerId, newJobName, $('jobColor').value).id;
+            if (!jobId) { alert('Select or enter a job'); return; }
+
+            const hrsC = parseFloat($('hrsC').value)||0;
+            const hrsE = parseFloat($('hrsE').value)||0;
+            const revenue = parseFloat($('revenue').value)||0;
+            const expenseAmt = parseFloat($('expenseAmt').value)||0;
+            const expenseNote = $('expenseNote').value.trim();
+
+            const labor = hrsC*EMPLOYEES[0].wage + hrsE*EMPLOYEES[1].wage;
+            const expenses = expenseAmt>0 ? [{ amount: expenseAmt, note: expenseNote }] : [];
+            const profit = revenue - labor - expenses.reduce((s,e)=>s+e.amount,0);
+
+            const days = getDays();
+            days[state.selectedISO] = {
+                date: state.selectedISO,
+                clientId: customerId,
+                jobId,
+                manHours:[
+                    { employeeId: EMPLOYEES[0].id, hours: hrsC, wage: EMPLOYEES[0].wage, cost: hrsC*EMPLOYEES[0].wage },
+                    { employeeId: EMPLOYEES[1].id, hours: hrsE, wage: EMPLOYEES[1].wage, cost: hrsE*EMPLOYEES[1].wage }
+                ],
+                revenue,
+                expenses,
+                totals:{ labor, expenses: expenses.reduce((s,e)=>s+e.amount,0), revenue, profit }
+            };
+            setDays(days);
+            closeModal();
+            renderCalendar();
+        }
+
+        function renderJobsTable() {
+            const jobs = getJobs().slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
+            const last5 = jobs.slice(0,5);
+            const days = getDays();
+            const tbody = $('jobs-table').querySelector('tbody'); tbody.innerHTML = '';
+            last5.forEach(job => {
+                const stats = jobStats(job.id, days);
+                const tr = document.createElement('tr');
+                const customer = getCustomers().find(c=>c.id===job.clientId);
+                tr.innerHTML = `<td>${job.name}</td><td>${customer?customer.name:''}</td><td>${new Date(job.created).toLocaleDateString()}</td>`+
+                    `<td>$${stats.revenue.toFixed(2)}</td><td>$${stats.labor.toFixed(2)}</td><td>$${stats.expenses.toFixed(2)}</td>`+
+                    `<td>$${(stats.revenue-stats.labor-stats.expenses).toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function jobStats(jobId, daysMap) {
+            let revenue=0, labor=0, expenses=0;
+            Object.values(daysMap).forEach(d => {
+                if (d.jobId===jobId) {
+                    revenue += d.revenue||0;
+                    labor   += (d.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
+                    expenses+= (d.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                }
+            });
+            return { revenue, labor, expenses };
+        }
+
+        function renderCustomersList() {
+            const wrap = $('customers-list'); wrap.innerHTML = '';
+            const customers = getCustomers();
+            if (customers.length === 0) { wrap.textContent = '(no customers yet)'; return; }
+            customers.forEach(c => {
+                const span = document.createElement('span'); span.className='capsule'; span.textContent=c.name; wrap.appendChild(span);
+            });
+        }
+
+        function renderDaysTable(year, month) {
+            const start = new Date(year, month, 1);
+            const end = new Date(year, month+1, 0);
+            const days = getDays();
+            const tbody = $('days-table').querySelector('tbody'); tbody.innerHTML='';
+            const customers = getCustomers(); const jobs = getJobs();
+            for (let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
+                const iso = ymd(d);
+                const entry = days[iso];
+                if (!entry) continue;
+                const client = customers.find(c=>c.id===entry.clientId);
+                const job = jobs.find(j=>j.id===entry.jobId);
+                const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${d.toLocaleDateString()}</td><td>${client?client.name:''}</td><td>${job?job.name:''}</td>`+
+                    `<td>${hours}</td><td>$${(entry.revenue||0).toFixed(2)}</td>`+
+                    `<td>$${((entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0)).toFixed(2)}</td>`+
+                    `<td>$${(entry.totals?entry.totals.profit:((entry.revenue||0) - (entry.manHours||[]).reduce((s,m)=>s+(m.cost||0),0) - (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0))).toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Events
+        $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); };
+        $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); };
+        $('close').onclick = closeModal;
+        $('save').onclick = saveDay;
+
+        // Seed example if empty (to make it feel alive)
+        if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
+        if (getJobs().length===0) { setJobs([{ id:'job_demo', name:'6042 Hall Road', clientId:'cus_demo', color:'#2f7afe', created:new Date().toISOString() }]); }
+
+        renderCalendar();
+    })();
+    </script>
+</body>
+</html>
+
+

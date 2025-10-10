@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script>
+        // Temporary redirect to retro single-file UI
+        (function(){
+            if (!/retro\.html$/i.test(location.pathname)) {
+                location.replace('retro.html');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profit Tracker & Invoices</title>
+    <title>Redirecting...</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/workflow-styles.css">
     <link rel="stylesheet" href="css/hero-section.css">
@@ -12,6 +20,11 @@
     <link rel="stylesheet" href="css/journal-modal.css">
 </head>
 <body>
+    <noscript>
+        <div style="padding:20px; font-family:Arial;">
+            This page redirects to the retro interface. Open <a href="retro.html">retro.html</a>.
+        </div>
+    </noscript>
     <!-- Elegant Background -->
     <div class="elegant-bg">
         <div class="elegant-grid"></div>
