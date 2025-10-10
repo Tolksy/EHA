@@ -13,6 +13,36 @@ class ProfitTracker {
         this.init();
     }
 
+    renderExistingClients(listContainer, emptyEl, selectedEl, query = '') {
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const normalized = (s) => (s || '').toString().toLowerCase();
+        const q = normalized(query);
+        const filtered = q
+            ? customers.filter(c =>
+                normalized(c.name).includes(q) ||
+                normalized(c.email).includes(q) ||
+                normalized(c.phone).includes(q))
+            : customers;
+
+        listContainer.innerHTML = '';
+        emptyEl.style.display = filtered.length === 0 ? 'block' : 'none';
+
+        filtered.forEach(c => {
+            const row = document.createElement('div');
+            row.className = 'existing-client-row';
+            row.style.padding = '8px 12px';
+            row.style.borderBottom = '1px solid #eee';
+            row.style.cursor = 'pointer';
+            row.innerHTML = `<strong>${c.name || 'Unnamed Client'}</strong><br><span style="color:#666; font-size:12px;">${c.email || ''} ${c.phone ? ' • ' + c.phone : ''}</span>`;
+            row.addEventListener('click', () => {
+                this.workflowSelectedClientId = c.id;
+                selectedEl.textContent = `Selected: ${c.name || 'Client'}`;
+                this.showMessage('✅ Client selected for this workflow session', 'success');
+            });
+            listContainer.appendChild(row);
+        });
+    }
+
     init() {
         this.currentCalendarDate = new Date();
         this.setupEventListeners();
@@ -410,6 +440,41 @@ class ProfitTracker {
         document.getElementById('workflow-create-invoice-btn').addEventListener('click', () => {
             this.openWorkflowAction('create-invoice');
         });
+
+        // Existing client selector (workflow step 1)
+        const existingToggle = document.getElementById('existing-client-toggle');
+        const existingContent = document.getElementById('existing-client-content');
+        const existingSearch = document.getElementById('existing-client-search');
+        const existingList = document.getElementById('existing-client-list');
+        const existingEmpty = document.getElementById('existing-client-empty');
+        const existingClear = document.getElementById('existing-client-clear');
+        const existingSelected = document.getElementById('existing-client-selected');
+
+        this.workflowSelectedClientId = null;
+
+        if (existingToggle) {
+            existingToggle.addEventListener('click', () => {
+                const isOpen = existingContent.style.display !== 'none';
+                existingContent.style.display = isOpen ? 'none' : 'block';
+                if (!isOpen) {
+                    this.renderExistingClients(existingList, existingEmpty, existingSelected);
+                }
+            });
+        }
+
+        if (existingSearch) {
+            existingSearch.addEventListener('input', () => {
+                this.renderExistingClients(existingList, existingEmpty, existingSelected, existingSearch.value.trim());
+            });
+        }
+
+        if (existingClear) {
+            existingClear.addEventListener('click', () => {
+                this.workflowSelectedClientId = null;
+                existingSelected.textContent = 'No client selected';
+                this.renderExistingClients(existingList, existingEmpty, existingSelected, existingSearch.value.trim());
+            });
+        }
 
         document.getElementById('workflow-next').addEventListener('click', () => {
             this.nextWorkflowStep();
@@ -2839,44 +2904,44 @@ class ProfitTracker {
         console.log('🚀 Executing action:', action);
         
         try {
-        switch(action) {
-            case 'add-client':
+            switch(action) {
+                case 'add-client':
                     console.log('Opening add customer modal within workflow...');
                 this.openAddCustomerModal();
                 this.showMessage('💡 Tip: After adding your client, close this modal to continue with the workflow!', 'info');
-                break;
+                    break;
                     
-            case 'add-job':
+                case 'add-job':
                     console.log('Opening add job modal within workflow...');
                 this.openAddJobModal();
-                break;
+                    break;
                     
-            case 'add-task':
+                case 'add-task':
                     console.log('Opening add task modal within workflow...');
-                this.openAddTaskModal();
-                break;
+                    this.openAddTaskModal();
+                    break;
                     
-            case 'daily-logging':
+                case 'daily-logging':
                     console.log('Opening daily logging within workflow...');
-                this.openDailyLogging();
-                break;
+                    this.openDailyLogging();
+                    break;
                     
-            case 'profit-tracker':
+                case 'profit-tracker':
                     console.log('Opening profit tracker within workflow...');
-                this.openProfitTracker();
-                break;
+                    this.openProfitTracker();
+                    break;
                     
-            case 'smart-scheduler':
+                case 'smart-scheduler':
                     console.log('Opening smart scheduler within workflow...');
-                this.openSmartScheduler();
-                break;
+                    this.openSmartScheduler();
+                    break;
                     
-            case 'create-invoice':
+                case 'create-invoice':
                     console.log('Opening invoice page within workflow...');
                 window.location.href = 'invoice.html';
-                break;
+                    break;
                     
-            default:
+                default:
                     console.warn('⚠️ Unknown workflow action:', action);
                     this.showMessage('⚠️ Unknown action: ' + action, 'warning');
             }

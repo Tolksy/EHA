@@ -146,7 +146,7 @@
                         <div class="stat-value" id="total-customers-stat">0</div>
                         <div class="stat-label">Total Customers</div>
                         <div class="stat-sublabel" id="customers-this-week">+0 this week</div>
-                    </div>
+                </div>
                 </div>
                 
                 <div class="stat-card-enhanced">
@@ -1402,6 +1402,17 @@
                         </div>
                         <div class="step-content">
                             <p><strong>Welcome to your business management system!</strong> Let's set up your workflow for maximum efficiency.</p>
+                            <!-- Existing Client Quick Select -->
+                            <div class="collapsible" id="existing-client-toggle">Use Existing Client ▾</div>
+                            <div class="collapsible-content" id="existing-client-content" style="display:none; margin-top:10px;">
+                                <input type="text" id="existing-client-search" placeholder="Search clients by name, email, or phone" class="input" style="width:100%; margin-bottom:10px;">
+                                <div id="existing-client-list" style="max-height:220px; overflow:auto; border:1px solid #e5e5e5; border-radius:6px; background:#fff;"></div>
+                                <div id="existing-client-empty" style="display:none; padding:10px; color:#666;">No clients found. Add a new one using Start Here.</div>
+                                <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+                                    <span id="existing-client-selected" style="flex:1; color:#444;">No client selected</span>
+                                    <button class="btn-small" id="existing-client-clear">Clear</button>
+                                </div>
+                            </div>
                             <div class="step-actions">
                                 <div class="action-item">
                                     <div class="action-icon">👤</div>
