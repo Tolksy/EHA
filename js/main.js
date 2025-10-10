@@ -2835,73 +2835,57 @@ class ProfitTracker {
     openWorkflowAction(action) {
         console.log('🎯 Workflow Action Triggered:', action);
         
-        // Close the workflow guide first
-        this.closeWorkflowGuide();
+        // Keep workflow open and execute action on top
+        console.log('🚀 Executing action:', action);
         
-        // Small delay to allow modal to close
-        setTimeout(() => {
-            console.log('🚀 Executing action:', action);
-            
-            try {
-            switch(action) {
-                case 'add-client':
-                        console.log('Opening client tracker...');
-                    this.openClientTracker();
-                        setTimeout(() => {
-                            console.log('Opening add customer modal...');
-                            this.openAddCustomerModal();
-                        }, 100);
-                    break;
+        try {
+        switch(action) {
+            case 'add-client':
+                    console.log('Opening add customer modal within workflow...');
+                this.openAddCustomerModal();
+                this.showMessage('💡 Tip: After adding your client, close this modal to continue with the workflow!', 'info');
+                break;
                     
-                case 'add-job':
-                        console.log('Opening client tracker for jobs...');
-                    this.openClientTracker();
-                    setTimeout(() => {
-                            console.log('Switching to jobs tab...');
-                        this.switchTab('jobs');
-                            setTimeout(() => {
-                                console.log('Opening add job modal...');
-                                this.openAddJobModal();
-                            }, 100);
-                    }, 100);
-                    break;
+            case 'add-job':
+                    console.log('Opening add job modal within workflow...');
+                this.openAddJobModal();
+                break;
                     
-                case 'add-task':
-                        console.log('Opening add task modal...');
-                    this.openAddTaskModal();
-                    break;
+            case 'add-task':
+                    console.log('Opening add task modal within workflow...');
+                this.openAddTaskModal();
+                break;
                     
-                case 'daily-logging':
-                        console.log('Opening daily logging...');
-                    this.openDailyLogging();
-                    break;
+            case 'daily-logging':
+                    console.log('Opening daily logging within workflow...');
+                this.openDailyLogging();
+                break;
                     
-                case 'profit-tracker':
-                        console.log('Opening profit tracker...');
-                    this.openProfitTracker();
-                    break;
+            case 'profit-tracker':
+                    console.log('Opening profit tracker within workflow...');
+                this.openProfitTracker();
+                break;
                     
-                case 'smart-scheduler':
-                        console.log('Opening smart scheduler...');
-                    this.openSmartScheduler();
-                    break;
+            case 'smart-scheduler':
+                    console.log('Opening smart scheduler within workflow...');
+                this.openSmartScheduler();
+                break;
                     
-                case 'create-invoice':
-                        console.log('Opening invoice page...');
-                        window.location.href = 'invoice.html';
-                    break;
+            case 'create-invoice':
+                    console.log('Opening invoice page within workflow...');
+                window.location.href = 'invoice.html';
+                break;
                     
-                default:
-                        console.warn('⚠️ Unknown workflow action:', action);
-                        this.showMessage('⚠️ Unknown action: ' + action, 'warning');
-                }
-                
-                console.log('✅ Action completed successfully');
-            } catch (error) {
-                console.error('❌ Error executing workflow action:', error);
-                this.showMessage('❌ Error: ' + error.message, 'error');
+            default:
+                    console.warn('⚠️ Unknown workflow action:', action);
+                    this.showMessage('⚠️ Unknown action: ' + action, 'warning');
             }
-        }, 300);
+            
+            console.log('✅ Action completed successfully');
+        } catch (error) {
+            console.error('❌ Error executing workflow action:', error);
+            this.showMessage('❌ Error: ' + error.message, 'error');
+        }
     }
 
     startDailyWorkflow() {
