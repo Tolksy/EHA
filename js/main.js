@@ -362,9 +362,19 @@ class ProfitTracker {
             this.openWorkflowGuide();
         });
 
-        // Daily workflow button
+        // Daily workflow button (header)
         document.getElementById('daily-workflow-btn').addEventListener('click', () => {
             this.startDailyWorkflow();
+        });
+
+        // Daily workflow button (HERO - main CTA)
+        document.getElementById('daily-workflow-btn-hero').addEventListener('click', () => {
+            this.startDailyWorkflow();
+        });
+
+        // Quick Journal button (dashboard shortcut)
+        document.getElementById('quick-journal-btn').addEventListener('click', () => {
+            this.journalManager.open();
         });
 
         // Workflow guide modal events

@@ -1,5 +1,12 @@
 /* Enhanced Workflow-Powered Dashboard */
 
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
 .powered-badge {
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
@@ -9,7 +16,6 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-left: 10px;
 }
 
 .stats-grid-enhanced {
