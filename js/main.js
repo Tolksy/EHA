@@ -6,6 +6,10 @@ class ProfitTracker {
         this.savedInvoices = JSON.parse(localStorage.getItem('savedInvoices')) || [];
         this.journalEmployees = []; // Track employees in daily journal
         this.journalCustomers = []; // Track customers in daily journal
+        
+        // Initialize modular managers
+        this.journalManager = new JournalManager(this);
+        
         this.init();
     }
 
@@ -19,6 +23,9 @@ class ProfitTracker {
         this.checkForSuccessMessage();
         this.renderCalendarHero();
         this.checkDailyWorkflowPreference();
+        
+        // Update workflow-powered dashboard
+        this.updateWorkflowDashboard();
     }
 
     setupEventListeners() {
@@ -401,33 +408,33 @@ class ProfitTracker {
             this.closeDayView();
         });
 
-        // Daily Business Journal button
+        // Daily Business Journal button - THE CORE WORKFLOW
         document.getElementById('daily-journal-btn').addEventListener('click', () => {
-            this.openDailyJournal();
+            this.journalManager.open();
         });
 
         // Daily Business Journal modal events
         document.getElementById('close-daily-journal').addEventListener('click', () => {
-            this.closeDailyJournal();
+            this.journalManager.close();
         });
 
         document.getElementById('cancel-daily-journal').addEventListener('click', () => {
-            this.closeDailyJournal();
+            this.journalManager.close();
         });
 
         document.getElementById('daily-journal-form').addEventListener('submit', (e) => {
             e.preventDefault();
-            this.saveDailyJournal();
+            this.journalManager.save();
         });
 
         // Number of employees input
         document.getElementById('num-employees').addEventListener('change', (e) => {
-            this.createEmployeeFields(parseInt(e.target.value) || 0);
+            this.journalManager.createEmployeeFields(parseInt(e.target.value) || 0);
         });
 
         // Number of customers input
         document.getElementById('num-customers').addEventListener('change', (e) => {
-            this.createCustomerFields(parseInt(e.target.value) || 0);
+            this.journalManager.createCustomerFields(parseInt(e.target.value) || 0);
         });
 
         // Manage Employees button
@@ -2787,49 +2794,75 @@ class ProfitTracker {
     }
 
     openWorkflowAction(action) {
+        console.log('🎯 Workflow Action Triggered:', action);
+        
         // Close the workflow guide first
         this.closeWorkflowGuide();
         
         // Small delay to allow modal to close
         setTimeout(() => {
+            console.log('🚀 Executing action:', action);
+            
+            try {
             switch(action) {
                 case 'add-client':
+                        console.log('Opening client tracker...');
                     this.openClientTracker();
-                    setTimeout(() => this.openAddCustomerModal(), 100);
+                        setTimeout(() => {
+                            console.log('Opening add customer modal...');
+                            this.openAddCustomerModal();
+                        }, 100);
                     break;
                     
                 case 'add-job':
+                        console.log('Opening client tracker for jobs...');
                     this.openClientTracker();
                     setTimeout(() => {
+                            console.log('Switching to jobs tab...');
                         this.switchTab('jobs');
-                        setTimeout(() => this.openAddJobModal(), 100);
+                            setTimeout(() => {
+                                console.log('Opening add job modal...');
+                                this.openAddJobModal();
+                            }, 100);
                     }, 100);
                     break;
                     
                 case 'add-task':
+                        console.log('Opening add task modal...');
                     this.openAddTaskModal();
                     break;
                     
                 case 'daily-logging':
+                        console.log('Opening daily logging...');
                     this.openDailyLogging();
                     break;
                     
                 case 'profit-tracker':
+                        console.log('Opening profit tracker...');
                     this.openProfitTracker();
                     break;
                     
                 case 'smart-scheduler':
+                        console.log('Opening smart scheduler...');
                     this.openSmartScheduler();
                     break;
                     
                 case 'create-invoice':
-                    window.open('invoice.html', '_blank');
+                        console.log('Opening invoice page...');
+                        window.location.href = 'invoice.html';
                     break;
                     
                 default:
-                    console.log('Unknown workflow action:', action);
+                        console.warn('⚠️ Unknown workflow action:', action);
+                        this.showMessage('⚠️ Unknown action: ' + action, 'warning');
+                }
+                
+                console.log('✅ Action completed successfully');
+            } catch (error) {
+                console.error('❌ Error executing workflow action:', error);
+                this.showMessage('❌ Error: ' + error.message, 'error');
             }
-        }, 200);
+        }, 300);
     }
 
     startDailyWorkflow() {
@@ -4145,10 +4178,11 @@ class ProfitTracker {
         this.journalCustomers = [];
         this.journalEmployees = [];
 
-        // Refresh displays
+        // Refresh displays - THE MYCELIUM NETWORK IN ACTION
         this.displayJournalEntries();
         this.renderCalendarHero();
         this.updateCalendarStats();
+        this.updateWorkflowDashboard(); // 🍄 Workflow updates everything!
 
         // Award XP for completing journal entry
         if (this.playerData) {
@@ -4532,19 +4566,44 @@ class ProfitTracker {
         container.innerHTML = tasks.map(task => `
             <div class="task-card ${task.completed ? 'completed' : ''}" draggable="true" data-task-id="${task.id}">
                 <span class="task-category ${task.category}">${task.category}</span>
+                ${task.journalEntry ? '<span class="task-badge journal-badge">📝 From Journal</span>' : ''}
                 <div class="task-header">
-                    <div class="task-title">${task.title}</div>
+                    <div class="task-title" contenteditable="true" 
+                         data-task-id="${task.id}" 
+                         data-field="title"
+                         onblur="profitTracker.quickEditTask(this)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${task.title}</div>
                     <div class="task-actions">
-                        <button class="task-action-btn" onclick="profitTracker.toggleTaskComplete('${task.id}')">
+                        <button class="task-action-btn complete-btn" onclick="profitTracker.toggleTaskComplete('${task.id}')">
                             ${task.completed ? '↩ Undo' : '✓ Complete'}
                         </button>
-                        <button class="task-action-btn" onclick="profitTracker.editTask('${task.id}')">✏ Edit</button>
+                        <button class="task-action-btn delete-btn" onclick="profitTracker.quickDeleteTask('${task.id}')">
+                            🗑 Delete
+                        </button>
                     </div>
                 </div>
-                ${task.description ? `<div style="color: #718096; font-size: 14px; margin-top: 8px;">${task.description}</div>` : ''}
+                ${task.description ? `<div class="task-description" contenteditable="true"
+                     data-task-id="${task.id}" 
+                     data-field="description"
+                     onblur="profitTracker.quickEditTask(this)"
+                     style="color: #718096; font-size: 14px; margin-top: 8px; padding: 8px; border-radius: 4px; cursor: text;"
+                     onfocus="this.style.background='#f7fafc'"
+                     onblur="this.style.background='transparent'">${task.description}</div>` : ''}
                 <div class="task-details">
-                    ${task.duration ? `<div class="task-detail"><span class="task-detail-icon">⏰</span> ${task.duration}h</div>` : ''}
-                    ${task.rate ? `<div class="task-detail"><span class="task-detail-icon">💵</span> $${task.rate}/hr</div>` : ''}
+                    ${task.duration ? `<div class="task-detail editable" 
+                         contenteditable="true"
+                         data-task-id="${task.id}" 
+                         data-field="duration"
+                         onblur="profitTracker.quickEditTask(this)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+                         <span class="task-detail-icon">⏰</span> <span class="editable-value">${task.duration}h</span></div>` : ''}
+                    ${task.rate ? `<div class="task-detail editable"
+                         contenteditable="true"
+                         data-task-id="${task.id}" 
+                         data-field="rate"
+                         onblur="profitTracker.quickEditTask(this)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">
+                         <span class="task-detail-icon">💵</span> <span class="editable-value">$${task.rate}/hr</span></div>` : ''}
                     ${task.total ? `<div class="task-detail"><span class="task-detail-icon">💰</span> $${task.total.toFixed(2)}</div>` : ''}
                     ${task.laborCost ? `<div class="task-detail"><span class="task-detail-icon">👷</span> Labor: $${task.laborCost.toFixed(2)}</div>` : ''}
                 </div>
@@ -4606,8 +4665,221 @@ class ProfitTracker {
         }
     }
 
+    quickEditTask(element) {
+        const taskId = element.dataset.taskId;
+        const field = element.dataset.field;
+        let newValue = element.textContent.trim();
+        
+        // Parse numeric values
+        if (field === 'duration') {
+            newValue = parseFloat(newValue.replace('h', '').replace('⏰', '').trim());
+        } else if (field === 'rate') {
+            newValue = parseFloat(newValue.replace('$', '').replace('/hr', '').replace('💵', '').trim());
+        }
+        
+        // Update task in localStorage
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        const task = tasks.find(t => t.id === taskId);
+        
+        if (task) {
+            task[field] = newValue;
+            
+            // Recalculate total if duration or rate changed
+            if (field === 'duration' || field === 'rate') {
+                if (task.duration && task.rate) {
+                    task.total = task.duration * task.rate;
+                }
+            }
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            this.renderDayView(this.selectedDate);
+            this.showMessage('✅ Task updated!', 'success');
+        }
+    }
+
+    quickDeleteTask(taskId) {
+        if (!confirm('Delete this task? This action cannot be undone.')) return;
+        
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        tasks = tasks.filter(t => t.id !== taskId);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        
+        // Refresh the day view
+        this.renderDayView(this.selectedDate);
+        this.renderCalendarHero();
+        this.updateWorkflowDashboard();
+        
+        this.showMessage('🗑️ Task deleted', 'success');
+    }
+
     editTask(taskId) {
-        this.showMessage('📝 Task editing coming soon! Drag tasks to reorder them.', 'info');
+        this.showMessage('💡 Pro tip: Click any text to edit it directly!', 'info');
+    }
+
+    // Workflow Dashboard - The Mycelium Network
+    updateWorkflowDashboard() {
+        const journalEntries = JSON.parse(localStorage.getItem('dailyJournalEntries')) || [];
+        const customers = JSON.parse(localStorage.getItem('customers')) || [];
+        const employees = JSON.parse(localStorage.getItem('employees')) || [];
+        
+        // Calculate all statistics from workflow data
+        this.calculateCustomerStats(journalEntries, customers);
+        this.calculateLaborStats(journalEntries, employees);
+        this.calculateJournalStats(journalEntries);
+        this.calculateWeeklyInsights(journalEntries);
+        this.calculateEmployeeProductivity(journalEntries, employees);
+    }
+
+    calculateCustomerStats(entries, customers) {
+        const totalCustomers = customers.length;
+        
+        // Count new customers added this week
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const newThisWeek = entries.filter(entry => {
+            const entryDate = new Date(entry.date);
+            return entryDate >= oneWeekAgo && entry.customers;
+        }).reduce((acc, entry) => {
+            if (entry.customers) {
+                return acc + entry.customers.length;
+            }
+            return acc;
+        }, 0);
+        
+        document.getElementById('total-customers-stat').textContent = totalCustomers;
+        document.getElementById('customers-this-week').textContent = `+${newThisWeek} this week`;
+    }
+
+    calculateLaborStats(entries, employees) {
+        // Calculate total labor hours across all entries
+        let totalHours = 0;
+        let totalCost = 0;
+        
+        entries.forEach(entry => {
+            if (entry.totalLaborHours) {
+                totalHours += entry.totalLaborHours;
+            }
+            if (entry.totalLaborCost) {
+                totalCost += entry.totalLaborCost;
+            }
+        });
+        
+        // This week's labor
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        let weekHours = 0;
+        let weekCost = 0;
+        
+        entries.forEach(entry => {
+            const entryDate = new Date(entry.date);
+            if (entryDate >= oneWeekAgo) {
+                if (entry.totalLaborHours) weekHours += entry.totalLaborHours;
+                if (entry.totalLaborCost) weekCost += entry.totalLaborCost;
+            }
+        });
+        
+        document.getElementById('total-labor-hours-stat').textContent = totalHours.toFixed(1) + 'h';
+        document.getElementById('labor-this-week').textContent = `+${weekHours.toFixed(1)}h this week`;
+        
+        document.getElementById('total-labor-cost-stat').textContent = '$' + totalCost.toFixed(2);
+        document.getElementById('cost-this-week').textContent = `+$${weekCost.toFixed(2)} this week`;
+    }
+
+    calculateJournalStats(entries) {
+        const totalEntries = entries.length;
+        
+        // This month's entries
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        
+        const entriesThisMonth = entries.filter(entry => {
+            const entryDate = new Date(entry.date);
+            return entryDate >= oneMonthAgo;
+        }).length;
+        
+        document.getElementById('total-journal-entries').textContent = totalEntries;
+        document.getElementById('entries-this-month').textContent = `+${entriesThisMonth} this month`;
+    }
+
+    calculateWeeklyInsights(entries) {
+        // Get last 7 days of entries
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const weekEntries = entries.filter(entry => {
+            const entryDate = new Date(entry.date);
+            return entryDate >= oneWeekAgo;
+        });
+        
+        // Days worked
+        const daysWorked = weekEntries.length;
+        document.getElementById('days-worked-week').textContent = daysWorked;
+        
+        // Average hours per day
+        const totalHours = weekEntries.reduce((sum, entry) => {
+            return sum + (entry.totalLaborHours || 0);
+        }, 0);
+        const avgHours = daysWorked > 0 ? (totalHours / daysWorked).toFixed(1) : 0;
+        document.getElementById('avg-hours-day').textContent = avgHours;
+        
+        // Most common customer
+        const customerFrequency = {};
+        weekEntries.forEach(entry => {
+            if (entry.customers) {
+                entry.customers.forEach(c => {
+                    customerFrequency[c.customerName] = (customerFrequency[c.customerName] || 0) + 1;
+                });
+            } else if (entry.customer) {
+                customerFrequency[entry.customer] = (customerFrequency[entry.customer] || 0) + 1;
+            }
+        });
+        
+        let topCustomer = '--';
+        let maxCount = 0;
+        for (const [customer, count] of Object.entries(customerFrequency)) {
+            if (count > maxCount) {
+                maxCount = count;
+                topCustomer = customer;
+            }
+        }
+        document.getElementById('top-customer').textContent = topCustomer;
+    }
+
+    calculateEmployeeProductivity(entries, employees) {
+        const totalEmployees = employees.length;
+        document.getElementById('total-employees-count').textContent = totalEmployees;
+        
+        // Track employee hours
+        const employeeHours = {};
+        entries.forEach(entry => {
+            if (entry.employees) {
+                entry.employees.forEach(e => {
+                    if (!employeeHours[e.employeeName]) {
+                        employeeHours[e.employeeName] = 0;
+                    }
+                    employeeHours[e.employeeName] += e.hours;
+                });
+            }
+        });
+        
+        // Find top performer
+        let topEmployee = '--';
+        let maxHours = 0;
+        for (const [employee, hours] of Object.entries(employeeHours)) {
+            if (hours > maxHours) {
+                maxHours = hours;
+                topEmployee = employee;
+            }
+        }
+        document.getElementById('top-employee').textContent = topEmployee;
+        
+        // Calculate average cost per hour
+        const totalCost = entries.reduce((sum, entry) => sum + (entry.totalLaborCost || 0), 0);
+        const totalHours = entries.reduce((sum, entry) => sum + (entry.totalLaborHours || 0), 0);
+        const avgCost = totalHours > 0 ? (totalCost / totalHours).toFixed(2) : 0;
+        document.getElementById('avg-employee-cost').textContent = '$' + avgCost;
     }
 }
 
