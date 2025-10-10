@@ -441,6 +441,15 @@ class ProfitTracker {
             this.openWorkflowAction('create-invoice');
         });
 
+        const viewClientsBtn = document.getElementById('workflow-view-clients-btn');
+        if (viewClientsBtn) {
+            viewClientsBtn.addEventListener('click', () => {
+                this.openClientTracker();
+                // Enable selection mode inside client tracker
+                this.enableClientSelectionMode();
+            });
+        }
+
         // Existing client selector (workflow step 1)
         const existingToggle = document.getElementById('existing-client-toggle');
         const existingContent = document.getElementById('existing-client-content');
@@ -940,6 +949,7 @@ class ProfitTracker {
                 <td>
                     <button class="btn-small" onclick="profitTracker.viewClientDetails('${client.id}')">View</button>
                     <button class="btn-small" onclick="profitTracker.markInteraction('${client.id}', 'follow_up')">Follow-up</button>
+                    ${this.clientSelectionMode ? `<button class="btn-small" onclick="profitTracker.selectClientForWorkflow('${client.id}')">Select</button>` : ''}
                 </td>
             `;
             
@@ -947,6 +957,29 @@ class ProfitTracker {
         });
 
         this.filterClients(); // Apply current filters
+    }
+
+    enableClientSelectionMode() {
+        this.clientSelectionMode = true;
+        this.renderClientList();
+        this.showMessage('Select a client to use in the current workflow step.', 'info');
+    }
+
+    disableClientSelectionMode() {
+        this.clientSelectionMode = false;
+        this.renderClientList();
+    }
+
+    selectClientForWorkflow(clientId) {
+        this.workflowSelectedClientId = clientId;
+        const client = (this.clients || []).find(c => c.id === clientId);
+        const selectedLabel = document.getElementById('existing-client-selected');
+        if (client && selectedLabel) {
+            selectedLabel.textContent = `Selected: ${client.name}`;
+        }
+        this.showMessage('✅ Client selected for this workflow session', 'success');
+        this.disableClientSelectionMode();
+        // Keep both modals visible; user can close client tracker when done
     }
 
     getWarmthClass(score) {
