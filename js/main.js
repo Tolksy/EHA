@@ -1530,6 +1530,9 @@ class ProfitTracker {
             dayAppointments.slice(0, 3).forEach(appointment => {
                 const appointmentBlock = document.createElement('div');
                 appointmentBlock.className = `appointment-block-hero ${appointment.color}`;
+                if (appointment.jobId) {
+                    appointmentBlock.style.borderLeft = `6px solid ${this.getJobColorById(appointment.jobId)}`;
+                }
                 appointmentBlock.innerHTML = `
                     <span class="appointment-time-hero">${appointment.startTime}</span>
                     <span class="appointment-client-hero">${appointment.client}</span>
@@ -1631,6 +1634,9 @@ class ProfitTracker {
             dayAppointments.forEach(appointment => {
                 const appointmentBlock = document.createElement('div');
                 appointmentBlock.className = `appointment-block ${appointment.color}`;
+                if (appointment.jobId) {
+                    appointmentBlock.style.borderLeft = `6px solid ${this.getJobColorById(appointment.jobId)}`;
+                }
                 appointmentBlock.innerHTML = `
                     <span class="appointment-time">${appointment.startTime}</span>
                     <span class="appointment-client">${appointment.client}</span>
@@ -2709,6 +2715,8 @@ class ProfitTracker {
             endDate: document.getElementById('job-end-date').value,
             estimatedHours: parseFloat(document.getElementById('job-estimated-hours').value) || 0,
             hourlyRate: parseFloat(document.getElementById('job-hourly-rate').value) || 0,
+            color: document.getElementById('job-color') ? document.getElementById('job-color').value : '#5b8def',
+            expenseBudget: 0,
             notes: document.getElementById('job-notes').value.trim(),
             created: new Date().toISOString(),
             progress: 0,
@@ -2838,6 +2846,12 @@ class ProfitTracker {
         const jobs = JSON.parse(localStorage.getItem('jobs')) || [];
         const job = jobs.find(j => j.id === jobId);
         return job ? job.name : '';
+    }
+
+    getJobColorById(jobId) {
+        const jobs = JSON.parse(localStorage.getItem('jobs')) || [];
+        const job = jobs.find(j => j.id === jobId);
+        return job && job.color ? job.color : '#5b8def';
     }
 
     viewJobDetails(jobId) {
@@ -4563,6 +4577,23 @@ class ProfitTracker {
     }
 
     closeDayView() {
+        // Before closing, prompt to log expenses for the day
+        const dateStr = this.selectedDate ? this.selectedDate.toISOString().split('T')[0] : null;
+        if (dateStr) {
+            const appointments = JSON.parse(localStorage.getItem('appointments')) || {};
+            const hasWork = (appointments[dateStr] && appointments[dateStr].length > 0) || (JSON.parse(localStorage.getItem('tasks')) || []).some(t => t.scheduledDate === dateStr);
+            if (hasWork) {
+                const wantsExpenses = confirm('Before closing the day, would you like to log any expenses?');
+                if (wantsExpenses) {
+                    // Open existing expenses UI if present
+                    const expenseBtn = document.getElementById('add-expense-btn');
+                    if (expenseBtn) {
+                        expenseBtn.click();
+                        return; // Keep day view open while logging
+                    }
+                }
+            }
+        }
         document.getElementById('day-view-modal').style.display = 'none';
     }
 
