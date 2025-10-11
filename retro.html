@@ -671,7 +671,7 @@
                             <div class="job-track-name">${job.name}</div>
                             <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
                         </div>
-                        <div class="profit-amount ${profitClass}">Gross Profit<br/>$${job.profit.toFixed(2)}</div>
+                        <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
                     </div>
                     <div class="job-track-stats">
                         <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
