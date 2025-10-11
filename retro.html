@@ -33,6 +33,10 @@
         .entry-item .entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
         .entry-item .entry-details { font-size:12px; color:#666; }
         .delete-entry { background:#ff4444; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
+        .expense-row { display:flex; gap:4px; align-items:center; margin:4px 0; }
+        .expense-row input[type="number"] { width:80px; }
+        .expense-row input[type="text"] { flex:1; }
+        .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -95,8 +99,14 @@
             <div class="row"><label>Ethan hrs</label><input id="hrsE" type="number" step="0.1" min="0" value="0"></div>
 
             <div class="row"><label>Revenue $</label><input id="revenue" type="number" step="0.01" min="0" value="0"></div>
-            <div class="row"><label>Expense $</label><input id="expenseAmt" type="number" step="0.01" min="0" value="0"></div>
-            <div class="row"><label>Expense note</label><input id="expenseNote" type="text" placeholder="(optional)"></div>
+            
+            <div style="margin: 12px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:13px;">Expenses</strong>
+                    <button id="add-expense-row" style="font-size:11px; padding:3px 8px;">+ Add Expense</button>
+                </div>
+                <div id="expenses-list" style="max-height:150px; overflow-y:auto;"></div>
+            </div>
 
             <div class="actions">
                 <button id="add-entry">Add Entry</button>
@@ -111,7 +121,8 @@
         const $ = (id) => document.getElementById(id);
         const state = {
             current: new Date(),
-            selectedISO: null
+            selectedISO: null,
+            expenseRows: []
         };
 
         // Minimal storage helpers
@@ -268,8 +279,15 @@
                 const job = jobs.find(j => j.id === entry.jobId);
                 const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
                 const revenue = entry.revenue||0;
-                const expenses = (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
-                const profit = revenue - (entry.totals?.labor||0) - expenses;
+                const totalExpenses = (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                const profit = revenue - (entry.totals?.labor||0) - totalExpenses;
+                
+                // Build expenses breakdown if there are expenses
+                let expensesDetail = '';
+                if (entry.expenses && entry.expenses.length > 0) {
+                    const expList = entry.expenses.map(e => `${e.note}: $${e.amount.toFixed(2)}`).join(', ');
+                    expensesDetail = `<div style="font-size:11px; color:#888; margin-top:2px;">Expenses: ${expList}</div>`;
+                }
                 
                 div.innerHTML = `
                     <div class="entry-header">
@@ -277,7 +295,8 @@
                         <button class="delete-entry" onclick="deleteEntry(${idx})">Delete</button>
                     </div>
                     <div class="entry-details">
-                        ${hours}h • $${revenue} revenue • $${expenses} expenses • $${profit.toFixed(2)} profit
+                        ${hours}h • $${revenue} revenue • $${totalExpenses.toFixed(2)} expenses • $${profit.toFixed(2)} profit
+                        ${expensesDetail}
                     </div>
                 `;
                 container.appendChild(div);
@@ -308,9 +327,54 @@
             $('hrsC').value = '0';
             $('hrsE').value = '0';
             $('revenue').value = '0';
-            $('expenseAmt').value = '0';
-            $('expenseNote').value = '';
+            state.expenseRows = [];
+            renderExpenseRows();
         }
+        
+        function addExpenseRow(amount = '', note = '') {
+            state.expenseRows.push({ amount, note, id: Date.now() });
+            renderExpenseRows();
+        }
+        
+        function removeExpenseRow(id) {
+            state.expenseRows = state.expenseRows.filter(r => r.id !== id);
+            renderExpenseRows();
+        }
+        
+        function renderExpenseRows() {
+            const container = $('expenses-list');
+            container.innerHTML = '';
+            
+            if (state.expenseRows.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic; padding:4px;">No expenses yet</div>';
+                return;
+            }
+            
+            state.expenseRows.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'expense-row';
+                div.innerHTML = `
+                    <span style="font-size:11px; color:#666;">$</span>
+                    <input type="number" step="0.01" min="0" value="${row.amount}" 
+                           onchange="updateExpenseRow(${row.id}, 'amount', this.value)" 
+                           placeholder="Amount">
+                    <input type="text" value="${row.note}" 
+                           onchange="updateExpenseRow(${row.id}, 'note', this.value)" 
+                           placeholder="Description (e.g., materials, gas, etc.)">
+                    <button onclick="removeExpenseRow(${row.id})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateExpenseRow(id, field, value) {
+            const row = state.expenseRows.find(r => r.id === id);
+            if (row) row[field] = value;
+        }
+        
+        // Make expense functions global for onclick handlers
+        window.removeExpenseRow = removeExpenseRow;
+        window.updateExpenseRow = updateExpenseRow;
         
         function deleteEntry(index) {
             const entries = getDayEntries(state.selectedISO);
@@ -341,12 +405,18 @@
             const hrsC = parseFloat($('hrsC').value)||0;
             const hrsE = parseFloat($('hrsE').value)||0;
             const revenue = parseFloat($('revenue').value)||0;
-            const expenseAmt = parseFloat($('expenseAmt').value)||0;
-            const expenseNote = $('expenseNote').value.trim();
+            
+            // Collect expenses from expense rows
+            const expenses = state.expenseRows
+                .filter(r => parseFloat(r.amount) > 0)
+                .map(r => ({ 
+                    amount: parseFloat(r.amount), 
+                    note: r.note.trim() || 'No description' 
+                }));
 
             const labor = hrsC*EMPLOYEES[0].wage + hrsE*EMPLOYEES[1].wage;
-            const expenses = expenseAmt>0 ? [{ amount: expenseAmt, note: expenseNote }] : [];
-            const profit = revenue - labor - expenses.reduce((s,e)=>s+e.amount,0);
+            const totalExpenses = expenses.reduce((s,e)=>s+e.amount,0);
+            const profit = revenue - labor - totalExpenses;
 
             const newEntry = {
                 id: `entry_${Date.now()}`,
@@ -359,7 +429,7 @@
                 ],
                 revenue,
                 expenses,
-                totals:{ labor, expenses: expenses.reduce((s,e)=>s+e.amount,0), revenue, profit }
+                totals:{ labor, expenses: totalExpenses, revenue, profit }
             };
             
             const entries = getDayEntries(state.selectedISO);
@@ -453,6 +523,7 @@
         $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); };
         $('close').onclick = closeModal;
         $('add-entry').onclick = addEntry;
+        $('add-expense-row').onclick = ()=> addExpenseRow();
         $('save').onclick = saveDay;
 
         // Seed example if empty (to make it feel alive)
