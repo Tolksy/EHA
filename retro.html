@@ -141,7 +141,7 @@
     </div>
 
     <div id="job-edit-modal" class="modal">
-        <div class="modal-inner" style="width: 400px;">
+        <div class="modal-inner" style="width: 500px; max-height: 80vh; overflow-y: auto;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
                 <strong id="job-edit-title">Edit Job</strong>
                 <button id="job-edit-close">x</button>
@@ -152,6 +152,21 @@
                 <select id="edit-job-customer"></select>
             </div>
             <div class="row"><label>Job Color</label><input id="edit-job-color" type="color" value="#2f7afe"></div>
+            
+            <hr style="margin: 12px 0;">
+            <h3 style="margin: 8px 0; font-size: 14px;">Adjust Hours (Cash Flow)</h3>
+            <div class="row"><label>Clayton Hours</label><input id="edit-clayton-hours" type="number" step="0.1" min="0" value="0"></div>
+            <div class="row"><label>Ethan Hours</label><input id="edit-ethan-hours" type="number" step="0.1" min="0" value="0"></div>
+            <div class="small" style="color:#666; margin-bottom:8px;">Clayton: $50/hour cash flow • Ethan: $25/hour cash flow</div>
+            
+            <hr style="margin: 12px 0;">
+            <div style="margin: 12px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:13px;">Job Expenses (Drawdowns/Investments)</strong>
+                    <button id="add-job-expense-row" style="font-size:11px; padding:3px 8px;">+ Add Expense</button>
+                </div>
+                <div id="job-expenses-list" style="max-height:150px; overflow-y:auto;"></div>
+            </div>
 
             <div class="actions">
                 <button id="save-job-edit">Save Changes</button>
@@ -167,7 +182,8 @@
             current: new Date(),
             selectedISO: null,
             expenseRows: [],
-            editingJobId: null
+            editingJobId: null,
+            jobExpenseRows: []
         };
 
         // Minimal storage helpers
@@ -473,6 +489,52 @@
             }
         }
         
+        // Job expense management functions
+        function addJobExpenseRow(amount = '', note = '') {
+            state.jobExpenseRows.push({ amount, note, id: Date.now() });
+            renderJobExpenseRows();
+        }
+        
+        function removeJobExpenseRow(id) {
+            state.jobExpenseRows = state.jobExpenseRows.filter(r => r.id !== id);
+            renderJobExpenseRows();
+        }
+        
+        function renderJobExpenseRows() {
+            const container = $('job-expenses-list');
+            container.innerHTML = '';
+            
+            if (state.jobExpenseRows.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic; padding:4px;">No expenses yet</div>';
+                return;
+            }
+            
+            state.jobExpenseRows.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'expense-row';
+                div.innerHTML = `
+                    <span style="font-size:11px; color:#666;">$</span>
+                    <input type="number" step="0.01" min="0" value="${row.amount}" 
+                           onchange="updateJobExpenseRow(${row.id}, 'amount', this.value)" 
+                           placeholder="Amount">
+                    <input type="text" value="${row.note}" 
+                           onchange="updateJobExpenseRow(${row.id}, 'note', this.value)" 
+                           placeholder="Description (e.g., materials, equipment, etc.)">
+                    <button onclick="removeJobExpenseRow(${row.id})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateJobExpenseRow(id, field, value) {
+            const row = state.jobExpenseRows.find(r => r.id === id);
+            if (row) row[field] = value;
+        }
+        
+        // Make job expense functions global for onclick handlers
+        window.removeJobExpenseRow = removeJobExpenseRow;
+        window.updateJobExpenseRow = updateJobExpenseRow;
+        
         // Job editing functions
         function openJobEditModal(jobId) {
             const jobs = getJobs();
@@ -487,6 +549,44 @@
             // Populate the form
             $('edit-job-name').value = job.name;
             $('edit-job-color').value = job.color || '#2f7afe';
+            
+            // Calculate total hours for this job
+            const days = getDays();
+            let claytonHours = 0;
+            let ethanHours = 0;
+            let jobExpenses = [];
+            
+            Object.values(days).forEach(entries => {
+                const entryList = Array.isArray(entries) ? entries : [entries];
+                entryList.forEach(entry => {
+                    if (entry && entry.jobId === jobId) {
+                        // Sum up hours
+                        if (entry.manHours) {
+                            entry.manHours.forEach(mh => {
+                                if (mh.employeeId === 'emp_clayton') {
+                                    claytonHours += mh.hours || 0;
+                                } else if (mh.employeeId === 'emp_ethan') {
+                                    ethanHours += mh.hours || 0;
+                                }
+                            });
+                        }
+                        
+                        // Collect expenses
+                        if (entry.expenses) {
+                            entry.expenses.forEach(exp => {
+                                jobExpenses.push({ amount: exp.amount, note: exp.note, id: Date.now() + Math.random() });
+                            });
+                        }
+                    }
+                });
+            });
+            
+            $('edit-clayton-hours').value = claytonHours;
+            $('edit-ethan-hours').value = ethanHours;
+            
+            // Set up job expenses
+            state.jobExpenseRows = jobExpenses;
+            renderJobExpenseRows();
             
             // Populate customer dropdown
             const customerSelect = $('edit-job-customer');
@@ -520,6 +620,8 @@
             const newName = $('edit-job-name').value.trim();
             const newCustomerId = $('edit-job-customer').value;
             const newColor = $('edit-job-color').value;
+            const newClaytonHours = parseFloat($('edit-clayton-hours').value) || 0;
+            const newEthanHours = parseFloat($('edit-ethan-hours').value) || 0;
             
             if (!newName) {
                 alert('Job name is required');
@@ -539,7 +641,7 @@
             setJobs(jobs);
             
             // Update all calendar entries that reference this job
-            updateJobInCalendar(state.editingJobId, newName, newColor);
+            updateJobInCalendar(state.editingJobId, newName, newColor, newClaytonHours, newEthanHours);
             
             closeJobEditModal();
             renderCalendar();
@@ -570,8 +672,10 @@
             renderJobTracking();
         }
         
-        function updateJobInCalendar(jobId, newName, newColor) {
+        function updateJobInCalendar(jobId, newName, newColor, newClaytonHours, newEthanHours) {
             const days = getDays();
+            const totalCurrentHours = newClaytonHours + newEthanHours;
+            
             Object.keys(days).forEach(date => {
                 const entries = getDayEntries(date);
                 entries.forEach(entry => {
@@ -579,6 +683,69 @@
                         // Update job name and color in the entry
                         entry.jobName = newName;
                         entry.jobColor = newColor;
+                        
+                        // Update hours proportionally across all entries for this job
+                        if (entry.manHours && totalCurrentHours > 0) {
+                            const currentClaytonHours = entry.manHours.find(mh => mh.employeeId === 'emp_clayton')?.hours || 0;
+                            const currentEthanHours = entry.manHours.find(mh => mh.employeeId === 'emp_ethan')?.hours || 0;
+                            const currentTotalHours = currentClaytonHours + currentEthanHours;
+                            
+                            if (currentTotalHours > 0) {
+                                // Calculate proportional adjustment
+                                const claytonRatio = currentClaytonHours / currentTotalHours;
+                                const ethanRatio = currentEthanHours / currentTotalHours;
+                                
+                                // Update hours proportionally
+                                const newClaytonEntryHours = newClaytonHours * claytonRatio;
+                                const newEthanEntryHours = newEthanHours * ethanRatio;
+                                
+                                entry.manHours.forEach(mh => {
+                                    if (mh.employeeId === 'emp_clayton') {
+                                        mh.hours = newClaytonEntryHours;
+                                        mh.cost = newClaytonEntryHours * 50;
+                                    } else if (mh.employeeId === 'emp_ethan') {
+                                        mh.hours = newEthanEntryHours;
+                                        mh.cost = newEthanEntryHours * 25;
+                                    }
+                                });
+                                
+                                // Recalculate totals
+                                const labor = entry.manHours.reduce((sum, m) => sum + (m.cost || 0), 0);
+                                const expenses = (entry.expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+                                const revenue = entry.revenue || 0;
+                                const profit = revenue - labor - expenses;
+                                
+                                entry.totals = {
+                                    labor,
+                                    expenses,
+                                    revenue,
+                                    profit
+                                };
+                            }
+                        }
+                        
+                        // Update expenses from job expense rows
+                        const jobExpenses = state.jobExpenseRows
+                            .filter(r => parseFloat(r.amount) > 0)
+                            .map(r => ({ 
+                                amount: parseFloat(r.amount), 
+                                note: r.note.trim() || 'Job expense' 
+                            }));
+                        
+                        entry.expenses = jobExpenses;
+                        
+                        // Recalculate totals with new expenses
+                        const labor = (entry.manHours || []).reduce((sum, m) => sum + (m.cost || 0), 0);
+                        const expenses = jobExpenses.reduce((sum, e) => sum + e.amount, 0);
+                        const revenue = entry.revenue || 0;
+                        const profit = revenue - labor - expenses;
+                        
+                        entry.totals = {
+                            labor,
+                            expenses,
+                            revenue,
+                            profit
+                        };
                     }
                 });
                 setDayEntries(date, entries);
@@ -845,6 +1012,7 @@
         $('job-edit-close').onclick = closeJobEditModal;
         $('save-job-edit').onclick = saveJobEdit;
         $('delete-job').onclick = deleteJob;
+        $('add-job-expense-row').onclick = ()=> addJobExpenseRow();
 
         // Seed example if empty (to make it feel alive)
         if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
