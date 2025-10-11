@@ -42,6 +42,7 @@
         .job-track-item.profit { border-left-color:#4CAF50; }
         .job-track-item.loss { border-left-color:#f44336; }
         .job-track-item.neutral { border-left-color:#ff9800; }
+        .job-track-item.job-color { border-left-color: var(--job-color); }
         .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
         .job-track-name { font-weight:bold; font-size:13px; }
         .job-track-client { font-size:11px; color:#666; }
@@ -983,13 +984,13 @@
             
             jobsWithStats.forEach(job => {
                 const div = document.createElement('div');
-                div.className = 'job-track-item';
+                div.className = 'job-track-item job-color';
+                
+                // Use the job's color instead of profit/loss status
+                div.style.setProperty('--job-color', job.color || '#888');
                 
                 // Always show as gross profit in green
-                let statusClass = 'profit';
                 let profitClass = 'positive';
-                
-                div.classList.add(statusClass);
                 
                 const totalHours = Object.values(days).reduce((total, entries) => {
                     const entryList = Array.isArray(entries) ? entries : [entries];
