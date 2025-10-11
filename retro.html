@@ -13,8 +13,8 @@
         .cal-cell { flex:1; min-height:92px; border-right:1px solid #eee; border-top:1px solid #eee; padding:4px; position:relative; }
         .cal-row .cal-cell:last-child { border-right:none; }
         .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
-        .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; }
-        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; pointer-events:none; }
+        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
         .legend { font-size:12px; margin:8px 0; }
         .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
         table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -130,7 +130,17 @@
         // Helper to get entries for a specific day
         function getDayEntries(iso) {
             const days = getDays();
-            return days[iso] || [];
+            const data = days[iso];
+            
+            // Handle backward compatibility: convert old single-entry format to array
+            if (data && !Array.isArray(data)) {
+                // Old format detected, convert to array
+                const entries = [data];
+                setDayEntries(iso, entries);
+                return entries;
+            }
+            
+            return data || [];
         }
         
         // Helper to save entries for a specific day
