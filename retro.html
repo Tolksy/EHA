@@ -269,8 +269,13 @@
                             const color = (job && job.color) ? job.color : '#888';
                             badge.style.borderLeftColor = color;
                             const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
-                            const rev = entry.revenue||0;
-                            badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • $${rev}`;
+                            
+                            // Calculate cash flow from hours
+                            const claytonHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_clayton')?.hours || 0;
+                            const ethanHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_ethan')?.hours || 0;
+                            const cashFlow = (claytonHours * 50) + (ethanHours * 25);
+                            
+                            badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • +$${cashFlow}`;
                             if (entries.length > 1) badge.textContent += ` (${idx+1})`;
                             cell.appendChild(badge);
                         });
