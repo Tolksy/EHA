@@ -45,10 +45,10 @@
         .job-track-name { font-weight:bold; font-size:13px; }
         .job-track-client { font-size:11px; color:#666; }
         .job-track-stats { font-size:12px; color:#333; }
-        .profit-amount { font-weight:bold; }
+        .profit-amount { font-weight:bold; font-size:11px; text-align:right; line-height:1.2; }
         .profit-amount.positive { color:#4CAF50; }
-        .profit-amount.negative { color:#f44336; }
-        .profit-amount.neutral { color:#ff9800; }
+        .profit-amount.negative { color:#4CAF50; }
+        .profit-amount.neutral { color:#4CAF50; }
     </style>
 </head>
 <body>
@@ -649,16 +649,9 @@
                 const div = document.createElement('div');
                 div.className = 'job-track-item';
                 
-                // Determine profit/loss status
-                let statusClass = 'neutral';
-                let profitClass = 'neutral';
-                if (job.profit > 0) {
-                    statusClass = 'profit';
-                    profitClass = 'positive';
-                } else if (job.profit < 0) {
-                    statusClass = 'loss';
-                    profitClass = 'negative';
-                }
+                // Always show as gross profit in green
+                let statusClass = 'profit';
+                let profitClass = 'positive';
                 
                 div.classList.add(statusClass);
                 
@@ -678,7 +671,7 @@
                             <div class="job-track-name">${job.name}</div>
                             <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
                         </div>
-                        <div class="profit-amount ${profitClass}">$${job.profit.toFixed(2)}</div>
+                        <div class="profit-amount ${profitClass}">Gross Profit<br/>$${job.profit.toFixed(2)}</div>
                     </div>
                     <div class="job-track-stats">
                         <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
