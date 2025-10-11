@@ -135,7 +135,7 @@
                 <button id="add-entry">Add Entry</button>
                 <button id="save">Done</button>
             </div>
-            <div class="footer small">Employees default wages: Clayton $30/h, Ethan $22/h (editable in code later if needed)</div>
+            <div class="footer small">Employees default wages: Clayton $50/h, Ethan $25/h (all hours billable)</div>
         </div>
     </div>
 
@@ -186,8 +186,8 @@
 
         // Employees fixed
         const EMPLOYEES = [
-            { id:'emp_clayton', name:'Clayton', wage:30 },
-            { id:'emp_ethan', name:'Ethan', wage:22 }
+            { id:'emp_clayton', name:'Clayton', wage:50 },
+            { id:'emp_ethan', name:'Ethan', wage:25 }
         ];
 
         function ymd(date) { return date.toISOString().split('T')[0]; }
