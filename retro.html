@@ -37,7 +37,8 @@
         .expense-row input[type="number"] { width:80px; }
         .expense-row input[type="text"] { flex:1; }
         .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
-        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:6px 0; border-radius:4px; border-left:4px solid #888; }
+        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:6px 0; border-radius:4px; border-left:4px solid #888; cursor:pointer; transition:background-color 0.2s; }
+        .job-track-item:hover { background:#f0f0f0; }
         .job-track-item.profit { border-left-color:#4CAF50; }
         .job-track-item.loss { border-left-color:#f44336; }
         .job-track-item.neutral { border-left-color:#ff9800; }
@@ -139,13 +140,34 @@
         </div>
     </div>
 
+    <div id="job-edit-modal" class="modal">
+        <div class="modal-inner" style="width: 400px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong id="job-edit-title">Edit Job</strong>
+                <button id="job-edit-close">x</button>
+            </div>
+            
+            <div class="row"><label>Job Name</label><input id="edit-job-name" type="text"></div>
+            <div class="row"><label>Customer</label>
+                <select id="edit-job-customer"></select>
+            </div>
+            <div class="row"><label>Job Color</label><input id="edit-job-color" type="color" value="#2f7afe"></div>
+
+            <div class="actions">
+                <button id="save-job-edit">Save Changes</button>
+                <button id="delete-job" style="background:#ff4444; color:white;">Delete Job</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     (function() {
         const $ = (id) => document.getElementById(id);
         const state = {
             current: new Date(),
             selectedISO: null,
-            expenseRows: []
+            expenseRows: [],
+            editingJobId: null
         };
 
         // Minimal storage helpers
@@ -451,6 +473,129 @@
             }
         }
         
+        // Job editing functions
+        function openJobEditModal(jobId) {
+            const jobs = getJobs();
+            const customers = getCustomers();
+            const job = jobs.find(j => j.id === jobId);
+            
+            if (!job) return;
+            
+            // Store the job ID for editing
+            state.editingJobId = jobId;
+            
+            // Populate the form
+            $('edit-job-name').value = job.name;
+            $('edit-job-color').value = job.color || '#2f7afe';
+            
+            // Populate customer dropdown
+            const customerSelect = $('edit-job-customer');
+            customerSelect.innerHTML = '';
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = customer.name;
+                if (customer.id === job.clientId) {
+                    option.selected = true;
+                }
+                customerSelect.appendChild(option);
+            });
+            
+            $('job-edit-modal').style.display = 'flex';
+        }
+        
+        function closeJobEditModal() {
+            $('job-edit-modal').style.display = 'none';
+            state.editingJobId = null;
+        }
+        
+        function saveJobEdit() {
+            if (!state.editingJobId) return;
+            
+            const jobs = getJobs();
+            const jobIndex = jobs.findIndex(j => j.id === state.editingJobId);
+            
+            if (jobIndex === -1) return;
+            
+            const newName = $('edit-job-name').value.trim();
+            const newCustomerId = $('edit-job-customer').value;
+            const newColor = $('edit-job-color').value;
+            
+            if (!newName) {
+                alert('Job name is required');
+                return;
+            }
+            
+            if (!newCustomerId) {
+                alert('Please select a customer');
+                return;
+            }
+            
+            // Update the job
+            jobs[jobIndex].name = newName;
+            jobs[jobIndex].clientId = newCustomerId;
+            jobs[jobIndex].color = newColor;
+            
+            setJobs(jobs);
+            
+            // Update all calendar entries that reference this job
+            updateJobInCalendar(state.editingJobId, newName, newColor);
+            
+            closeJobEditModal();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        function deleteJob() {
+            if (!state.editingJobId) return;
+            
+            if (!confirm('Are you sure you want to delete this job? This will remove it from all calendar entries.')) {
+                return;
+            }
+            
+            const jobs = getJobs();
+            const jobIndex = jobs.findIndex(j => j.id === state.editingJobId);
+            
+            if (jobIndex === -1) return;
+            
+            // Remove the job
+            jobs.splice(jobIndex, 1);
+            setJobs(jobs);
+            
+            // Remove job references from calendar entries
+            removeJobFromCalendar(state.editingJobId);
+            
+            closeJobEditModal();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        function updateJobInCalendar(jobId, newName, newColor) {
+            const days = getDays();
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.jobId === jobId) {
+                        // Update job name and color in the entry
+                        entry.jobName = newName;
+                        entry.jobColor = newColor;
+                    }
+                });
+                setDayEntries(date, entries);
+            });
+        }
+        
+        function removeJobFromCalendar(jobId) {
+            const days = getDays();
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                const filteredEntries = entries.filter(entry => entry.jobId !== jobId);
+                if (filteredEntries.length !== entries.length) {
+                    setDayEntries(date, filteredEntries);
+                }
+            });
+        }
+        
         function deleteEntry(index) {
             const entries = getDayEntries(state.selectedISO);
             entries.splice(index, 1);
@@ -680,6 +825,10 @@
                         ${job.lastActivity ? `<div style="font-size:10px; color:#888; margin-top:2px;">Last: ${new Date(job.lastActivity).toLocaleDateString()}</div>` : ''}
                     </div>
                 `;
+                
+                // Add click event to edit the job
+                div.addEventListener('click', () => openJobEditModal(job.id));
+                
                 container.appendChild(div);
             });
         }
@@ -691,6 +840,11 @@
         $('add-entry').onclick = addEntry;
         $('add-expense-row').onclick = ()=> addExpenseRow();
         $('save').onclick = saveDay;
+        
+        // Job edit modal events
+        $('job-edit-close').onclick = closeJobEditModal;
+        $('save-job-edit').onclick = saveJobEdit;
+        $('delete-job').onclick = deleteJob;
 
         // Seed example if empty (to make it feel alive)
         if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
