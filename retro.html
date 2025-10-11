@@ -29,6 +29,10 @@
         .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
         .capsule { border:1px solid #ccc; padding:2px 6px; border-radius:10px; font-size:11px; display:inline-block; margin-right:6px; }
         .footer { margin-top:8px; font-size:12px; color:#666; }
+        .entry-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:4px 0; border-radius:4px; }
+        .entry-item .entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .entry-item .entry-details { font-size:12px; color:#666; }
+        .delete-entry { background:#ff4444; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
     </style>
 </head>
 <body>
@@ -62,11 +66,20 @@
     </div>
 
     <div id="modal" class="modal">
-        <div class="modal-inner">
+        <div class="modal-inner" style="width: 500px; max-height: 80vh; overflow-y: auto;">
             <div style="display:flex;justify-content:space-between;align-items:center;">
                 <strong id="form-date">Edit Day</strong>
                 <button id="close">x</button>
             </div>
+            
+            <div id="existing-entries" style="margin-bottom: 16px;">
+                <h3 style="margin: 8px 0; font-size: 14px;">Existing Entries</h3>
+                <div id="entries-list"></div>
+            </div>
+            
+            <hr style="margin: 12px 0;">
+            
+            <h3 style="margin: 8px 0; font-size: 14px;">Add New Entry</h3>
             <div class="row"><label>Customer</label>
                 <select id="customer"></select>
             </div>
@@ -86,7 +99,8 @@
             <div class="row"><label>Expense note</label><input id="expenseNote" type="text" placeholder="(optional)"></div>
 
             <div class="actions">
-                <button id="save">Save</button>
+                <button id="add-entry">Add Entry</button>
+                <button id="save">Done</button>
             </div>
             <div class="footer small">Employees default wages: Clayton $30/h, Ethan $22/h (editable in code later if needed)</div>
         </div>
@@ -112,6 +126,19 @@
         function setJobs(v) { save('jobs', v); }
         function getDays() { return load('dayEntries', {}); }
         function setDays(v) { save('dayEntries', v); }
+        
+        // Helper to get entries for a specific day
+        function getDayEntries(iso) {
+            const days = getDays();
+            return days[iso] || [];
+        }
+        
+        // Helper to save entries for a specific day
+        function setDayEntries(iso, entries) {
+            const days = getDays();
+            days[iso] = entries;
+            setDays(days);
+        }
 
         // Employees fixed
         const EMPLOYEES = [
@@ -148,21 +175,23 @@
                     if (date.getMonth()!==month) cell.style.background='#fbfbfb';
                     const num = document.createElement('div'); num.className='date'; num.textContent = date.getDate(); cell.appendChild(num);
 
-                    // badge from saved entry
+                    // badges from saved entries
                     const iso = ymd(date);
-                    const dayEntries = getDays();
-                    const entry = dayEntries[iso];
-                    if (entry) {
+                    const entries = getDayEntries(iso);
+                    if (entries.length > 0) {
                         const jobs = getJobs();
-                        const job = jobs.find(j => j.id === entry.jobId);
-                        const badge = document.createElement('span');
-                        badge.className='badge';
-                        const color = (job && job.color) ? job.color : '#888';
-                        badge.style.borderLeftColor = color;
-                        const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
-                        const rev = entry.revenue||0;
-                        badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • $${rev}`;
-                        cell.appendChild(badge);
+                        entries.forEach((entry, idx) => {
+                            const job = jobs.find(j => j.id === entry.jobId);
+                            const badge = document.createElement('span');
+                            badge.className='badge';
+                            const color = (job && job.color) ? job.color : '#888';
+                            badge.style.borderLeftColor = color;
+                            const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                            const rev = entry.revenue||0;
+                            badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • $${rev}`;
+                            if (entries.length > 1) badge.textContent += ` (${idx+1})`;
+                            cell.appendChild(badge);
+                        });
                     }
 
                     cell.addEventListener('click', ()=> openModal(date));
@@ -195,7 +224,57 @@
         function openModal(date) {
             state.selectedISO = ymd(date);
             $('form-date').textContent = `Day: ${date.toLocaleDateString()}`;
-            // populate selects
+            
+            // Show existing entries
+            renderExistingEntries();
+            
+            // populate selects for new entry
+            populateSelects();
+            
+            // Clear form for new entry
+            clearForm();
+
+            $('modal').style.display = 'flex';
+        }
+        
+        function renderExistingEntries() {
+            const entries = getDayEntries(state.selectedISO);
+            const container = $('entries-list');
+            container.innerHTML = '';
+            
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic;">No entries yet</div>';
+                return;
+            }
+            
+            const customers = getCustomers();
+            const jobs = getJobs();
+            
+            entries.forEach((entry, idx) => {
+                const div = document.createElement('div');
+                div.className = 'entry-item';
+                
+                const customer = customers.find(c => c.id === entry.clientId);
+                const job = jobs.find(j => j.id === entry.jobId);
+                const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                const revenue = entry.revenue||0;
+                const expenses = (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                const profit = revenue - (entry.totals?.labor||0) - expenses;
+                
+                div.innerHTML = `
+                    <div class="entry-header">
+                        <strong>${job ? job.name : 'No Job'} (${customer ? customer.name : 'No Customer'})</strong>
+                        <button class="delete-entry" onclick="deleteEntry(${idx})">Delete</button>
+                    </div>
+                    <div class="entry-details">
+                        ${hours}h • $${revenue} revenue • $${expenses} expenses • $${profit.toFixed(2)} profit
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function populateSelects() {
             const customers = getCustomers();
             const jobs = getJobs();
             const custSel = $('customer'); custSel.innerHTML = '';
@@ -208,26 +287,35 @@
                 const cid = custSel.value; jobSel.innerHTML=''; const o0=document.createElement('option'); o0.value=''; o0.textContent='(select)'; jobSel.appendChild(o0);
                 jobs.filter(j=>j.clientId===cid).forEach(j=>{ const o=document.createElement('option'); o.value=j.id; o.textContent=j.name; jobSel.appendChild(o); });
             };
-
-            // load existing entry
-            const day = getDays()[state.selectedISO] || {};
-            if (day.clientId) { custSel.value = day.clientId; custSel.onchange(); }
-            if (day.jobId) { jobSel.value = day.jobId; }
-            $('jobColor').value = (jobs.find(j=>j.id===day.jobId)?.color) || '#2f7afe';
-            const mh = day.manHours||[];
-            $('hrsC').value = (mh.find(m=>m.employeeId==='emp_clayton')?.hours)||0;
-            $('hrsE').value = (mh.find(m=>m.employeeId==='emp_ethan')?.hours)||0;
-            $('revenue').value = day.revenue||0;
-            const exp = (day.expenses && day.expenses[0]) || null;
-            $('expenseAmt').value = exp ? exp.amount : 0;
-            $('expenseNote').value = exp ? exp.note : '';
-
-            $('modal').style.display = 'flex';
         }
+        
+        function clearForm() {
+            $('customer').value = '';
+            $('newCustomer').value = '';
+            $('job').innerHTML = '<option value="">(select)</option>';
+            $('newJob').value = '';
+            $('jobColor').value = '#2f7afe';
+            $('hrsC').value = '0';
+            $('hrsE').value = '0';
+            $('revenue').value = '0';
+            $('expenseAmt').value = '0';
+            $('expenseNote').value = '';
+        }
+        
+        function deleteEntry(index) {
+            const entries = getDayEntries(state.selectedISO);
+            entries.splice(index, 1);
+            setDayEntries(state.selectedISO, entries);
+            renderExistingEntries();
+            renderCalendar();
+        }
+        
+        // Make deleteEntry global for onclick handlers
+        window.deleteEntry = deleteEntry;
 
         function closeModal() { $('modal').style.display = 'none'; }
 
-        function saveDay() {
+        function addEntry() {
             const newCustName = $('newCustomer').value.trim();
             const custSel = $('customer').value;
             let customerId = custSel;
@@ -250,8 +338,8 @@
             const expenses = expenseAmt>0 ? [{ amount: expenseAmt, note: expenseNote }] : [];
             const profit = revenue - labor - expenses.reduce((s,e)=>s+e.amount,0);
 
-            const days = getDays();
-            days[state.selectedISO] = {
+            const newEntry = {
+                id: `entry_${Date.now()}`,
                 date: state.selectedISO,
                 clientId: customerId,
                 jobId,
@@ -263,9 +351,19 @@
                 expenses,
                 totals:{ labor, expenses: expenses.reduce((s,e)=>s+e.amount,0), revenue, profit }
             };
-            setDays(days);
-            closeModal();
+            
+            const entries = getDayEntries(state.selectedISO);
+            entries.push(newEntry);
+            setDayEntries(state.selectedISO, entries);
+            
+            // Clear form and refresh display
+            clearForm();
+            renderExistingEntries();
             renderCalendar();
+        }
+        
+        function saveDay() {
+            closeModal();
         }
 
         function renderJobsTable() {
@@ -286,11 +384,20 @@
 
         function jobStats(jobId, daysMap) {
             let revenue=0, labor=0, expenses=0;
-            Object.values(daysMap).forEach(d => {
-                if (d.jobId===jobId) {
-                    revenue += d.revenue||0;
-                    labor   += (d.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
-                    expenses+= (d.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+            Object.values(daysMap).forEach(entries => {
+                if (Array.isArray(entries)) {
+                    entries.forEach(d => {
+                        if (d.jobId===jobId) {
+                            revenue += d.revenue||0;
+                            labor   += (d.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
+                            expenses+= (d.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                        }
+                    });
+                } else if (entries.jobId===jobId) {
+                    // Handle old single-entry format for backward compatibility
+                    revenue += entries.revenue||0;
+                    labor   += (entries.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
+                    expenses+= (entries.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
                 }
             });
             return { revenue, labor, expenses };
@@ -313,17 +420,21 @@
             const customers = getCustomers(); const jobs = getJobs();
             for (let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
                 const iso = ymd(d);
-                const entry = days[iso];
-                if (!entry) continue;
-                const client = customers.find(c=>c.id===entry.clientId);
-                const job = jobs.find(j=>j.id===entry.jobId);
-                const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${d.toLocaleDateString()}</td><td>${client?client.name:''}</td><td>${job?job.name:''}</td>`+
-                    `<td>${hours}</td><td>$${(entry.revenue||0).toFixed(2)}</td>`+
-                    `<td>$${((entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0)).toFixed(2)}</td>`+
-                    `<td>$${(entry.totals?entry.totals.profit:((entry.revenue||0) - (entry.manHours||[]).reduce((s,m)=>s+(m.cost||0),0) - (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0))).toFixed(2)}</td>`;
-                tbody.appendChild(tr);
+                const entries = getDayEntries(iso);
+                if (entries.length === 0) continue;
+                
+                entries.forEach((entry, idx) => {
+                    const client = customers.find(c=>c.id===entry.clientId);
+                    const job = jobs.find(j=>j.id===entry.jobId);
+                    const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                    const tr = document.createElement('tr');
+                    const dateStr = idx === 0 ? d.toLocaleDateString() : '';
+                    tr.innerHTML = `<td>${dateStr}</td><td>${client?client.name:''}</td><td>${job?job.name:''}</td>`+
+                        `<td>${hours}</td><td>$${(entry.revenue||0).toFixed(2)}</td>`+
+                        `<td>$${((entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0)).toFixed(2)}</td>`+
+                        `<td>$${(entry.totals?entry.totals.profit:((entry.revenue||0) - (entry.manHours||[]).reduce((s,m)=>s+(m.cost||0),0) - (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0))).toFixed(2)}</td>`;
+                    tbody.appendChild(tr);
+                });
             }
         }
 
@@ -331,6 +442,7 @@
         $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); };
         $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); };
         $('close').onclick = closeModal;
+        $('add-entry').onclick = addEntry;
         $('save').onclick = saveDay;
 
         // Seed example if empty (to make it feel alive)
