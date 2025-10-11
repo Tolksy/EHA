@@ -176,6 +176,218 @@
         </div>
     </div>
 
+    <!-- Job Tracking Page Modal -->
+    <div id="job-tracking-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; overflow-y:auto;">
+        <div style="max-width:800px; margin:0 auto; padding:20px; font-family:Arial, sans-serif; line-height:1.6;">
+            <!-- Header -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:15px;">
+                <h1 style="margin:0; font-size:28px; color:#333;">Project Snapshot</h1>
+                <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
+            </div>
+
+            <!-- Section 1: Project & Client Identification -->
+            <div style="margin-bottom:30px;">
+                <h2 style="color:#2c5aa0; border-bottom:1px solid #2c5aa0; padding-bottom:5px; margin-bottom:20px;">Project & Client Identification</h2>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Project Name:</label>
+                        <input type="text" id="project-name" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Job Number / Project ID:</label>
+                        <input type="text" id="job-number" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div style="grid-column:1/-1;">
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Project Address:</label>
+                        <input type="text" id="project-address" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Client Name(s):</label>
+                        <input type="text" id="client-name" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Client Phone Number:</label>
+                        <input type="text" id="client-phone" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Client Email:</label>
+                        <input type="email" id="client-email" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Billing Address:</label>
+                        <input type="text" id="billing-address" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Date Quote Sent:</label>
+                        <input type="date" id="quote-date" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Date Contract Signed:</label>
+                        <input type="date" id="contract-date" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Projected Start Date:</label>
+                        <input type="date" id="start-date" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Projected Completion Date:</label>
+                        <input type="date" id="projected-completion" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Actual Completion Date:</label>
+                        <input type="date" id="actual-completion" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Financial Tracking -->
+            <div style="margin-bottom:30px;">
+                <h2 style="color:#2c5aa0; border-bottom:1px solid #2c5aa0; padding-bottom:5px; margin-bottom:20px;">Financial Tracking</h2>
+                
+                <h3 style="color:#444; margin-bottom:15px;">Contract & Billing Summary</h3>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:25px; border:1px solid #ccc;">
+                    <thead>
+                        <tr style="background:#f5f5f5;">
+                            <th style="border:1px solid #ccc; padding:10px; text-align:left; font-weight:bold;">Item</th>
+                            <th style="border:1px solid #ccc; padding:10px; text-align:right; font-weight:bold;">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Original Contract Amount</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="contract-amount" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Change Orders Total</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="change-orders" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Revised Contract Total</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="revised-total" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Total Invoiced to Date</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="total-invoiced" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Total Payments Received</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="payments-received" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr style="background:#f9f9f9; font-weight:bold;"><td style="border:1px solid #ccc; padding:8px;">Amount Outstanding</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="amount-outstanding" style="width:120px; border:none; text-align:right; font-size:14px; font-weight:bold;" placeholder="0.00"></td></tr>
+                    </tbody>
+                </table>
+
+                <h3 style="color:#444; margin-bottom:15px;">Detailed Cost Breakdown</h3>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:25px; border:1px solid #ccc;">
+                    <thead>
+                        <tr style="background:#f5f5f5;">
+                            <th style="border:1px solid #ccc; padding:10px; text-align:left; font-weight:bold;">Cost Category</th>
+                            <th style="border:1px solid #ccc; padding:10px; text-align:right; font-weight:bold;">Amount ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Materials</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="materials-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Subcontractors</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="subcontractors-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Permits & Fees</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="permits-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Equipment Rentals</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="equipment-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Waste Disposal</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="waste-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Contingency / Miscellaneous</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="contingency-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:8px;">Total Labor Cost</td><td style="border:1px solid #ccc; padding:8px; text-align:right;"><input type="number" id="labor-cost" style="width:120px; border:none; text-align:right; font-size:14px;" placeholder="0.00"></td></tr>
+                    </tbody>
+                </table>
+
+                <h3 style="color:#444; margin-bottom:15px;">Profitability Snapshot</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Total Estimated Cost:</label>
+                        <input type="number" id="estimated-cost" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Actual Cost to Date:</label>
+                        <input type="number" id="actual-cost" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Estimated Profit / Loss:</label>
+                        <input type="number" id="estimated-profit" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label style="display:block; font-weight:bold; margin-bottom:5px;">Real-time Profit / Loss:</label>
+                        <input type="number" id="realtime-profit" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px; font-size:14px;" placeholder="0.00">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Project Management & Logistics -->
+            <div style="margin-bottom:30px;">
+                <h2 style="color:#2c5aa0; border-bottom:1px solid #2c5aa0; padding-bottom:5px; margin-bottom:20px;">Project Management & Logistics</h2>
+                
+                <h3 style="color:#444; margin-bottom:15px;">Key Milestones & Schedule</h3>
+                <div style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center;">
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="permit-acquired" style="margin-right:10px;">
+                        Permit Acquired
+                    </label>
+                    <input type="date" id="permit-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="demolition-complete" style="margin-right:10px;">
+                        Demolition Complete
+                    </label>
+                    <input type="date" id="demolition-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="framing-complete" style="margin-right:10px;">
+                        Framing & Rough-ins Complete
+                    </label>
+                    <input type="date" id="framing-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="inspections-passed" style="margin-right:10px;">
+                        Key Inspections Passed
+                    </label>
+                    <input type="date" id="inspections-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="drywall-complete" style="margin-right:10px;">
+                        Drywall & Painting Complete
+                    </label>
+                    <input type="date" id="drywall-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="walkthrough-complete" style="margin-right:10px;">
+                        Final Walkthrough with Client
+                    </label>
+                    <input type="date" id="walkthrough-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                    
+                    <label style="display:flex; align-items:center; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        <input type="checkbox" id="project-signed-off" style="margin-right:10px;">
+                        Project Signed Off
+                    </label>
+                    <input type="date" id="signed-off-date" style="padding:6px; border:1px solid #ccc; border-radius:4px; font-size:12px;">
+                </div>
+            </div>
+
+            <!-- Section 4: Change Orders & Communication Log -->
+            <div style="margin-bottom:30px;">
+                <h2 style="color:#2c5aa0; border-bottom:1px solid #2c5aa0; padding-bottom:5px; margin-bottom:20px;">Change Orders & Communication Log</h2>
+                
+                <h3 style="color:#444; margin-bottom:15px;">Change Order Log</h3>
+                <table style="width:100%; border-collapse:collapse; margin-bottom:25px; border:1px solid #ccc;">
+                    <thead>
+                        <tr style="background:#f5f5f5;">
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left; font-weight:bold;">CO #</th>
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left; font-weight:bold;">Date</th>
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left; font-weight:bold;">Description of Change</th>
+                            <th style="border:1px solid #ccc; padding:8px; text-align:right; font-weight:bold;">Cost Impact</th>
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left; font-weight:bold;">Schedule Impact</th>
+                            <th style="border:1px solid #ccc; padding:8px; text-align:left; font-weight:bold;">Client Approval Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:60px; border:none; font-size:12px;" placeholder="CO-1"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Description"></td><td style="border:1px solid #ccc; padding:6px;"><input type="number" style="width:80px; border:none; text-align:right; font-size:12px;" placeholder="0.00"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Impact"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:60px; border:none; font-size:12px;" placeholder="CO-2"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Description"></td><td style="border:1px solid #ccc; padding:6px;"><input type="number" style="width:80px; border:none; text-align:right; font-size:12px;" placeholder="0.00"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Impact"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td></tr>
+                        <tr><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:60px; border:none; font-size:12px;" placeholder="CO-3"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Description"></td><td style="border:1px solid #ccc; padding:6px;"><input type="number" style="width:80px; border:none; text-align:right; font-size:12px;" placeholder="0.00"></td><td style="border:1px solid #ccc; padding:6px;"><input type="text" style="width:100%; border:none; font-size:12px;" placeholder="Impact"></td><td style="border:1px solid #ccc; padding:6px;"><input type="date" style="border:none; font-size:12px;"></td></tr>
+                    </tbody>
+                </table>
+
+                <h3 style="color:#444; margin-bottom:15px;">Daily / Weekly Notes Log</h3>
+                <textarea id="notes-log" style="width:100%; height:200px; padding:10px; border:1px solid #ccc; border-radius:4px; font-size:14px; font-family:Arial, sans-serif; resize:vertical;" placeholder="Enter daily and weekly project notes here..."></textarea>
+            </div>
+
+            <!-- Save Button -->
+            <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #ddd;">
+                <button id="save-job-tracking" style="background:#4CAF50; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px; margin-right:10px;">Save Project Data</button>
+                <button id="print-job-tracking" style="background:#2196F3; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px;">Print / Export</button>
+            </div>
+        </div>
+    </div>
+
     <script>
     (function() {
         const $ = (id) => document.getElementById(id);
@@ -769,6 +981,75 @@
             });
         }
         
+        // Job Tracking Page Functions
+        function openJobTrackingPage(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            // Populate the form with existing job data
+            $('project-name').value = job.name || '';
+            $('job-number').value = job.id || '';
+            $('client-name').value = customer ? customer.name : '';
+            
+            // Load saved project data if it exists
+            const projectData = load(`project_${jobId}`, {});
+            if (projectData) {
+                Object.keys(projectData).forEach(key => {
+                    const element = $(key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            element.checked = projectData[key] || false;
+                        } else {
+                            element.value = projectData[key] || '';
+                        }
+                    }
+                });
+            }
+            
+            // Show the job tracking page
+            $('job-tracking-page').style.display = 'block';
+        }
+        
+        function closeJobTrackingPage() {
+            $('job-tracking-page').style.display = 'none';
+        }
+        
+        function saveJobTrackingData() {
+            const jobId = $('job-number').value;
+            if (!jobId) return;
+            
+            // Collect all form data
+            const projectData = {};
+            const inputs = $('job-tracking-page').querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    projectData[input.id] = input.checked;
+                } else {
+                    projectData[input.id] = input.value;
+                }
+            });
+            
+            // Save to localStorage
+            save(`project_${jobId}`, projectData);
+            
+            // Show success message
+            alert('Project data saved successfully!');
+        }
+        
+        function printJobTrackingData() {
+            // Hide buttons for printing
+            const buttons = $('job-tracking-page').querySelectorAll('button');
+            buttons.forEach(btn => btn.style.display = 'none');
+            
+            // Print the page
+            window.print();
+            
+            // Show buttons again
+            buttons.forEach(btn => btn.style.display = 'inline-block');
+        }
+        
         function deleteEntry(index) {
             const entries = getDayEntries(state.selectedISO);
             entries.splice(index, 1);
@@ -999,8 +1280,8 @@
                     </div>
                 `;
                 
-                // Add click event to edit the job
-                div.addEventListener('click', () => openJobEditModal(job.id));
+                // Add click event to open job tracking page
+                div.addEventListener('click', () => openJobTrackingPage(job.id));
                 
                 container.appendChild(div);
             });
@@ -1021,6 +1302,11 @@
         $('save-job-edit').onclick = saveJobEdit;
         $('delete-job').onclick = deleteJob;
         $('add-job-expense-row').onclick = ()=> addJobExpenseRow();
+        
+        // Job tracking page events
+        $('close-job-tracking').onclick = closeJobTrackingPage;
+        $('save-job-tracking').onclick = saveJobTrackingData;
+        $('print-job-tracking').onclick = printJobTrackingData;
 
         // Seed example if empty (to make it feel alive)
         if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
