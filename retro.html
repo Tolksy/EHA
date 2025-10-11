@@ -15,6 +15,7 @@
         .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
         .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; pointer-events:none; }
         .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+        .day-number { position:absolute; top:4px; left:6px; font-size:11px; color:#555; font-weight:bold; }
         .legend { font-size:12px; margin:8px 0; }
         .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
         table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -51,15 +52,6 @@
         .profit-amount.positive { color:#4CAF50; }
         .profit-amount.negative { color:#4CAF50; }
         .profit-amount.neutral { color:#4CAF50; }
-        .week-cashflow { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:6px 0; border-radius:4px; border-left:4px solid #888; }
-        .week-cashflow.positive { border-left-color:#4CAF50; }
-        .week-cashflow.negative { border-left-color:#f44336; }
-        .week-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .week-dates { font-weight:bold; font-size:12px; }
-        .week-amount { font-weight:bold; font-size:13px; }
-        .week-amount.positive { color:#4CAF50; }
-        .week-amount.negative { color:#f44336; }
-        .week-details { font-size:11px; color:#666; }
         
         /* Context Menu */
         .context-menu {
@@ -101,13 +93,6 @@
         </div>
         
         <div style="width:300px; background:#fff; border:1px solid #bbb; padding:12px; border-radius:4px;">
-            <h2 style="margin:0 0 12px 0; font-size:16px;">Weekly Cash Flow</h2>
-            <div id="weekly-cashflow" style="margin-bottom:16px;">
-                <div class="small" style="color:#999; font-style:italic;">Loading...</div>
-            </div>
-            
-            <hr style="margin: 12px 0;">
-            
             <h2 style="margin:0 0 12px 0; font-size:16px;">Job Tracking</h2>
             <div id="job-tracking" style="max-height:400px; overflow-y:auto;">
                 <div class="small" style="color:#999; font-style:italic;">Loading jobs...</div>
@@ -301,6 +286,12 @@
                     const cell = document.createElement('div'); cell.className='cal-cell';
                     if (date.getMonth()!==month) cell.style.background='#fbfbfb';
                     const num = document.createElement('div'); num.className='date'; num.textContent = date.getDate(); cell.appendChild(num);
+                    
+                    // Add small day number on the left
+                    const dayNum = document.createElement('div'); 
+                    dayNum.className='day-number'; 
+                    dayNum.textContent = date.getDate(); 
+                    cell.appendChild(dayNum);
 
                     // badges from saved entries
                     const iso = ymd(date);
@@ -350,7 +341,6 @@
             renderCustomersList();
             renderDaysTable(year, month);
             renderJobTracking();
-            renderWeeklyCashFlow();
         }
 
         function ensureCustomer(name) {
@@ -832,7 +822,6 @@
             renderExistingEntries();
             renderCalendar();
             renderJobTracking();
-            renderWeeklyCashFlow();
         }
         
         // Make deleteEntry global for onclick handlers
@@ -892,7 +881,6 @@
             renderExistingEntries();
             renderCalendar();
             renderJobTracking();
-            renderWeeklyCashFlow();
         }
         
         function saveDay() {
@@ -1070,86 +1058,6 @@
             });
         }
         
-        function renderWeeklyCashFlow() {
-            const container = $('weekly-cashflow');
-            const days = getDays();
-            const year = state.current.getFullYear();
-            const month = state.current.getMonth();
-            
-            // Get the first day of the month and calculate weeks
-            const firstDay = new Date(year, month, 1);
-            const startDate = new Date(firstDay);
-            startDate.setDate(firstDay.getDate() - firstDay.getDay()); // Start from Sunday
-            
-            const weeks = [];
-            for (let i = 0; i < 6; i++) {
-                const weekStart = new Date(startDate);
-                weekStart.setDate(startDate.getDate() + (i * 7));
-                const weekEnd = new Date(weekStart);
-                weekEnd.setDate(weekStart.getDate() + 6);
-                
-                // Only show weeks that have days in the current month
-                if (weekEnd.getMonth() >= month - 1 && weekStart.getMonth() <= month + 1) {
-                    weeks.push({ start: new Date(weekStart), end: new Date(weekEnd) });
-                }
-            }
-            
-            container.innerHTML = '';
-            
-            weeks.forEach(week => {
-                let totalCashFlow = 0;
-                let totalHours = 0;
-                let dayCount = 0;
-                
-                // Calculate cash flow for this week
-                for (let d = new Date(week.start); d <= week.end; d.setDate(d.getDate() + 1)) {
-                    const iso = ymd(d);
-                    const entries = getDayEntries(iso);
-                    
-                    if (entries.length > 0) {
-                        dayCount++;
-                        entries.forEach(entry => {
-                            if (entry.manHours) {
-                                const claytonHours = entry.manHours.find(m => m.employeeId === 'emp_clayton')?.hours || 0;
-                                const ethanHours = entry.manHours.find(m => m.employeeId === 'emp_ethan')?.hours || 0;
-                                const weekCashFlow = (claytonHours * 50) + (ethanHours * 25);
-                                totalCashFlow += weekCashFlow;
-                                totalHours += claytonHours + ethanHours;
-                            }
-                        });
-                    }
-                }
-                
-                // Only show weeks with activity
-                if (dayCount > 0) {
-                    const div = document.createElement('div');
-                    div.className = 'week-cashflow';
-                    
-                    const isPositive = totalCashFlow >= 0;
-                    div.classList.add(isPositive ? 'positive' : 'negative');
-                    
-                    const weekLabel = `${week.start.getMonth() + 1}/${week.start.getDate()}-${week.end.getMonth() + 1}/${week.end.getDate()}`;
-                    
-                    div.innerHTML = `
-                        <div class="week-header">
-                            <div class="week-dates">Week ${weekLabel}</div>
-                            <div class="week-amount ${isPositive ? 'positive' : 'negative'}">
-                                ${isPositive ? '+' : ''}$${totalCashFlow.toFixed(0)}
-                            </div>
-                        </div>
-                        <div class="week-details">
-                            ${totalHours.toFixed(1)}h • ${dayCount} day${dayCount !== 1 ? 's' : ''}
-                        </div>
-                    `;
-                    
-                    container.appendChild(div);
-                }
-            });
-            
-            if (container.children.length === 0) {
-                container.innerHTML = '<div class="small" style="color:#999; font-style:italic;">No activity this month</div>';
-            }
-        }
 
         // Context Menu Functions
         function showContextMenu(e, type, data) {
@@ -1196,7 +1104,6 @@
                         setDayEntries(data.date, entries);
                         renderCalendar();
                         renderJobTracking();
-                        renderWeeklyCashFlow();
                     }
                     break;
                     
@@ -1212,7 +1119,6 @@
                         }
                         renderCalendar();
                         renderJobTracking();
-                        renderWeeklyCashFlow();
                     }
                     break;
                     
