@@ -400,6 +400,57 @@
         window.removeExpenseRow = removeExpenseRow;
         window.updateExpenseRow = updateExpenseRow;
         
+        // Function to update all existing entries with new wage rates
+        function updateAllWageRates() {
+            const days = getDays();
+            let updated = false;
+            
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.manHours) {
+                        entry.manHours.forEach(manHour => {
+                            // Update wage rates based on employee ID
+                            if (manHour.employeeId === 'emp_clayton' && manHour.wage !== 50) {
+                                manHour.wage = 50;
+                                manHour.cost = manHour.hours * 50;
+                                updated = true;
+                            } else if (manHour.employeeId === 'emp_ethan' && manHour.wage !== 25) {
+                                manHour.wage = 25;
+                                manHour.cost = manHour.hours * 25;
+                                updated = true;
+                            }
+                        });
+                        
+                        // Recalculate totals if wages were updated
+                        if (updated) {
+                            const labor = entry.manHours.reduce((sum, m) => sum + (m.cost || 0), 0);
+                            const expenses = (entry.expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+                            const revenue = entry.revenue || 0;
+                            const profit = revenue - labor - expenses;
+                            
+                            entry.totals = {
+                                labor,
+                                expenses,
+                                revenue,
+                                profit
+                            };
+                        }
+                    }
+                });
+                
+                if (updated) {
+                    setDayEntries(date, entries);
+                }
+            });
+            
+            if (updated) {
+                console.log('Updated all entries with new wage rates');
+                renderCalendar();
+                renderJobTracking();
+            }
+        }
+        
         function deleteEntry(index) {
             const entries = getDayEntries(state.selectedISO);
             entries.splice(index, 1);
@@ -651,6 +702,9 @@
         // Seed example if empty (to make it feel alive)
         if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
         if (getJobs().length===0) { setJobs([{ id:'job_demo', name:'6042 Hall Road', clientId:'cus_demo', color:'#2f7afe', created:new Date().toISOString() }]); }
+
+        // Update all existing entries with new wage rates
+        updateAllWageRates();
 
         renderCalendar();
     })();
