@@ -1548,9 +1548,63 @@
             $('record-end-time').value = '';
             $('record-notes').value = '';
             
-            // Reset labour and expense lists
-            resetLabourEstimateList();
-            resetExpensesList();
+            // Gather all calendar entries for this job
+            const days = getDays();
+            let totalClaytonHours = 0;
+            let totalEthanHours = 0;
+            const allExpenses = [];
+            const laborByDate = [];
+            
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.jobId === jobId) {
+                        // Collect hours
+                        let claytonHours = 0;
+                        let ethanHours = 0;
+                        
+                        if (entry.manHours) {
+                            entry.manHours.forEach(mh => {
+                                if (mh.employeeId === 'emp_clayton') {
+                                    claytonHours += mh.hours || 0;
+                                    totalClaytonHours += mh.hours || 0;
+                                } else if (mh.employeeId === 'emp_ethan') {
+                                    ethanHours += mh.hours || 0;
+                                    totalEthanHours += mh.hours || 0;
+                                }
+                            });
+                        }
+                        
+                        // Store labor by date if there are hours
+                        if (claytonHours > 0 || ethanHours > 0) {
+                            const dateObj = new Date(date);
+                            laborByDate.push({
+                                date: dateObj.toLocaleDateString(),
+                                claytonHours,
+                                ethanHours,
+                                totalHours: claytonHours + ethanHours
+                            });
+                        }
+                        
+                        // Collect expenses
+                        if (entry.expenses && entry.expenses.length > 0) {
+                            entry.expenses.forEach(expense => {
+                                allExpenses.push({
+                                    description: expense.note || 'Expense',
+                                    amount: expense.amount || 0
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Populate labour estimate list with calendar data
+            populateLabourEstimateFromCalendar(laborByDate, totalClaytonHours, totalEthanHours);
+            
+            // Populate expenses list with calendar data
+            populateExpensesFromCalendar(allExpenses);
+            
             updateBillableTotals();
             
             // Show the modal
@@ -1560,6 +1614,96 @@
         function closeJobRecordModal() {
             $('job-record-modal').style.display = 'none';
             state.recordModalJobId = null;
+        }
+        
+        function populateLabourEstimateFromCalendar(laborByDate, totalClaytonHours, totalEthanHours) {
+            const container = $('labour-estimate-list');
+            container.innerHTML = '';
+            
+            // If there's data from the calendar, populate it
+            if (laborByDate.length > 0) {
+                // Add entries for each date
+                laborByDate.forEach(labor => {
+                    if (labor.claytonHours > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <input type="text" value="Clayton - ${labor.date}" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                            <input type="number" value="${labor.claytonHours}" step="0.5" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                        `;
+                        container.appendChild(div);
+                    }
+                    
+                    if (labor.ethanHours > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <input type="text" value="Ethan - ${labor.date}" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                            <input type="number" value="${labor.ethanHours}" step="0.5" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                        `;
+                        container.appendChild(div);
+                    }
+                });
+                
+                // Add a summary row showing totals
+                if (totalClaytonHours > 0 || totalEthanHours > 0) {
+                    const divider = document.createElement('div');
+                    divider.style.borderTop = '1px solid #ccc';
+                    divider.style.marginTop = '8px';
+                    divider.style.marginBottom = '8px';
+                    divider.style.paddingTop = '8px';
+                    container.appendChild(divider);
+                    
+                    const summary = document.createElement('div');
+                    summary.style.fontSize = '12px';
+                    summary.style.fontWeight = 'bold';
+                    summary.style.marginBottom = '8px';
+                    summary.style.color = '#333';
+                    summary.innerHTML = `Total: Clayton ${totalClaytonHours}h, Ethan ${totalEthanHours}h`;
+                    container.appendChild(summary);
+                }
+            } else {
+                // No data, show empty field
+                const div = document.createElement('div');
+                div.className = 'labour-item';
+                div.style.marginBottom = '8px';
+                div.innerHTML = `
+                    <input type="text" placeholder="Task description" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                    <input type="number" placeholder="hrs" step="0.5" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                `;
+                container.appendChild(div);
+            }
+        }
+        
+        function populateExpensesFromCalendar(allExpenses) {
+            const container = $('expenses-list');
+            container.innerHTML = '';
+            
+            // If there are expenses from the calendar, populate them
+            if (allExpenses.length > 0) {
+                allExpenses.forEach(expense => {
+                    const div = document.createElement('div');
+                    div.className = 'expense-item';
+                    div.style.marginBottom = '8px';
+                    div.innerHTML = `
+                        <input type="text" value="${expense.description}" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                        <input type="number" value="${expense.amount}" step="0.01" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                    `;
+                    container.appendChild(div);
+                });
+            } else {
+                // No expenses, show empty field
+                const div = document.createElement('div');
+                div.className = 'expense-item';
+                div.style.marginBottom = '8px';
+                div.innerHTML = `
+                    <input type="text" placeholder="Description" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                    <input type="number" placeholder="$" step="0.01" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                `;
+                container.appendChild(div);
+            }
         }
         
         function resetLabourEstimateList() {
@@ -1609,12 +1753,26 @@
         }
         
         function updateBillableTotals() {
-            // Calculate labor total (assuming $50/hour for now)
-            const laborInputs = $('labour-estimate-list').querySelectorAll('input[type="number"]');
+            // Calculate labor total based on who did the work
+            const laborItems = $('labour-estimate-list').querySelectorAll('.labour-item');
             let laborTotal = 0;
-            laborInputs.forEach(input => {
-                const hours = parseFloat(input.value) || 0;
-                laborTotal += hours * 50; // $50/hour
+            
+            laborItems.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if (inputs.length >= 2) {
+                    const description = inputs[0].value.toLowerCase();
+                    const hours = parseFloat(inputs[1].value) || 0;
+                    
+                    // Check if it's Clayton or Ethan based on description
+                    if (description.includes('clayton')) {
+                        laborTotal += hours * 50; // Clayton: $50/hour
+                    } else if (description.includes('ethan')) {
+                        laborTotal += hours * 5; // Ethan: $5/hour
+                    } else {
+                        // Default to Clayton's rate if not specified
+                        laborTotal += hours * 50;
+                    }
+                }
             });
             
             // Calculate expenses total
@@ -1651,7 +1809,14 @@
                 const description = inputs[0].value.trim();
                 const hours = parseFloat(inputs[1].value) || 0;
                 if (description && hours > 0) {
-                    laborItems.push({ description, hours, cost: hours * 50 });
+                    // Determine rate based on who did the work
+                    let rate = 50; // Default to Clayton's rate
+                    if (description.toLowerCase().includes('ethan')) {
+                        rate = 5; // Ethan's rate
+                    } else if (description.toLowerCase().includes('clayton')) {
+                        rate = 50; // Clayton's rate
+                    }
+                    laborItems.push({ description, hours, rate, cost: hours * rate });
                 }
             });
             
@@ -1677,7 +1842,7 @@
             if (laborItems.length > 0) {
                 summary += `\nLabor:\n`;
                 laborItems.forEach(item => {
-                    summary += `• ${item.description}: ${item.hours}h ($${item.cost.toFixed(2)})\n`;
+                    summary += `• ${item.description}: ${item.hours}h @ $${item.rate}/hr = $${item.cost.toFixed(2)}\n`;
                 });
             }
             
