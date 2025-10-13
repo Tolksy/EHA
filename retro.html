@@ -347,6 +347,10 @@
                             <div id="total-profit-display" style="font-weight:bold; color:#f57c00;">$0.00</div>
                         </div>
                     </div>
+                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
+                        <div style="color:#666; font-size:12px; margin-bottom:5px;">Expenses Status</div>
+                        <div id="expenses-status-display" style="font-weight:bold; color:#333;">No expenses</div>
+                    </div>
                 </div>
             </div>
 
@@ -1198,6 +1202,9 @@
             let totalHours = 0;
             
             // Collect all entries for this job
+            let totalExpensesPaid = 0;
+            let totalExpensesUnpaid = 0;
+            
             Object.entries(days).forEach(([date, entries]) => {
                 const entryList = Array.isArray(entries) ? entries : [entries];
                 entryList.forEach(entry => {
@@ -1206,7 +1213,14 @@
                         totalRevenue += parseFloat(entry.revenue || 0);
                         totalHours += parseFloat(entry.manHours?.reduce((sum, h) => sum + parseFloat(h.hours || 0), 0) || 0);
                         if (entry.expenses && Array.isArray(entry.expenses)) {
-                            totalExpenses += entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                            const expenseAmount = entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                            totalExpenses += expenseAmount;
+                            
+                            if (entry.expensesPaid) {
+                                totalExpensesPaid += expenseAmount;
+                            } else {
+                                totalExpensesUnpaid += expenseAmount;
+                            }
                         }
                     }
                 });
@@ -1230,6 +1244,21 @@
             $('total-profit-display').textContent = `$${(totalRevenue - totalLabor - totalExpenses).toFixed(2)}`;
             $('total-cost-display').textContent = `${(totalLabor + totalExpenses).toFixed(2)}`;
             $('daily-avg-display').textContent = jobEntries.length > 0 ? `${((totalLabor + totalExpenses) / jobEntries.length).toFixed(2)}` : '0.00';
+            
+            // Update expenses status
+            if (totalExpenses === 0) {
+                $('expenses-status-display').textContent = 'No expenses';
+                $('expenses-status-display').style.color = '#666';
+            } else if (totalExpensesUnpaid === 0) {
+                $('expenses-status-display').textContent = `✅ All paid ($${totalExpensesPaid.toFixed(2)})`;
+                $('expenses-status-display').style.color = '#388e3c';
+            } else if (totalExpensesPaid === 0) {
+                $('expenses-status-display').textContent = `❌ None paid ($${totalExpensesUnpaid.toFixed(2)} pending)`;
+                $('expenses-status-display').style.color = '#d32f2f';
+            } else {
+                $('expenses-status-display').textContent = `🔄 Partial ($${totalExpensesPaid.toFixed(2)} paid, $${totalExpensesUnpaid.toFixed(2)} pending)`;
+                $('expenses-status-display').style.color = '#f57c00';
+            }
             
             // Create cost chart
             createCostChart(jobEntries);
@@ -1327,6 +1356,7 @@
                 const laborCost = entry.manHours ? entry.manHours.reduce((sum, h) => sum + (parseFloat(h.hours || 0) * (laborRates[h.name] || 0)), 0) : 0;
                 const expenseCost = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
                 const totalHours = entry.manHours ? entry.manHours.reduce((sum, h) => sum + parseFloat(h.hours || 0), 0) : 0;
+                const expensesPaid = entry.expensesPaid || false;
                 
                 const dayElement = document.createElement('div');
                 dayElement.style.cssText = 'border:1px solid #ddd; border-radius:6px; padding:12px; margin-bottom:8px; background:white; cursor:pointer; transition:all 0.2s;';
@@ -1344,12 +1374,15 @@
                         </div>
                         <div>
                             <div style="color:#666;">Expenses: <span style="color:#d32f2f; font-weight:bold;">$${expenseCost.toFixed(2)}</span></div>
-                            <div style="color:#666;">Total: <span style="color:#333; font-weight:bold;">$${(laborCost + expenseCost).toFixed(2)}</span></div>
+                            <div style="color:#666;">Expenses Paid: <span style="color:#${expensesPaid ? '388e3c' : '#d32f2f'}; font-weight:bold;">${expensesPaid ? '✅ Yes' : '❌ No'}</span></div>
                         </div>
                         <div>
+                            <div style="color:#666;">Total Cost: <span style="color:#333; font-weight:bold;">$${(laborCost + expenseCost).toFixed(2)}</span></div>
                             <div style="color:#666;">Profit: <span style="color:#${(parseFloat(entry.revenue || 0) - laborCost - expenseCost) >= 0 ? '388e3c' : 'd32f2f'}; font-weight:bold;">$${(parseFloat(entry.revenue || 0) - laborCost - expenseCost).toFixed(2)}</span></div>
-                            <div style="color:#666; font-size:10px;">Click to edit</div>
                         </div>
+                    </div>
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; font-size:11px; color:#888; text-align:center;">
+                        Click to edit revenue, expenses, and payment status
                     </div>
                 `;
                 
@@ -1376,14 +1409,32 @@
         }
         
         function editJobDay(entry, jobId) {
-            // Create a simple inline editor
-            const revenue = parseFloat(entry.revenue || 0);
-            const hours = entry.manHours ? entry.manHours.reduce((sum, h) => sum + parseFloat(h.hours || 0), 0) : 0;
-            const expenses = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+            const dateStr = new Date(entry.date).toLocaleDateString();
+            const currentRevenue = parseFloat(entry.revenue || 0);
+            const currentExpenses = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+            const expensesPaid = entry.expensesPaid || false;
             
-            const newRevenue = prompt(`Edit revenue for ${new Date(entry.date).toLocaleDateString()}:`, revenue.toFixed(2));
+            // Create a more comprehensive editor
+            const newRevenue = prompt(`Edit revenue for ${dateStr}:\n\nCurrent: $${currentRevenue.toFixed(2)}`, currentRevenue.toFixed(2));
             if (newRevenue !== null) {
                 entry.revenue = parseFloat(newRevenue) || 0;
+                
+                // Ask about expenses
+                const newExpenses = prompt(`Edit total expenses for ${dateStr}:\n\nCurrent: $${currentExpenses.toFixed(2)}`, currentExpenses.toFixed(2));
+                if (newExpenses !== null) {
+                    const expenseAmount = parseFloat(newExpenses) || 0;
+                    // Update expenses array
+                    if (expenseAmount > 0) {
+                        entry.expenses = [{ description: 'Job Expenses', amount: expenseAmount }];
+                    } else {
+                        entry.expenses = [];
+                    }
+                    
+                    // Ask about expenses paid status
+                    const paidStatus = confirm(`Have expenses been paid by client for ${dateStr}?\n\nCurrent: ${expensesPaid ? 'Yes' : 'No'}\n\nClick OK for Yes, Cancel for No`);
+                    entry.expensesPaid = paidStatus;
+                }
+                
                 setDayEntries(entry.date, entry);
                 openJobTrackingPage(jobId); // Refresh the view
             }
