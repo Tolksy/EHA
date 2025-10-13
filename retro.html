@@ -534,6 +534,20 @@
                 
                 <!-- Right Column -->
                 <div>
+                    <div style="margin-bottom:20px; border:1px solid #4CAF50; padding:10px; border-radius:3px; background:#f9fff9;">
+                        <label style="display:block; font-weight:bold; margin-bottom:8px; color:#4CAF50;">Hourly Rates</label>
+                        <div style="margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+                            <label style="flex:1; font-size:13px; font-weight:normal;">Clayton: $</label>
+                            <input type="number" id="clayton-rate" value="50" step="1" min="0" style="width:80px; padding:4px; border:1px solid #ccc; border-radius:3px; font-size:13px; text-align:right;">
+                            <span style="font-size:12px;">/hr</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <label style="flex:1; font-size:13px; font-weight:normal;">Ethan: $</label>
+                            <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width:80px; padding:4px; border:1px solid #ccc; border-radius:3px; font-size:13px; text-align:right;">
+                            <span style="font-size:12px;">/hr</span>
+                        </div>
+                    </div>
+                    
                     <div style="margin-bottom:20px;">
                         <label style="display:block; font-weight:bold; margin-bottom:5px;">Billable Labor =</label>
                         <div style="border:1px solid #ddd; padding:8px; border-radius:3px; background:#f9f9f9;">
@@ -1753,6 +1767,10 @@
         }
         
         function updateBillableTotals() {
+            // Get current hourly rates from inputs
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
             // Calculate labor total based on who did the work
             const laborItems = $('labour-estimate-list').querySelectorAll('.labour-item');
             let laborTotal = 0;
@@ -1765,12 +1783,12 @@
                     
                     // Check if it's Clayton or Ethan based on description
                     if (description.includes('clayton')) {
-                        laborTotal += hours * 50; // Clayton: $50/hour
+                        laborTotal += hours * claytonRate;
                     } else if (description.includes('ethan')) {
-                        laborTotal += hours * 5; // Ethan: $5/hour
+                        laborTotal += hours * ethanRate;
                     } else {
                         // Default to Clayton's rate if not specified
-                        laborTotal += hours * 50;
+                        laborTotal += hours * claytonRate;
                     }
                 }
             });
@@ -1801,6 +1819,10 @@
             const endTime = $('record-end-time').value;
             const notes = $('record-notes').value;
             
+            // Get current hourly rates
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
             // Collect labor items
             const laborItems = [];
             const laborContainers = $('labour-estimate-list').querySelectorAll('.labour-item');
@@ -1810,11 +1832,11 @@
                 const hours = parseFloat(inputs[1].value) || 0;
                 if (description && hours > 0) {
                     // Determine rate based on who did the work
-                    let rate = 50; // Default to Clayton's rate
+                    let rate = claytonRate; // Default to Clayton's rate
                     if (description.toLowerCase().includes('ethan')) {
-                        rate = 5; // Ethan's rate
+                        rate = ethanRate; // Ethan's rate
                     } else if (description.toLowerCase().includes('clayton')) {
-                        rate = 50; // Clayton's rate
+                        rate = claytonRate; // Clayton's rate
                     }
                     laborItems.push({ description, hours, rate, cost: hours * rate });
                 }
@@ -1911,7 +1933,10 @@
         
         // Add event listeners for real-time total updates
         document.addEventListener('input', (e) => {
-            if (e.target.closest('#labour-estimate-list') || e.target.closest('#expenses-list')) {
+            if (e.target.closest('#labour-estimate-list') || 
+                e.target.closest('#expenses-list') ||
+                e.target.id === 'clayton-rate' ||
+                e.target.id === 'ethan-rate') {
                 updateBillableTotals();
             }
         });
