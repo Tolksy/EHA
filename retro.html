@@ -174,6 +174,18 @@
     </div>
 
     <div class="panel">
+        <h2 style="margin-top:0">Snapshot</h2>
+        <div style="background:#f9f9f9; padding:16px; border-radius:6px; text-align:center;">
+            <div style="font-size:24px; font-weight:bold; color:#333; margin-bottom:8px;">
+                $<span id="monthly-profit">0.00</span>
+            </div>
+            <div style="font-size:12px; color:#666;">
+                <span id="paid-count-main">0</span> paid • <span id="unpaid-count-main">0</span> unpaid
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
         <h2 style="margin-top:0">Jobs (last 5)</h2>
         <table id="jobs-table">
             <thead><tr><th>Job</th><th>Client</th><th>Created</th><th>Revenue</th><th>Labor</th><th>Expenses</th><th>Profit</th></tr></thead>
@@ -701,6 +713,7 @@
             const days = getDays();
             days[iso] = entries;
             setDays(days);
+            updateMonthlyProfit(); // Update snapshot when data changes
         }
 
         // Employees fixed
@@ -1630,6 +1643,43 @@
             
             $('paid-count').textContent = paidCount;
             $('unpaid-count').textContent = unpaidCount;
+            
+            // Also update the main snapshot
+            $('paid-count-main').textContent = paidCount;
+            $('unpaid-count-main').textContent = unpaidCount;
+        }
+
+        function updateMonthlyProfit() {
+            const days = getDays();
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            let monthlyProfit = 0;
+            
+            Object.entries(days).forEach(([dateStr, entries]) => {
+                const entryDate = new Date(dateStr);
+                if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear) {
+                    const entryList = Array.isArray(entries) ? entries : [entries];
+                    entryList.forEach(entry => {
+                        if (entry) {
+                            const revenue = parseFloat(entry.revenue || 0);
+                            const expenses = parseFloat(entry.expenses || 0);
+                            
+                            // Calculate labor cost
+                            let laborCost = 0;
+                            if (entry.manHours) {
+                                const claytonHours = (entry.manHours.find(m => m.employeeId === 'emp_clayton')?.hours || 0);
+                                const ethanHours = (entry.manHours.find(m => m.employeeId === 'emp_ethan')?.hours || 0);
+                                laborCost = (claytonHours * 50) + (ethanHours * 5);
+                            }
+                            
+                            monthlyProfit += revenue - laborCost - expenses;
+                        }
+                    });
+                }
+            });
+            
+            $('monthly-profit').textContent = monthlyProfit.toFixed(2);
         }
         
         // Context Menu Functions
@@ -2187,8 +2237,8 @@
         }
 
         // Events
-        $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); };
-        $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); };
+        $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); updateMonthlyProfit(); };
+        $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); updateMonthlyProfit(); };
         $('close').onclick = closeModal;
         $('add-entry').onclick = addEntry;
         $('add-expense-row').onclick = ()=> addExpenseRow();
@@ -2256,6 +2306,8 @@
         updateAllWageRates();
 
         renderCalendar();
+        updateMonthlyProfit();
+        updatePaymentSummary();
     })();
     </script>
 </body>
