@@ -43,6 +43,54 @@
         .job-track-item.loss { border-left-color:#f44336; }
         .job-track-item.neutral { border-left-color:#ff9800; }
         .job-track-item.job-color { border-left-color: var(--job-color); }
+        
+        /* Context Menu Styles */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 4px 0;
+            min-width: 160px;
+            display: none;
+            z-index: 1000;
+            font-size: 12px;
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+            color: #333;
+        }
+
+        .context-menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .context-menu-item:active {
+            background: #e0e0e0;
+        }
+
+        .context-menu-item .icon {
+            font-size: 14px;
+            width: 16px;
+            text-align: center;
+        }
+
+        .context-menu-separator {
+            height: 1px;
+            background: #ddd;
+            margin: 4px 0;
+        }
         .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
         .job-track-name { font-weight:bold; font-size:13px; }
         .job-track-client { font-size:11px; color:#666; }
@@ -404,6 +452,24 @@
         </div>
     </div>
 
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" id="menuBill">
+            <span class="icon">💰</span>
+            <span>Bill</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="menuEdit">
+            <span class="icon">✏️</span>
+            <span>Edit</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="menuRecord">
+            <span class="icon">📝</span>
+            <span>Record</span>
+        </div>
+    </div>
+
     <script>
     (function() {
         const $ = (id) => document.getElementById(id);
@@ -412,7 +478,8 @@
             selectedISO: null,
             expenseRows: [],
             editingJobId: null,
-            jobExpenseRows: []
+            jobExpenseRows: [],
+            contextMenuJobId: null
         };
 
         // Minimal storage helpers
@@ -1311,11 +1378,63 @@
                 // Add click event to open job tracking page
                 div.addEventListener('click', () => openJobTrackingPage(job.id));
                 
+                // Add right-click event for context menu
+                div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
+                
                 container.appendChild(div);
             });
         }
         
-
+        // Context Menu Functions
+        function showContextMenu(event, jobId) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const contextMenu = $('contextMenu');
+            state.contextMenuJobId = jobId;
+            
+            // Position the context menu
+            const x = event.clientX;
+            const y = event.clientY;
+            
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            
+            // Show the menu
+            contextMenu.classList.add('show');
+        }
+        
+        function hideContextMenu() {
+            const contextMenu = $('contextMenu');
+            contextMenu.classList.remove('show');
+            state.contextMenuJobId = null;
+        }
+        
+        function handleContextMenuAction(action) {
+            if (!state.contextMenuJobId) return;
+            
+            const job = getJobs().find(j => j.id === state.contextMenuJobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            switch(action) {
+                case 'bill':
+                    // For now, just show an alert - you can implement actual billing later
+                    alert(`💰 Bill for: ${job.name}\nClient: ${customer ? customer.name : 'Unknown'}\nJob ID: ${job.id}\n\nThis will open the billing interface.`);
+                    break;
+                case 'edit':
+                    // Open the existing job edit modal
+                    openJobEditModal(state.contextMenuJobId);
+                    break;
+                case 'record':
+                    // For now, just show an alert - you can implement time recording later
+                    alert(`📝 Record time for: ${job.name}\nClient: ${customer ? customer.name : 'Unknown'}\nJob ID: ${job.id}\n\nThis will open the time recording interface.`);
+                    break;
+            }
+            
+            hideContextMenu();
+        }
 
         // Events
         $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); };
@@ -1335,6 +1454,23 @@
         $('close-job-tracking').onclick = closeJobTrackingPage;
         $('save-job-tracking').onclick = saveJobTrackingData;
         $('print-job-tracking').onclick = printJobTrackingData;
+        
+        // Context menu events
+        $('menuBill').onclick = () => handleContextMenuAction('bill');
+        $('menuEdit').onclick = () => handleContextMenuAction('edit');
+        $('menuRecord').onclick = () => handleContextMenuAction('record');
+        
+        // Hide context menu when clicking elsewhere
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.context-menu')) {
+                hideContextMenu();
+            }
+        });
+        
+        // Hide context menu on scroll
+        document.addEventListener('scroll', () => {
+            hideContextMenu();
+        });
 
         // Seed example if empty (to make it feel alive)
         if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
