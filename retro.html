@@ -1153,6 +1153,14 @@
             });
         }
         
+        // Helper function for labor rates
+        function getLaborRates() {
+            return {
+                'Clayton': 35.00,
+                'Ethan': 25.00
+            };
+        }
+        
         // Job Tracking Page Functions
         function openJobTrackingPage(jobId) {
             const job = getJobs().find(j => j.id === jobId);
