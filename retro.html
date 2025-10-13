@@ -294,8 +294,8 @@
             <!-- Header -->
             <div style="margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <h1 style="margin:0; font-size:28px; color:#333;">Project Snapshot</h1>
-                    <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
+                <h1 style="margin:0; font-size:28px; color:#333;">Project Snapshot</h1>
+                <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:16px;">
                     <div id="snapshot-edit-job-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
@@ -334,13 +334,13 @@
                     <div id="cost-chart" style="height:200px; background:white; border:1px solid #ddd; border-radius:4px; position:relative; overflow:hidden;">
                         <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#999; font-size:12px;">
                             Loading chart...
-                        </div>
+                    </div>
                     </div>
                     <div style="margin-top:10px; font-size:12px; color:#666;">
                         <div>Total Cost: $<span id="total-cost-display">0.00</span></div>
                         <div>Daily Avg: $<span id="daily-avg-display">0.00</span></div>
                     </div>
-                </div>
+                    </div>
 
                 <!-- Right Column: Job Summary -->
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
@@ -349,26 +349,26 @@
                         <div id="edit-hours" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px;">Total Hours</div>
                             <div id="total-hours-display" style="font-weight:bold; color:#2c5aa0;">0.0h</div>
-                        </div>
+                    </div>
                         <div id="edit-material-costs" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px;">Material Costs</div>
                             <div id="total-expenses-display" style="font-weight:bold; color:#d32f2f;">$0.00</div>
-                        </div>
+                    </div>
                         <div id="edit-labor-cost" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px;">Labor Cost</div>
                             <div id="total-revenue-display" style="font-weight:bold; color:#388e3c;">$0.00</div>
-                        </div>
+                    </div>
                         <div id="edit-total-with-tax" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px;">Total with Tax</div>
                             <div id="total-profit-display" style="font-weight:bold; color:#f57c00;">$0.00</div>
-                        </div>
+                    </div>
                     </div>
                     <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
                         <div style="color:#666; font-size:12px; margin-bottom:5px;">Expenses Status</div>
                         <div id="expenses-status-display" style="font-weight:bold; color:#333;">No expenses</div>
                     </div>
-                </div>
-            </div>
+                    </div>
+                    </div>
 
             <!-- Days List with Editing -->
             <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
@@ -405,7 +405,7 @@ All text is automatically saved as you type."></textarea>
             <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #ddd;">
                 <button id="save-job-tracking" style="background:#4CAF50; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px; margin-right:10px;">Save Project Data</button>
                 <button id="print-job-tracking" style="background:#2196F3; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px;">Print / Export</button>
-            </div>
+                    </div>
         </div>
     </div>
 
@@ -449,9 +449,9 @@ All text is automatically saved as you type."></textarea>
         <!-- Form -->
         <div style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Task Title -->
-            <div>
+                    <div>
                 <input type="text" id="task-title" placeholder="Task title..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
-            </div>
+                    </div>
             
             <!-- Time and Duration -->
             <div style="display: flex; gap: 8px;">
@@ -467,12 +467,12 @@ All text is automatically saved as you type."></textarea>
             </div>
             
             <!-- Location -->
-            <div>
+                    <div>
                 <input type="text" id="task-location" placeholder="Location (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
-            </div>
+                    </div>
             
             <!-- Notes -->
-            <div>
+                    <div>
                 <textarea id="task-notes" rows="2" placeholder="Notes (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px; resize: none;"></textarea>
             </div>
             
@@ -480,9 +480,9 @@ All text is automatically saved as you type."></textarea>
             <div style="display: flex; gap: 8px; margin-top: 10px;">
                 <button id="save-task-btn" style="background: #007AFF; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Save</button>
                 <button id="cancel-task-btn" style="background: #999; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Cancel</button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
     <!-- Job Record Modal -->
     <div id="job-record-modal" class="modal" style="display: none;">
@@ -544,9 +544,9 @@ All text is automatically saved as you type."></textarea>
                         <div style="display: flex; justify-content: space-between;">
                             <span>Ethan</span>
                             <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
-                        </div>
-                    </div>
-                    
+                </div>
+            </div>
+
                     <!-- Billable Summary -->
                     <div style="margin-bottom: 30px;">
                         <div style="font-size: 16px; margin-bottom: 8px;">Billable Labor =</div>
@@ -561,8 +561,8 @@ All text is automatically saved as you type."></textarea>
                             <div style="font-size: 16px; margin-bottom: 8px;">Total Billable =</div>
                             <div id="total-billable" style="font-size: 18px; font-weight: bold;">$0.00</div>
                         </div>
-                    </div>
-                    
+            </div>
+
                     <!-- Actions -->
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <button id="save-record-btn" style="background: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer;">Save Record</button>
@@ -1205,10 +1205,17 @@ All text is automatically saved as you type."></textarea>
         
         // Helper function for labor rates
         function getLaborRates() {
-            return {
+            const savedRates = localStorage.getItem('laborRates');
+            if (savedRates) {
+                return JSON.parse(savedRates);
+            }
+            // Default rates
+            const defaultRates = {
                 'Clayton': 35.00,
                 'Ethan': 25.00
             };
+            localStorage.setItem('laborRates', JSON.stringify(defaultRates));
+            return defaultRates;
         }
         
         // Job Tracking Page Functions
@@ -1273,7 +1280,7 @@ All text is automatically saved as you type."></textarea>
                             
                             if (entry.expensesPaid) {
                                 totalExpensesPaid += expenseAmount;
-                            } else {
+                        } else {
                                 totalExpensesUnpaid += expenseAmount;
                             }
                         }
@@ -1502,18 +1509,50 @@ All text is automatically saved as you type."></textarea>
                 const expensesPaid = entry.expensesPaid || false;
                 
                 const dayElement = document.createElement('div');
-                dayElement.style.cssText = 'border:1px solid #ddd; border-radius:6px; padding:12px; margin-bottom:8px; background:white; cursor:pointer; transition:all 0.2s;';
+                dayElement.style.cssText = 'border:1px solid #ddd; border-radius:6px; padding:12px; margin-bottom:8px; background:white; transition:all 0.2s;';
                 dayElement.style.backgroundColor = 'white';
+                
+                // Build worker details HTML
+                let workerDetailsHTML = '';
+                if (entry.manHours && entry.manHours.length > 0) {
+                    workerDetailsHTML = entry.manHours.map(worker => {
+                        const rate = laborRates[worker.name] || 0;
+                        const hours = parseFloat(worker.hours || 0);
+                        const cost = hours * rate;
+                        return `
+                            <div style="background:#f8f9fa; padding:8px; border-radius:4px; margin-bottom:4px; cursor:pointer; transition:background 0.2s;" 
+                                 onmouseover="this.style.background='#e8f4fd'" 
+                                 onmouseout="this.style.background='#f8f9fa'"
+                                 onclick="event.stopPropagation(); editWorkerDay('${entry.date}', '${worker.name}', ${jobId})">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-weight:bold; color:#2c5aa0;">${worker.name}</span>
+                                        <span style="color:#666; font-size:11px; margin-left:8px;">${hours.toFixed(1)}h @ $${rate.toFixed(2)}/h</span>
+                                    </div>
+                                    <div style="font-weight:bold; color:#d32f2f;">$${cost.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    workerDetailsHTML = '<div style="color:#999; font-size:11px; text-align:center; padding:8px;">No workers logged</div>';
+                }
                 
                 dayElement.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
                         <div style="font-weight:bold; color:#333;">${dateStr}</div>
                         <div style="font-size:12px; color:#666;">Revenue: $${parseFloat(entry.revenue || 0).toFixed(2)}</div>
                     </div>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:12px;">
+                    
+                    <div style="margin-bottom:8px;">
+                        <div style="font-size:11px; color:#666; margin-bottom:4px; font-weight:600;">WORKERS (Click to edit)</div>
+                        ${workerDetailsHTML}
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:12px; padding-top:8px; border-top:1px solid #eee;">
                         <div>
-                            <div style="color:#666;">Hours: <span style="color:#2c5aa0; font-weight:bold;">${totalHours.toFixed(1)}h</span></div>
-                            <div style="color:#666;">Labor: <span style="color:#d32f2f; font-weight:bold;">$${laborCost.toFixed(2)}</span></div>
+                            <div style="color:#666;">Total Hours: <span style="color:#2c5aa0; font-weight:bold;">${totalHours.toFixed(1)}h</span></div>
+                            <div style="color:#666;">Labor Cost: <span style="color:#d32f2f; font-weight:bold;">$${laborCost.toFixed(2)}</span></div>
                         </div>
                         <div>
                             <div style="color:#666;">Expenses: <span style="color:#d32f2f; font-weight:bold;">$${expenseCost.toFixed(2)}</span></div>
@@ -1525,20 +1564,18 @@ All text is automatically saved as you type."></textarea>
                         </div>
                     </div>
                     <div style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; font-size:11px; color:#888; text-align:center;">
-                        Click to edit revenue, expenses, and payment status
+                        Click card to edit revenue, expenses, and payment status
                     </div>
                 `;
                 
                 // Add hover effects
                 dayElement.addEventListener('mouseenter', () => {
                     dayElement.style.backgroundColor = '#f5f5f5';
-                    dayElement.style.transform = 'translateY(-1px)';
                     dayElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
                 });
                 
                 dayElement.addEventListener('mouseleave', () => {
                     dayElement.style.backgroundColor = 'white';
-                    dayElement.style.transform = 'translateY(0)';
                     dayElement.style.boxShadow = 'none';
                 });
                 
@@ -1580,6 +1617,67 @@ All text is automatically saved as you type."></textarea>
                 
                 setDayEntries(entry.date, entry);
                 openJobTrackingPage(jobId); // Refresh the view
+            }
+        }
+        
+        function editWorkerDay(date, workerName, jobId) {
+            // Get the day entry
+            const allEntries = getDayEntries();
+            const entry = allEntries.find(e => e.date === date);
+            
+            if (!entry || !entry.manHours) {
+                alert('No entry found for this date!');
+                return;
+            }
+            
+            // Find the worker in this entry
+            const workerIndex = entry.manHours.findIndex(w => w.name === workerName);
+            if (workerIndex === -1) {
+                alert('Worker not found in this entry!');
+                return;
+            }
+            
+            const worker = entry.manHours[workerIndex];
+            const laborRates = getLaborRates();
+            const currentHours = parseFloat(worker.hours || 0);
+            const currentRate = laborRates[workerName] || 0;
+            
+            const dateStr = new Date(date).toLocaleDateString();
+            
+            // Edit hours
+            const newHours = prompt(
+                `Edit hours for ${workerName} on ${dateStr}:\n\nCurrent: ${currentHours.toFixed(1)} hours @ $${currentRate.toFixed(2)}/hour\nCurrent Cost: $${(currentHours * currentRate).toFixed(2)}\n\nEnter new hours:`,
+                currentHours.toFixed(1)
+            );
+            
+            if (newHours !== null) {
+                const hours = parseFloat(newHours) || 0;
+                
+                // Edit hourly rate
+                const newRate = prompt(
+                    `Edit hourly rate for ${workerName} on ${dateStr}:\n\nCurrent: $${currentRate.toFixed(2)}/hour\nNew Hours: ${hours.toFixed(1)}\nNew Cost: $${(hours * currentRate).toFixed(2)}\n\nEnter new hourly rate:`,
+                    currentRate.toFixed(2)
+                );
+                
+                if (newRate !== null) {
+                    const rate = parseFloat(newRate) || 0;
+                    
+                    // Update the worker's hours
+                    entry.manHours[workerIndex].hours = hours;
+                    
+                    // Update the labor rates in localStorage if changed
+                    if (rate !== currentRate) {
+                        const rates = getLaborRates();
+                        rates[workerName] = rate;
+                        localStorage.setItem('laborRates', JSON.stringify(rates));
+                    }
+                    
+                    // Save the updated entry
+                    setDayEntries(date, entry);
+                    
+                    // Refresh the view
+                    openJobTrackingPage(jobId);
+                }
             }
         }
         
