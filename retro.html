@@ -1644,6 +1644,44 @@ All text is automatically saved as you type."></textarea>
             
             const dateStr = new Date(date).toLocaleDateString();
             
+            // Check if worker is undefined
+            if (workerName === 'undefined' || !workerName || workerName.trim() === '') {
+                // Define the worker
+                const newWorkerName = prompt(
+                    `Define worker name for ${dateStr}:\n\nCurrent hours: ${currentHours.toFixed(1)}\n\nEnter worker name:`,
+                    ''
+                );
+                
+                if (newWorkerName !== null && newWorkerName.trim() !== '') {
+                    const definedName = newWorkerName.trim();
+                    
+                    // Ask for hourly rate
+                    const newRate = prompt(
+                        `Set hourly rate for ${definedName}:\n\nHours: ${currentHours.toFixed(1)}\n\nEnter hourly rate:`,
+                        '25.00'
+                    );
+                    
+                    if (newRate !== null) {
+                        const rate = parseFloat(newRate) || 0;
+                        
+                        // Update the worker's name
+                        entry.manHours[workerIndex].name = definedName;
+                        
+                        // Save the rate
+                        const rates = getLaborRates();
+                        rates[definedName] = rate;
+                        localStorage.setItem('laborRates', JSON.stringify(rates));
+                        
+                        // Save the updated entry
+                        setDayEntries(date, entry);
+                        
+                        // Refresh the view
+                        openJobTrackingPage(jobId);
+                    }
+                }
+                return;
+            }
+            
             // Edit hours
             const newHours = prompt(
                 `Edit hours for ${workerName} on ${dateStr}:\n\nCurrent: ${currentHours.toFixed(1)} hours @ $${currentRate.toFixed(2)}/hour\nCurrent Cost: $${(currentHours * currentRate).toFixed(2)}\n\nEnter new hours:`,
