@@ -470,75 +470,59 @@
         </div>
     </div>
 
-    <!-- Scheduled Task Modal -->
-    <div id="scheduled-task-modal" class="modal" style="display: none;">
-        <div class="modal-inner" style="width: 500px; max-height: 90vh; overflow-y: auto; background: white; padding: 40px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #333;">
-            <!-- Close Button -->
-            <button id="scheduled-task-close" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999;">×</button>
-            
-            <!-- Header -->
-            <div style="margin-bottom: 30px;">
-                <div style="font-size: 18px; margin-bottom: 8px;">Add Scheduled Task</div>
-                <div style="font-size: 14px; color: #666;" id="scheduled-task-date">Date: </div>
+    <!-- Calendar Context Menu -->
+    <div class="context-menu" id="calendarContextMenu">
+        <div class="context-menu-item" id="menuAddTask">
+            <span class="icon">📅</span>
+            <span>Add Task</span>
+        </div>
+    </div>
+
+    <!-- Small Task Popup -->
+    <div id="task-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1001; font-family: Arial, sans-serif; font-size: 14px; width: 350px;">
+        <!-- Close Button -->
+        <button id="task-popup-close" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; color: #999; width: 20px; height: 20px;">×</button>
+        
+        <!-- Header -->
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 16px; margin-bottom: 4px;">Add Task</div>
+            <div style="font-size: 12px; color: #666;" id="task-popup-date">Date: </div>
+        </div>
+        
+        <!-- Form -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Task Title -->
+            <div>
+                <input type="text" id="task-title" placeholder="Task title..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
             </div>
             
-            <!-- Form -->
-            <div style="display: flex; flex-direction: column; gap: 20px;">
-                <!-- Task Title -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Task -</div>
-                    <input type="text" id="task-title" placeholder="e.g., Meeting in Parksville" style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
-                </div>
-                
-                <!-- Time -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Time -</div>
-                    <input type="time" id="task-time" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
-                </div>
-                
-                <!-- Duration -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Duration -</div>
-                    <select id="task-duration" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
-                        <option value="30">30 minutes</option>
-                        <option value="60" selected>1 hour</option>
-                        <option value="90">1.5 hours</option>
-                        <option value="120">2 hours</option>
-                        <option value="180">3 hours</option>
-                        <option value="240">4 hours</option>
-                        <option value="480">8 hours (all day)</option>
-                    </select>
-                </div>
-                
-                <!-- Location -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Location -</div>
-                    <input type="text" id="task-location" placeholder="e.g., Parksville, BC" style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
-                </div>
-                
-                <!-- Notes -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Notes -</div>
-                    <textarea id="task-notes" rows="3" placeholder="Additional details..." style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; resize: none; background: none; color: #333;"></textarea>
-                </div>
-                
-                <!-- Reminder Options -->
-                <div>
-                    <div style="font-size: 14px; margin-bottom: 8px;">Reminder -</div>
-                    <select id="task-reminder" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
-                        <option value="0">No reminder</option>
-                        <option value="15">15 minutes before</option>
-                        <option value="30" selected>30 minutes before</option>
-                        <option value="60">1 hour before</option>
-                        <option value="1440">1 day before</option>
-                    </select>
-                </div>
-                
-                <!-- Actions -->
-                <div style="display: flex; gap: 12px; margin-top: 20px;">
-                    <button id="save-task-btn" style="background: #007AFF; color: white; border: none; padding: 12px 24px; font-size: 14px; cursor: pointer; flex: 1;">Save Task</button>
-                    <button id="cancel-task-btn" style="background: #999; color: white; border: none; padding: 12px 24px; font-size: 14px; cursor: pointer; flex: 1;">Cancel</button>
-                </div>
+            <!-- Time and Duration -->
+            <div style="display: flex; gap: 8px;">
+                <input type="time" id="task-time" style="flex: 1; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                <select id="task-duration" style="flex: 1; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                    <option value="30">30m</option>
+                    <option value="60" selected>1h</option>
+                    <option value="90">1.5h</option>
+                    <option value="120">2h</option>
+                    <option value="240">4h</option>
+                    <option value="480">All day</option>
+                </select>
+            </div>
+            
+            <!-- Location -->
+            <div>
+                <input type="text" id="task-location" placeholder="Location (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+            </div>
+            
+            <!-- Notes -->
+            <div>
+                <textarea id="task-notes" rows="2" placeholder="Notes (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px; resize: none;"></textarea>
+            </div>
+            
+            <!-- Actions -->
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button id="save-task-btn" style="background: #007AFF; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Save</button>
+                <button id="cancel-task-btn" style="background: #999; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Cancel</button>
             </div>
         </div>
     </div>
@@ -748,8 +732,7 @@
 
                     // Add right-click event for scheduled tasks
                     cell.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        openScheduledTaskModal(date);
+                        showCalendarContextMenu(e, date);
                     });
                     
                     // Add scheduled tasks display
@@ -1631,9 +1614,26 @@
             save('scheduled_tasks', tasks);
         }
 
-        function openScheduledTaskModal(date) {
+        function showCalendarContextMenu(event, date) {
+            event.preventDefault();
+            hideCalendarContextMenu();
+            
+            const menu = $('calendarContextMenu');
+            menu.style.display = 'block';
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            
             state.scheduledTaskDate = date;
-            $('scheduled-task-date').textContent = `Date: ${date.toLocaleDateString()}`;
+        }
+
+        function hideCalendarContextMenu() {
+            $('calendarContextMenu').style.display = 'none';
+        }
+
+        function openScheduledTaskModal() {
+            if (!state.scheduledTaskDate) return;
+            
+            $('task-popup-date').textContent = `Date: ${state.scheduledTaskDate.toLocaleDateString()}`;
             
             // Clear form
             $('task-title').value = '';
@@ -1641,13 +1641,13 @@
             $('task-duration').value = '60';
             $('task-location').value = '';
             $('task-notes').value = '';
-            $('task-reminder').value = '30';
             
-            $('scheduled-task-modal').style.display = 'flex';
+            $('task-popup').style.display = 'block';
+            hideCalendarContextMenu();
         }
 
         function closeScheduledTaskModal() {
-            $('scheduled-task-modal').style.display = 'none';
+            $('task-popup').style.display = 'none';
             state.scheduledTaskDate = null;
         }
 
@@ -1671,8 +1671,7 @@
                 time: time,
                 duration: parseInt($('task-duration').value),
                 location: $('task-location').value.trim(),
-                notes: $('task-notes').value.trim(),
-                reminder: parseInt($('task-reminder').value)
+                notes: $('task-notes').value.trim()
             };
 
             const tasks = getScheduledTasks();
@@ -2090,12 +2089,14 @@
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.context-menu')) {
                 hideContextMenu();
+                hideCalendarContextMenu();
             }
         });
         
         // Hide context menu on scroll
         document.addEventListener('scroll', () => {
             hideContextMenu();
+            hideCalendarContextMenu();
         });
         
         // Job record modal events
@@ -2104,10 +2105,13 @@
         $('save-record-btn').onclick = saveJobRecord;
         $('send-bill-btn').onclick = sendBill;
         
-        // Scheduled task modal events
-        $('scheduled-task-close').onclick = closeScheduledTaskModal;
+        // Scheduled task popup events
+        $('task-popup-close').onclick = closeScheduledTaskModal;
         $('cancel-task-btn').onclick = closeScheduledTaskModal;
         $('save-task-btn').onclick = saveScheduledTask;
+        
+        // Calendar context menu events
+        $('menuAddTask').onclick = openScheduledTaskModal;
         
         // Add event listeners for real-time total updates
         document.addEventListener('input', (e) => {
