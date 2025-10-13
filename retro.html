@@ -479,7 +479,7 @@
     </div>
 
     <!-- Small Task Popup -->
-    <div id="task-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1001; font-family: Arial, sans-serif; font-size: 14px; width: 350px;">
+    <div id="task-popup" style="display: none; position: fixed; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1001; font-family: Arial, sans-serif; font-size: 14px; width: 350px;">
         <!-- Close Button -->
         <button id="task-popup-close" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; color: #999; width: 20px; height: 20px;">×</button>
         
@@ -627,7 +627,8 @@
             jobExpenseRows: [],
             contextMenuJobId: null,
             recordModalJobId: null,
-            scheduledTaskDate: null
+            scheduledTaskDate: null,
+            calendarCellElement: null
         };
 
         // Minimal storage helpers
@@ -1623,7 +1624,9 @@
             menu.style.left = event.pageX + 'px';
             menu.style.top = event.pageY + 'px';
             
+            // Store the cell element and date for popup positioning
             state.scheduledTaskDate = date;
+            state.calendarCellElement = event.target.closest('.cal-cell');
         }
 
         function hideCalendarContextMenu() {
@@ -1631,7 +1634,7 @@
         }
 
         function openScheduledTaskModal() {
-            if (!state.scheduledTaskDate) return;
+            if (!state.scheduledTaskDate || !state.calendarCellElement) return;
             
             $('task-popup-date').textContent = `Date: ${state.scheduledTaskDate.toLocaleDateString()}`;
             
@@ -1642,7 +1645,24 @@
             $('task-location').value = '';
             $('task-notes').value = '';
             
-            $('task-popup').style.display = 'block';
+            // Position popup beside the calendar cell
+            const cellRect = state.calendarCellElement.getBoundingClientRect();
+            const popup = $('task-popup');
+            
+            // Position to the right of the cell with some padding
+            popup.style.left = (cellRect.right + 10) + 'px';
+            popup.style.top = cellRect.top + 'px';
+            
+            // Make sure popup doesn't go off screen
+            const popupWidth = 350;
+            const viewportWidth = window.innerWidth;
+            
+            if (cellRect.right + popupWidth + 20 > viewportWidth) {
+                // Position to the left of the cell instead
+                popup.style.left = (cellRect.left - popupWidth - 10) + 'px';
+            }
+            
+            popup.style.display = 'block';
             hideCalendarContextMenu();
         }
 
