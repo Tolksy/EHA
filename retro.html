@@ -328,22 +328,22 @@
 
                 <!-- Right Column: Job Summary -->
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
-                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Summary</h3>
+                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Summary - Click to Edit</h3>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
-                        <div>
+                        <div id="edit-hours" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px;">Total Hours</div>
                             <div id="total-hours-display" style="font-weight:bold; color:#2c5aa0;">0.0h</div>
                         </div>
-                        <div>
-                            <div style="color:#666; font-size:12px;">Total Expenses</div>
+                        <div id="edit-material-costs" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Material Costs</div>
                             <div id="total-expenses-display" style="font-weight:bold; color:#d32f2f;">$0.00</div>
                         </div>
-                        <div>
-                            <div style="color:#666; font-size:12px;">Revenue</div>
+                        <div id="edit-labor-cost" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Labor Cost</div>
                             <div id="total-revenue-display" style="font-weight:bold; color:#388e3c;">$0.00</div>
                         </div>
-                        <div>
-                            <div style="color:#666; font-size:12px;">Profit</div>
+                        <div id="edit-total-with-tax" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Total with Tax</div>
                             <div id="total-profit-display" style="font-weight:bold; color:#f57c00;">$0.00</div>
                         </div>
                     </div>
@@ -1237,11 +1237,11 @@
                 }
             });
             
-            // Update summary displays
+            // Update summary displays with new labels
             $('total-hours-display').textContent = `${totalHours.toFixed(1)}h`;
-            $('total-expenses-display').textContent = `$${totalExpenses.toFixed(2)}`;
-            $('total-revenue-display').textContent = `$${totalRevenue.toFixed(2)}`;
-            $('total-profit-display').textContent = `$${(totalRevenue - totalLabor - totalExpenses).toFixed(2)}`;
+            $('total-expenses-display').textContent = `$${totalExpenses.toFixed(2)}`; // Material Costs
+            $('total-revenue-display').textContent = `$${totalLabor.toFixed(2)}`; // Labor Cost
+            $('total-profit-display').textContent = `$${(totalLabor + totalExpenses + (totalLabor + totalExpenses) * 0.10).toFixed(2)}`; // Total with Tax (10%)
             $('total-cost-display').textContent = `${(totalLabor + totalExpenses).toFixed(2)}`;
             $('daily-avg-display').textContent = jobEntries.length > 0 ? `${((totalLabor + totalExpenses) / jobEntries.length).toFixed(2)}` : '0.00';
             
@@ -1265,6 +1265,12 @@
             
             // Populate days list
             populateJobDays(jobEntries, jobId);
+            
+            // Add click event listeners for editable summary fields
+            $('edit-hours').onclick = () => editJobSummaryHours(jobId);
+            $('edit-material-costs').onclick = () => editJobSummaryMaterialCosts(jobId);
+            $('edit-labor-cost').onclick = () => editJobSummaryLaborCost(jobId);
+            $('edit-total-with-tax').onclick = () => editJobSummaryTotalWithTax(jobId);
             
             // Show the job tracking page
             $('job-tracking-page').style.display = 'block';
@@ -1442,6 +1448,69 @@
         
         function closeJobTrackingPage() {
             $('job-tracking-page').style.display = 'none';
+        }
+        
+        // Job Summary Editing Functions
+        function editJobSummaryHours(jobId) {
+            const currentHours = parseFloat($('total-hours-display').textContent.replace('h', ''));
+            const newHours = prompt(`Edit total hours for this job:\n\nCurrent: ${currentHours}h`, currentHours);
+            if (newHours !== null) {
+                const hours = parseFloat(newHours) || 0;
+                $('total-hours-display').textContent = `${hours.toFixed(1)}h`;
+                // Update job data if needed
+                updateJobSummaryData(jobId, 'hours', hours);
+            }
+        }
+        
+        function editJobSummaryMaterialCosts(jobId) {
+            const currentCosts = parseFloat($('total-expenses-display').textContent.replace('$', ''));
+            const newCosts = prompt(`Edit total material costs for this job:\n\nCurrent: $${currentCosts.toFixed(2)}`, currentCosts.toFixed(2));
+            if (newCosts !== null) {
+                const costs = parseFloat(newCosts) || 0;
+                $('total-expenses-display').textContent = `$${costs.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'materialCosts', costs);
+                updateTotalWithTax(jobId);
+            }
+        }
+        
+        function editJobSummaryLaborCost(jobId) {
+            const currentCost = parseFloat($('total-revenue-display').textContent.replace('$', ''));
+            const newCost = prompt(`Edit total labor cost for this job:\n\nCurrent: $${currentCost.toFixed(2)}`, currentCost.toFixed(2));
+            if (newCost !== null) {
+                const cost = parseFloat(newCost) || 0;
+                $('total-revenue-display').textContent = `$${cost.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'laborCost', cost);
+                updateTotalWithTax(jobId);
+            }
+        }
+        
+        function editJobSummaryTotalWithTax(jobId) {
+            const currentTotal = parseFloat($('total-profit-display').textContent.replace('$', ''));
+            const newTotal = prompt(`Edit total with tax for this job:\n\nCurrent: $${currentTotal.toFixed(2)}`, currentTotal.toFixed(2));
+            if (newTotal !== null) {
+                const total = parseFloat(newTotal) || 0;
+                $('total-profit-display').textContent = `$${total.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'totalWithTax', total);
+            }
+        }
+        
+        function updateJobSummaryData(jobId, field, value) {
+            // Store the edited summary data for this job
+            const summaryData = load(`job_summary_${jobId}`, {});
+            summaryData[field] = value;
+            summaryData.lastUpdated = new Date().toISOString();
+            save(`job_summary_${jobId}`, summaryData);
+        }
+        
+        function updateTotalWithTax(jobId) {
+            // Auto-calculate total with tax based on labor + materials + 10% tax
+            const laborCost = parseFloat($('total-revenue-display').textContent.replace('$', ''));
+            const materialCosts = parseFloat($('total-expenses-display').textContent.replace('$', ''));
+            const subtotal = laborCost + materialCosts;
+            const tax = subtotal * 0.10; // 10% tax
+            const totalWithTax = subtotal + tax;
+            $('total-profit-display').textContent = `$${totalWithTax.toFixed(2)}`;
+            updateJobSummaryData(jobId, 'totalWithTax', totalWithTax);
         }
         
         function saveJobTrackingData() {
