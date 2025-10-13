@@ -298,26 +298,26 @@
                     <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:16px;">
-                    <div id="edit-job-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                    <div id="snapshot-edit-job-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                         <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB - Click to Edit</div>
                         <div id="job-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
                     </div>
-                    <div id="edit-client-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                    <div id="snapshot-edit-client-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                         <div style="color:#666; font-size:12px; margin-bottom:2px;">CLIENT - Click to Edit</div>
                         <div id="client-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
                     </div>
                 </div>
                 <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
                     <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; font-size:14px;">
-                        <div id="edit-job-id" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div id="snapshot-edit-job-id" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB ID - Click to Edit</div>
                             <div id="job-id-display" style="font-weight:bold; color:#333;">Loading...</div>
                         </div>
-                        <div id="edit-job-status" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div id="snapshot-edit-job-status" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px; margin-bottom:2px;">STATUS - Click to Edit</div>
                             <div id="job-status-display" style="font-weight:bold; color:#f57c00;">Active</div>
                         </div>
-                        <div id="edit-job-priority" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div id="snapshot-edit-job-priority" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
                             <div style="color:#666; font-size:12px; margin-bottom:2px;">PRIORITY - Click to Edit</div>
                             <div id="job-priority-display" style="font-weight:bold; color:#388e3c;">Normal</div>
                         </div>
@@ -1322,27 +1322,27 @@ All text is automatically saved as you type."></textarea>
             populateJobDays(jobEntries, jobId);
             
             // Add click event listeners for editable header fields
-            $('edit-job-name').onclick = (e) => {
+            $('snapshot-edit-job-name').onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 editJobName(jobId);
             };
-            $('edit-client-name').onclick = (e) => {
+            $('snapshot-edit-client-name').onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 editClientName(jobId);
             };
-            $('edit-job-id').onclick = (e) => {
+            $('snapshot-edit-job-id').onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 editJobId(jobId);
             };
-            $('edit-job-status').onclick = (e) => {
+            $('snapshot-edit-job-status').onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 editJobStatus(jobId);
             };
-            $('edit-job-priority').onclick = (e) => {
+            $('snapshot-edit-job-priority').onclick = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 editJobPriority(jobId);
