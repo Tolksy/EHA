@@ -362,6 +362,24 @@
                 </div>
             </div>
 
+            <!-- Word Document Area -->
+            <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0; margin-top:20px;">
+                <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Project Notes & Documentation</h3>
+                <textarea id="project-notes-editor" style="width:100%; height:300px; border:1px solid #ddd; border-radius:4px; padding:15px; font-family:Arial, sans-serif; font-size:14px; line-height:1.5; resize:vertical; background:white;" placeholder="Start typing your project notes, documentation, or any other information here...
+
+This is your blank word document area - you can:
+• Add project specifications
+• Write meeting notes
+• Document client communications
+• Create project timelines
+• Add any other relevant information
+
+All text is automatically saved as you type."></textarea>
+                <div style="margin-top:10px; font-size:12px; color:#666; text-align:right;">
+                    <span id="notes-word-count">0 words</span> • Auto-saved
+                </div>
+            </div>
+
             <!-- Essential elements (keep these for app functionality) -->
             <input type="hidden" id="project-name" value="">
             <input type="hidden" id="job-number" value="">
@@ -1272,6 +1290,10 @@
             $('edit-labor-cost').onclick = () => editJobSummaryLaborCost(jobId);
             $('edit-total-with-tax').onclick = () => editJobSummaryTotalWithTax(jobId);
             
+            // Load and setup project notes
+            loadProjectNotes(jobId);
+            setupProjectNotesEditor(jobId);
+            
             // Show the job tracking page
             $('job-tracking-page').style.display = 'block';
         }
@@ -1562,6 +1584,42 @@
             const totalWithTax = subtotal + tax;
             $('total-profit-display').textContent = `$${totalWithTax.toFixed(2)}`;
             updateJobSummaryData(jobId, 'totalWithTax', totalWithTax);
+        }
+        
+        // Project Notes Functions
+        function loadProjectNotes(jobId) {
+            const notesData = load(`project_notes_${jobId}`, '');
+            $('project-notes-editor').value = notesData;
+            updateWordCount();
+        }
+        
+        function setupProjectNotesEditor(jobId) {
+            const editor = $('project-notes-editor');
+            
+            // Auto-save on input
+            editor.addEventListener('input', () => {
+                updateWordCount();
+                saveProjectNotes(jobId);
+            });
+            
+            // Auto-save on paste
+            editor.addEventListener('paste', () => {
+                setTimeout(() => {
+                    updateWordCount();
+                    saveProjectNotes(jobId);
+                }, 100);
+            });
+        }
+        
+        function saveProjectNotes(jobId) {
+            const content = $('project-notes-editor').value;
+            save(`project_notes_${jobId}`, content);
+        }
+        
+        function updateWordCount() {
+            const content = $('project-notes-editor').value;
+            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            $('notes-word-count').textContent = `${wordCount} words`;
         }
         
         function saveJobTrackingData() {
