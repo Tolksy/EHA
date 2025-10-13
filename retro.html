@@ -1288,23 +1288,62 @@
             // Sort entries by date
             entries.sort((a, b) => new Date(a.date) - new Date(b.date));
             
-            // Calculate cumulative costs
+            // Get the first and last dates
+            const firstDate = new Date(entries[0].date);
+            const lastDate = new Date(entries[entries.length - 1].date);
+            
+            // Start one day before the first job day
+            const startDate = new Date(firstDate);
+            startDate.setDate(startDate.getDate() - 1);
+            
+            // Create chart data starting from day before
+            const chartData = [];
             let cumulativeCost = 0;
-            const chartData = entries.map(entry => {
-                const laborCost = entry.manHours ? entry.manHours.reduce((sum, h) => sum + (parseFloat(h.hours || 0) * (getLaborRates()[h.name] || 0)), 0) : 0;
-                const expenseCost = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
-                cumulativeCost += laborCost + expenseCost;
-                return {
-                    date: entry.date,
-                    cost: cumulativeCost,
-                    dayCost: laborCost + expenseCost
-                };
+            
+            // Add starting point (day before job starts)
+            chartData.push({
+                date: startDate.toISOString().split('T')[0],
+                cost: 0,
+                dayCost: 0,
+                isJobDay: false
             });
             
-            // Create simple SVG chart
-            const maxCost = Math.max(...chartData.map(d => d.cost));
-            const width = 300;
-            const height = 180;
+            // Add each day from start to end
+            const currentDate = new Date(startDate);
+            while (currentDate <= lastDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayEntry = entries.find(entry => entry.date === dateStr);
+                
+                if (dayEntry) {
+                    // This is a job day - calculate costs
+                    const laborCost = dayEntry.manHours ? dayEntry.manHours.reduce((sum, h) => sum + (parseFloat(h.hours || 0) * (getLaborRates()[h.name] || 0)), 0) : 0;
+                    const expenseCost = dayEntry.expenses ? dayEntry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+                    const dayCost = laborCost + expenseCost;
+                    cumulativeCost += dayCost;
+                    
+                    chartData.push({
+                        date: dateStr,
+                        cost: cumulativeCost,
+                        dayCost: dayCost,
+                        isJobDay: true
+                    });
+                } else {
+                    // No work this day - cost stays the same
+                    chartData.push({
+                        date: dateStr,
+                        cost: cumulativeCost,
+                        dayCost: 0,
+                        isJobDay: false
+                    });
+                }
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Create SVG chart
+            const maxCost = Math.max(...chartData.map(d => d.cost), 100); // Minimum scale of $100
+            const width = 320;
+            const height = 200;
             
             let svg = `<svg width="${width}" height="${height}" style="margin:10px;">
                 <defs>
@@ -1316,26 +1355,38 @@
             
             // Draw grid lines
             for (let i = 0; i <= 4; i++) {
-                const y = (height - 40) * (i / 4) + 20;
-                svg += `<line x1="40" y1="${y}" x2="${width-20}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
-                svg += `<text x="35" y="${y+5}" font-size="10" fill="#666" text-anchor="end">$${(maxCost * (4-i) / 4).toFixed(0)}</text>`;
+                const y = (height - 60) * (i / 4) + 30;
+                svg += `<line x1="50" y1="${y}" x2="${width-30}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
+                svg += `<text x="45" y="${y+5}" font-size="10" fill="#666" text-anchor="end">$${(maxCost * (4-i) / 4).toFixed(0)}</text>`;
+            }
+            
+            // Draw X-axis labels (dates)
+            const labelCount = Math.min(5, chartData.length);
+            for (let i = 0; i < labelCount; i++) {
+                const index = Math.floor((chartData.length - 1) * (i / (labelCount - 1)));
+                const x = 50 + (width - 80) * (i / (labelCount - 1));
+                const date = new Date(chartData[index].date);
+                const dateLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+                svg += `<text x="${x}" y="${height-10}" font-size="9" fill="#666" text-anchor="middle">${dateLabel}</text>`;
             }
             
             // Draw cost line
             const points = chartData.map((d, i) => {
-                const x = 40 + (width - 60) * (i / (chartData.length - 1));
-                const y = height - 20 - ((height - 40) * (d.cost / maxCost));
+                const x = 50 + (width - 80) * (i / (chartData.length - 1));
+                const y = height - 30 - ((height - 60) * (d.cost / maxCost));
                 return `${x},${y}`;
             }).join(' ');
             
             svg += `<polyline points="${points}" fill="none" stroke="#4CAF50" stroke-width="2"/>`;
-            svg += `<polygon points="40,${height-20} ${points} ${width-20},${height-20}" fill="url(#costGradient)"/>`;
+            svg += `<polygon points="50,${height-30} ${points} ${width-30},${height-30}" fill="url(#costGradient)"/>`;
             
-            // Add dots for data points
+            // Add dots for data points (only on job days)
             chartData.forEach((d, i) => {
-                const x = 40 + (width - 60) * (i / (chartData.length - 1));
-                const y = height - 20 - ((height - 40) * (d.cost / maxCost));
-                svg += `<circle cx="${x}" cy="${y}" r="3" fill="#4CAF50"/>`;
+                if (d.isJobDay) {
+                    const x = 50 + (width - 80) * (i / (chartData.length - 1));
+                    const y = height - 30 - ((height - 60) * (d.cost / maxCost));
+                    svg += `<circle cx="${x}" cy="${y}" r="3" fill="#4CAF50"/>`;
+                }
             });
             
             svg += '</svg>';
