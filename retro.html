@@ -298,13 +298,29 @@
                     <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:16px;">
-                    <div>
-                        <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB</div>
+                    <div id="edit-job-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB - Click to Edit</div>
                         <div id="job-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
                     </div>
-                    <div>
-                        <div style="color:#666; font-size:12px; margin-bottom:2px;">CLIENT</div>
+                    <div id="edit-client-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div style="color:#666; font-size:12px; margin-bottom:2px;">CLIENT - Click to Edit</div>
                         <div id="client-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
+                    </div>
+                </div>
+                <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; font-size:14px;">
+                        <div id="edit-job-id" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB ID - Click to Edit</div>
+                            <div id="job-id-display" style="font-weight:bold; color:#333;">Loading...</div>
+                        </div>
+                        <div id="edit-job-status" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">STATUS - Click to Edit</div>
+                            <div id="job-status-display" style="font-weight:bold; color:#f57c00;">Active</div>
+                        </div>
+                        <div id="edit-job-priority" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">PRIORITY - Click to Edit</div>
+                            <div id="job-priority-display" style="font-weight:bold; color:#388e3c;">Normal</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1210,6 +1226,27 @@ All text is automatically saved as you type."></textarea>
             // Update header displays
             $('job-name-display').textContent = job.name || 'Unknown Job';
             $('client-name-display').textContent = customer ? customer.name : 'Unknown Client';
+            $('job-id-display').textContent = job.id || 'No ID';
+            
+            // Load saved job details or use defaults
+            const jobDetails = load(`job_details_${jobId}`, {});
+            $('job-status-display').textContent = jobDetails.status || 'Active';
+            $('job-priority-display').textContent = jobDetails.priority || 'Normal';
+            
+            // Set status color
+            const status = jobDetails.status || 'Active';
+            const statusElement = $('job-status-display');
+            if (status === 'Completed') statusElement.style.color = '#388e3c';
+            else if (status === 'On Hold') statusElement.style.color = '#f57c00';
+            else if (status === 'Cancelled') statusElement.style.color = '#d32f2f';
+            else statusElement.style.color = '#2c5aa0';
+            
+            // Set priority color
+            const priority = jobDetails.priority || 'Normal';
+            const priorityElement = $('job-priority-display');
+            if (priority === 'High') priorityElement.style.color = '#d32f2f';
+            else if (priority === 'Low') priorityElement.style.color = '#666';
+            else priorityElement.style.color = '#388e3c';
             
             // Get job-specific calendar data
             const days = getDays();
@@ -1283,6 +1320,13 @@ All text is automatically saved as you type."></textarea>
             
             // Populate days list
             populateJobDays(jobEntries, jobId);
+            
+            // Add click event listeners for editable header fields
+            $('edit-job-name').onclick = () => editJobName(jobId);
+            $('edit-client-name').onclick = () => editClientName(jobId);
+            $('edit-job-id').onclick = () => editJobId(jobId);
+            $('edit-job-status').onclick = () => editJobStatus(jobId);
+            $('edit-job-priority').onclick = () => editJobPriority(jobId);
             
             // Add click event listeners for editable summary fields
             $('edit-hours').onclick = () => editJobSummaryHours(jobId);
@@ -1521,6 +1565,114 @@ All text is automatically saved as you type."></textarea>
         
         function closeJobTrackingPage() {
             $('job-tracking-page').style.display = 'none';
+        }
+        
+        // Job Header Editing Functions
+        function editJobName(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const currentName = job.name || '';
+            const newName = prompt(`Edit job name:\n\nCurrent: ${currentName}`, currentName);
+            if (newName !== null && newName.trim() !== '') {
+                job.name = newName.trim();
+                setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                $('job-name-display').textContent = job.name;
+                $('project-name').value = job.name;
+                openJobTrackingPage(jobId); // Refresh to update everything
+            }
+        }
+        
+        function editClientName(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            const currentName = customer ? customer.name : '';
+            const newName = prompt(`Edit client name:\n\nCurrent: ${currentName}`, currentName);
+            if (newName !== null && newName.trim() !== '') {
+                if (customer) {
+                    customer.name = newName.trim();
+                    setCustomers(getCustomers().map(c => c.id === customer.id ? customer : c));
+                    $('client-name-display').textContent = customer.name;
+                    $('client-name').value = customer.name;
+                } else {
+                    // Create new customer if none exists
+                    const newCustomer = {
+                        id: Date.now().toString(),
+                        name: newName.trim()
+                    };
+                    setCustomers([...getCustomers(), newCustomer]);
+                    job.clientId = newCustomer.id;
+                    setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                    $('client-name-display').textContent = newCustomer.name;
+                    $('client-name').value = newCustomer.name;
+                }
+            }
+        }
+        
+        function editJobId(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const currentId = job.id || '';
+            const newId = prompt(`Edit job ID:\n\nCurrent: ${currentId}`, currentId);
+            if (newId !== null && newId.trim() !== '') {
+                // Check if new ID already exists
+                const existingJob = getJobs().find(j => j.id === newId.trim() && j.id !== jobId);
+                if (existingJob) {
+                    alert('Job ID already exists. Please choose a different ID.');
+                    return;
+                }
+                job.id = newId.trim();
+                setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                $('job-id-display').textContent = job.id;
+                $('job-number').value = job.id;
+                openJobTrackingPage(newId.trim()); // Refresh with new ID
+            }
+        }
+        
+        function editJobStatus(jobId) {
+            const jobDetails = load(`job_details_${jobId}`, {});
+            const currentStatus = jobDetails.status || 'Active';
+            const statuses = ['Active', 'On Hold', 'Completed', 'Cancelled'];
+            const statusList = statuses.map((s, i) => `${i + 1}. ${s}`).join('\n');
+            const choice = prompt(`Edit job status:\n\nCurrent: ${currentStatus}\n\nOptions:\n${statusList}\n\nEnter number (1-4):`, '1');
+            
+            if (choice !== null) {
+                const choiceNum = parseInt(choice);
+                if (choiceNum >= 1 && choiceNum <= 4) {
+                    const newStatus = statuses[choiceNum - 1];
+                    jobDetails.status = newStatus;
+                    save(`job_details_${jobId}`, jobDetails);
+                    $('job-status-display').textContent = newStatus;
+                    
+                    // Update color
+                    const statusElement = $('job-status-display');
+                    if (newStatus === 'Completed') statusElement.style.color = '#388e3c';
+                    else if (newStatus === 'On Hold') statusElement.style.color = '#f57c00';
+                    else if (newStatus === 'Cancelled') statusElement.style.color = '#d32f2f';
+                    else statusElement.style.color = '#2c5aa0';
+                }
+            }
+        }
+        
+        function editJobPriority(jobId) {
+            const jobDetails = load(`job_details_${jobId}`, {});
+            const currentPriority = jobDetails.priority || 'Normal';
+            const priorities = ['Low', 'Normal', 'High'];
+            const priorityList = priorities.map((p, i) => `${i + 1}. ${p}`).join('\n');
+            const choice = prompt(`Edit job priority:\n\nCurrent: ${currentPriority}\n\nOptions:\n${priorityList}\n\nEnter number (1-3):`, '2');
+            
+            if (choice !== null) {
+                const choiceNum = parseInt(choice);
+                if (choiceNum >= 1 && choiceNum <= 3) {
+                    const newPriority = priorities[choiceNum - 1];
+                    jobDetails.priority = newPriority;
+                    save(`job_details_${jobId}`, jobDetails);
+                    $('job-priority-display').textContent = newPriority;
+                    
+                    // Update color
+                    const priorityElement = $('job-priority-display');
+                    if (newPriority === 'High') priorityElement.style.color = '#d32f2f';
+                    else if (newPriority === 'Low') priorityElement.style.color = '#666';
+                    else priorityElement.style.color = '#388e3c';
+                }
+            }
         }
         
         // Job Summary Editing Functions
