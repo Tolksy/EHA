@@ -92,6 +92,7 @@
             margin: 4px 0;
         }
         .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
         .job-track-name { font-weight:bold; font-size:13px; }
         .job-track-client { font-size:11px; color:#666; }
         .job-track-stats { font-size:12px; color:#333; }
@@ -99,6 +100,29 @@
         .profit-amount.positive { color:#4CAF50; }
         .profit-amount.negative { color:#4CAF50; }
         .profit-amount.neutral { color:#4CAF50; }
+        .payment-status { 
+            font-size:11px; 
+            font-weight:bold; 
+            padding:2px 6px; 
+            border-radius:4px; 
+            cursor:pointer; 
+            user-select:none;
+            transition: all 0.2s ease;
+        }
+        .payment-status.paid { 
+            background:#e8f5e8; 
+            color:#2e7d32; 
+            border:1px solid #4caf50;
+        }
+        .payment-status.unpaid { 
+            background:#ffeaea; 
+            color:#c62828; 
+            border:1px solid #f44336;
+        }
+        .payment-status:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
         .week-cashflow-number {
             position: absolute;
             right: -50px;
@@ -131,7 +155,19 @@
         
         <div style="width:300px; background:#fff; border:1px solid #bbb; padding:12px; border-radius:4px;">
             <h2 style="margin:0 0 12px 0; font-size:16px;">Job Tracking</h2>
-            <div id="job-tracking" style="max-height:400px; overflow-y:auto;">
+            
+            <!-- Payment Summary -->
+            <div id="payment-summary" style="background:#f8f9fa; padding:8px; border-radius:4px; margin-bottom:12px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:bold;">Payment Status</div>
+                    <div style="display:flex; gap:12px;">
+                        <span style="color:#2e7d32;">✅ <span id="paid-count">0</span></span>
+                        <span style="color:#c62828;">❌ <span id="unpaid-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="job-tracking" style="max-height:350px; overflow-y:auto;">
                 <div class="small" style="color:#999; font-style:italic;">Loading jobs...</div>
             </div>
         </div>
@@ -1528,13 +1564,21 @@
                     }, 0);
                 }, 0);
                 
+                const paymentStatus = getPaymentStatus(job.id);
+                const isPaid = paymentStatus === 'paid';
+                
                 div.innerHTML = `
                     <div class="job-track-header">
                         <div>
                             <div class="job-track-name">${job.name}</div>
                             <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
                         </div>
-                        <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
+                        <div class="job-track-right">
+                            <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
+                            <div class="payment-status ${isPaid ? 'paid' : 'unpaid'}" data-job-id="${job.id}">
+                                ${isPaid ? '✅ Paid' : '❌ Unpaid'}
+                            </div>
+                        </div>
                     </div>
                     <div class="job-track-stats">
                         <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
@@ -1544,14 +1588,48 @@
                     </div>
                 `;
                 
-                // Add click event to open job tracking page
-                div.addEventListener('click', () => openJobTrackingPage(job.id));
+                // Add click event to open job tracking page (but not on payment status)
+                div.addEventListener('click', (e) => {
+                    if (!e.target.closest('.payment-status')) {
+                        openJobTrackingPage(job.id);
+                    }
+                });
                 
                 // Add right-click event for context menu
                 div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
                 
+                // Add click event to payment status to toggle
+                const paymentElement = div.querySelector('.payment-status');
+                paymentElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    togglePaymentStatus(job.id);
+                });
+                
                 container.appendChild(div);
             });
+            
+            // Update payment summary counts
+            updatePaymentSummary();
+        }
+        
+        function updatePaymentSummary() {
+            const jobs = getJobs();
+            const statuses = getPaymentStatuses();
+            
+            let paidCount = 0;
+            let unpaidCount = 0;
+            
+            jobs.forEach(job => {
+                const status = statuses[job.id] || 'unpaid';
+                if (status === 'paid') {
+                    paidCount++;
+                } else {
+                    unpaidCount++;
+                }
+            });
+            
+            $('paid-count').textContent = paidCount;
+            $('unpaid-count').textContent = unpaidCount;
         }
         
         // Context Menu Functions
@@ -1705,6 +1783,33 @@
         function getTasksForDate(date) {
             const dateStr = date.toISOString().split('T')[0];
             return getScheduledTasks().filter(task => task.date === dateStr);
+        }
+
+        // Payment Tracking Functions
+        function getPaymentStatuses() {
+            return load('payment_statuses', {});
+        }
+
+        function setPaymentStatuses(statuses) {
+            save('payment_statuses', statuses);
+        }
+
+        function getPaymentStatus(jobId) {
+            const statuses = getPaymentStatuses();
+            return statuses[jobId] || 'unpaid';
+        }
+
+        function setPaymentStatus(jobId, status) {
+            const statuses = getPaymentStatuses();
+            statuses[jobId] = status;
+            setPaymentStatuses(statuses);
+        }
+
+        function togglePaymentStatus(jobId) {
+            const currentStatus = getPaymentStatus(jobId);
+            const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+            setPaymentStatus(jobId, newStatus);
+            renderJobTracking(); // Refresh the display
         }
 
         function openJobRecordModal(jobId) {
