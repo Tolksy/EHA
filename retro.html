@@ -470,98 +470,162 @@
         </div>
     </div>
 
-    <!-- Job Record Modal -->
-    <div id="job-record-modal" class="modal" style="display: none;">
-        <div class="modal-inner" style="width: 700px; max-height: 90vh; overflow-y: auto; background: white; font-family: 'Helvetica Neue', Arial, sans-serif;">
-            <!-- Minimalist Header -->
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:40px; border-bottom:1px solid #f0f0f0; padding-bottom:20px;">
-                <div style="font-size:24px; font-weight:300; color:#333;">Job Record</div>
-                <button id="job-record-close" style="background:none; border:none; font-size:24px; color:#999; cursor:pointer; padding:0; width:30px; height:30px; display:flex; align-items:center; justify-content:center;">×</button>
+    <!-- Scheduled Task Modal -->
+    <div id="scheduled-task-modal" class="modal" style="display: none;">
+        <div class="modal-inner" style="width: 500px; max-height: 90vh; overflow-y: auto; background: white; padding: 40px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #333;">
+            <!-- Close Button -->
+            <button id="scheduled-task-close" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999;">×</button>
+            
+            <!-- Header -->
+            <div style="margin-bottom: 30px;">
+                <div style="font-size: 18px; margin-bottom: 8px;">Add Scheduled Task</div>
+                <div style="font-size: 14px; color: #666;" id="scheduled-task-date">Date: </div>
             </div>
             
-            <!-- Main Content - Clean Layout -->
-            <div style="display:grid; grid-template-columns:1fr 300px; gap:40px;">
-                <!-- Left Column - Main Form -->
+            <!-- Form -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <!-- Task Title -->
                 <div>
-                    <!-- Customer & Job - Clean Headers -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:8px;">Customer -</div>
-                        <input type="text" id="record-customer" style="width:100%; border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:16px; color:#333; background:none;" readonly>
-                    </div>
-                    
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:8px;">Job -</div>
-                        <input type="text" id="record-job" style="width:100%; border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:16px; color:#333; background:none;" readonly>
-                    </div>
-                    
-                    <!-- Labour Estimate - Clean List -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:16px;">Labour Estimate -</div>
-                        <div id="labour-estimate-list" style="font-size:14px; line-height:1.6; color:#333;">
+                    <div style="font-size: 14px; margin-bottom: 8px;">Task -</div>
+                    <input type="text" id="task-title" placeholder="e.g., Meeting in Parksville" style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
+                </div>
+                
+                <!-- Time -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Time -</div>
+                    <input type="time" id="task-time" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
+                </div>
+                
+                <!-- Duration -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Duration -</div>
+                    <select id="task-duration" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="90">1.5 hours</option>
+                        <option value="120">2 hours</option>
+                        <option value="180">3 hours</option>
+                        <option value="240">4 hours</option>
+                        <option value="480">8 hours (all day)</option>
+                    </select>
+                </div>
+                
+                <!-- Location -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Location -</div>
+                    <input type="text" id="task-location" placeholder="e.g., Parksville, BC" style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
+                </div>
+                
+                <!-- Notes -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Notes -</div>
+                    <textarea id="task-notes" rows="3" placeholder="Additional details..." style="width: 100%; border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; resize: none; background: none; color: #333;"></textarea>
+                </div>
+                
+                <!-- Reminder Options -->
+                <div>
+                    <div style="font-size: 14px; margin-bottom: 8px;">Reminder -</div>
+                    <select id="task-reminder" style="border: none; border-bottom: 1px solid #ddd; padding: 8px 0; font-size: 14px; color: #333; background: none;">
+                        <option value="0">No reminder</option>
+                        <option value="15">15 minutes before</option>
+                        <option value="30" selected>30 minutes before</option>
+                        <option value="60">1 hour before</option>
+                        <option value="1440">1 day before</option>
+                    </select>
+                </div>
+                
+                <!-- Actions -->
+                <div style="display: flex; gap: 12px; margin-top: 20px;">
+                    <button id="save-task-btn" style="background: #007AFF; color: white; border: none; padding: 12px 24px; font-size: 14px; cursor: pointer; flex: 1;">Save Task</button>
+                    <button id="cancel-task-btn" style="background: #999; color: white; border: none; padding: 12px 24px; font-size: 14px; cursor: pointer; flex: 1;">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Record Modal -->
+    <div id="job-record-modal" class="modal" style="display: none;">
+        <div class="modal-inner" style="width: 800px; max-height: 90vh; overflow-y: auto; background: white; padding: 60px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #333;">
+            <!-- Close Button -->
+            <button id="job-record-close" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999;">×</button>
+            
+            <!-- Header -->
+            <div style="margin-bottom: 40px;">
+                <div style="font-size: 16px; margin-bottom: 8px;">Customer - <span id="record-customer"></span></div>
+                <div style="font-size: 16px;">Job - <span id="record-job"></span></div>
+            </div>
+            
+            <!-- Two Column Layout -->
+            <div style="display: flex; gap: 60px;">
+                <!-- Left Column -->
+                <div style="flex: 1;">
+                    <!-- Labour Estimate -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 12px;">Labour Estimate -</div>
+                        <div id="labour-estimate-list" style="margin-bottom: 12px;">
                             <!-- Labour items will be populated here -->
                         </div>
-                        <button id="add-labour-item" style="margin-top:12px; background:none; border:none; color:#007AFF; font-size:14px; cursor:pointer; padding:0;">+ Add Task</button>
+                        <button id="add-labour-item" style="background: none; border: none; color: #007AFF; font-size: 14px; cursor: pointer; padding: 0;">+ Add Task</button>
                     </div>
                     
                     <!-- Actual Time -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:8px;">Actual Time on site</div>
-                        <div style="display:flex; gap:16px; align-items:center;">
-                            <input type="time" id="record-start-time" style="border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:14px; background:none; color:#333;">
-                            <span style="color:#666;">-</span>
-                            <input type="time" id="record-end-time" style="border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:14px; background:none; color:#333;">
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Actual Time on site</div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="time" id="record-start-time" style="border: none; background: none; font-size: 14px; color: #333;">
+                            <span>-</span>
+                            <input type="time" id="record-end-time" style="border: none; background: none; font-size: 14px; color: #333;">
                         </div>
                     </div>
                     
                     <!-- Expenses -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:8px;">Expense's -</div>
-                        <textarea id="record-expenses-notes" rows="6" style="width:100%; border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:14px; resize:none; background:none; color:#333;" placeholder="List expenses here..."></textarea>
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Expense's -</div>
+                        <textarea id="record-expenses-notes" rows="6" style="width: 100%; border: none; background: none; font-size: 14px; resize: none; color: #333;" placeholder="List expenses here..."></textarea>
                     </div>
                     
                     <!-- General Notes -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:16px; color:#666; margin-bottom:8px;">General Notes -</div>
-                        <textarea id="record-notes" rows="4" style="width:100%; border:none; border-bottom:1px solid #e0e0e0; padding:8px 0; font-size:14px; resize:none; background:none; color:#333;" placeholder="No general notes on this job"></textarea>
+                    <div>
+                        <div style="font-size: 16px; margin-bottom: 8px;">General Notes -</div>
+                        <textarea id="record-notes" rows="4" style="width: 100%; border: none; background: none; font-size: 14px; resize: none; color: #333;" placeholder="No general notes on this job"></textarea>
                     </div>
                 </div>
                 
-                <!-- Right Column - Clean Summary -->
-                <div style="border-left:1px solid #f0f0f0; padding-left:30px;">
-                    <!-- Hourly Rates - Subtle -->
-                    <div style="margin-bottom:30px; padding:16px; background:#f8f8f8; border-radius:8px;">
-                        <div style="font-size:14px; color:#666; margin-bottom:12px;">Rates</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <span style="font-size:14px; color:#333;">Clayton</span>
-                            <input type="number" id="clayton-rate" value="50" step="1" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
+                <!-- Right Column -->
+                <div style="width: 200px;">
+                    <!-- Rates -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 12px;">Rates</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Clayton</span>
+                            <input type="number" id="clayton-rate" value="50" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
                         </div>
-                        <div style="display:flex; justify-content:space-between;">
-                            <span style="font-size:14px; color:#333;">Ethan</span>
-                            <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
-                        </div>
-                    </div>
-                    
-                    <!-- Billable Summary - Clean -->
-                    <div style="margin-bottom:30px;">
-                        <div style="font-size:14px; color:#666; margin-bottom:8px;">Billable Labor =</div>
-                        <div id="billable-labor-total" style="font-size:16px; color:#333; margin-bottom:20px;">$0.00</div>
-                        
-                        <div style="font-size:14px; color:#666; margin-bottom:8px;">Billable Expenses =</div>
-                        <div style="display:flex; align-items:center; margin-bottom:20px;">
-                            <span style="font-size:16px; color:#333;">$</span>
-                            <input type="number" id="billable-expenses-input" value="0" step="0.01" min="0" style="border:none; background:none; font-size:16px; color:#333; width:100px; text-align:right;">
-                        </div>
-                        
-                        <div style="border-top:1px solid #e0e0e0; padding-top:16px; margin-top:20px;">
-                            <div style="font-size:14px; color:#666; margin-bottom:8px;">Total Billable =</div>
-                            <div id="total-billable" style="font-size:20px; font-weight:500; color:#333;">$0.00</div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Ethan</span>
+                            <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
                         </div>
                     </div>
                     
-                    <!-- Actions - Minimal -->
-                    <div style="display:flex; flex-direction:column; gap:12px;">
-                        <button id="save-record-btn" style="background:#007AFF; color:white; border:none; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Save Record</button>
-                        <button id="send-bill-btn" style="background:#34C759; color:white; border:none; padding:12px 24px; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer;">Send Bill</button>
+                    <!-- Billable Summary -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Billable Labor =</div>
+                        <div id="billable-labor-total" style="margin-bottom: 20px;">$0.00</div>
+                        
+                        <div style="font-size: 16px; margin-bottom: 8px;">Billable Expenses =</div>
+                        <div style="margin-bottom: 20px;">
+                            <input type="number" id="billable-expenses-input" value="0" step="0.01" min="0" style="border: none; background: none; font-size: 14px; color: #333; width: 80px;">
+                        </div>
+                        
+                        <div style="border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
+                            <div style="font-size: 16px; margin-bottom: 8px;">Total Billable =</div>
+                            <div id="total-billable" style="font-size: 18px; font-weight: bold;">$0.00</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="save-record-btn" style="background: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer;">Save Record</button>
+                        <button id="send-bill-btn" style="background: #34C759; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer;">Send Bill</button>
                     </div>
                 </div>
             </div>
@@ -578,7 +642,8 @@
             editingJobId: null,
             jobExpenseRows: [],
             contextMenuJobId: null,
-            recordModalJobId: null
+            recordModalJobId: null,
+            scheduledTaskDate: null
         };
 
         // Minimal storage helpers
@@ -681,6 +746,27 @@
                         });
                     }
 
+                    // Add right-click event for scheduled tasks
+                    cell.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        openScheduledTaskModal(date);
+                    });
+                    
+                    // Add scheduled tasks display
+                    const scheduledTasks = getTasksForDate(date);
+                    if (scheduledTasks.length > 0) {
+                        scheduledTasks.forEach(task => {
+                            const taskDiv = document.createElement('div');
+                            taskDiv.className = 'scheduled-task';
+                            taskDiv.style.cssText = 'background: #e3f2fd; color: #1976d2; padding: 2px 4px; margin: 1px 0; border-radius: 2px; font-size: 11px; border-left: 3px solid #1976d2;';
+                            taskDiv.textContent = `${task.time} - ${task.title}`;
+                            if (task.location) {
+                                taskDiv.textContent += ` (${task.location})`;
+                            }
+                            cell.appendChild(taskDiv);
+                        });
+                    }
+                    
                     cell.addEventListener('click', ()=> openModal(date));
                     row.appendChild(cell);
                 }
@@ -1536,6 +1622,72 @@
         }
         
         // Job Record Modal Functions
+        // Scheduled Tasks Functions
+        function getScheduledTasks() {
+            return load('scheduled_tasks', []);
+        }
+
+        function saveScheduledTasks(tasks) {
+            save('scheduled_tasks', tasks);
+        }
+
+        function openScheduledTaskModal(date) {
+            state.scheduledTaskDate = date;
+            $('scheduled-task-date').textContent = `Date: ${date.toLocaleDateString()}`;
+            
+            // Clear form
+            $('task-title').value = '';
+            $('task-time').value = '';
+            $('task-duration').value = '60';
+            $('task-location').value = '';
+            $('task-notes').value = '';
+            $('task-reminder').value = '30';
+            
+            $('scheduled-task-modal').style.display = 'flex';
+        }
+
+        function closeScheduledTaskModal() {
+            $('scheduled-task-modal').style.display = 'none';
+            state.scheduledTaskDate = null;
+        }
+
+        function saveScheduledTask() {
+            const title = $('task-title').value.trim();
+            if (!title) {
+                alert('Please enter a task title');
+                return;
+            }
+
+            const time = $('task-time').value;
+            if (!time) {
+                alert('Please select a time');
+                return;
+            }
+
+            const task = {
+                id: Date.now().toString(),
+                date: state.scheduledTaskDate.toISOString().split('T')[0],
+                title: title,
+                time: time,
+                duration: parseInt($('task-duration').value),
+                location: $('task-location').value.trim(),
+                notes: $('task-notes').value.trim(),
+                reminder: parseInt($('task-reminder').value)
+            };
+
+            const tasks = getScheduledTasks();
+            tasks.push(task);
+            saveScheduledTasks(tasks);
+
+            closeScheduledTaskModal();
+            renderCalendar(); // Refresh calendar to show the new task
+        }
+
+        function getTasksForDate(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            return getScheduledTasks().filter(task => task.date === dateStr);
+        }
+
         function openJobRecordModal(jobId) {
             const job = getJobs().find(j => j.id === jobId);
             const customer = getCustomers().find(c => c.id === job.clientId);
@@ -1545,8 +1697,8 @@
             state.recordModalJobId = jobId;
             
             // Populate the form with job and customer info
-            $('record-customer').value = customer ? customer.name : 'Unknown Customer';
-            $('record-job').value = job.name;
+            $('record-customer').textContent = customer ? customer.name : 'Unknown Customer';
+            $('record-job').textContent = job.name;
             
             // Check if there's a saved record for this job
             const savedRecord = load(`job_record_${jobId}`, null);
@@ -1678,14 +1830,9 @@
                     if (labor.claytonHours > 0) {
                         const div = document.createElement('div');
                         div.className = 'labour-item';
-                        div.style.marginBottom = '12px';
-                        div.style.display = 'flex';
-                        div.style.alignItems = 'center';
-                        div.style.gap = '12px';
+                        div.style.marginBottom = '8px';
                         div.innerHTML = `
-                            <span style="flex:1; color:#333;">Clayton - ${labor.date}</span>
-                            <input type="number" value="${labor.claytonHours}" step="0.5" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
-                            <span style="color:#666; font-size:14px;">hrs</span>
+                            <span style="color:#333;">Clayton - ${labor.date} ${labor.claytonHours}hrs</span>
                         `;
                         container.appendChild(div);
                     }
@@ -1693,14 +1840,9 @@
                     if (labor.ethanHours > 0) {
                         const div = document.createElement('div');
                         div.className = 'labour-item';
-                        div.style.marginBottom = '12px';
-                        div.style.display = 'flex';
-                        div.style.alignItems = 'center';
-                        div.style.gap = '12px';
+                        div.style.marginBottom = '8px';
                         div.innerHTML = `
-                            <span style="flex:1; color:#333;">Ethan - ${labor.date}</span>
-                            <input type="number" value="${labor.ethanHours}" step="0.5" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
-                            <span style="color:#666; font-size:14px;">hrs</span>
+                            <span style="color:#333;">Ethan - ${labor.date} ${labor.ethanHours}hrs</span>
                         `;
                         container.appendChild(div);
                     }
@@ -1709,13 +1851,10 @@
                 // No data, show empty field
                 const div = document.createElement('div');
                 div.className = 'labour-item';
-                div.style.marginBottom = '12px';
-                div.style.display = 'flex';
-                div.style.alignItems = 'center';
-                div.style.gap = '12px';
+                div.style.marginBottom = '8px';
                 div.innerHTML = `
-                    <input type="text" placeholder="Task description" style="flex:1; border:none; border-bottom:1px solid #e0e0e0; padding:4px 0; font-size:14px; background:none; color:#333;">
-                    <input type="number" placeholder="0" step="0.5" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
+                    <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                    <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
                     <span style="color:#666; font-size:14px;">hrs</span>
                 `;
                 container.appendChild(div);
@@ -1725,9 +1864,9 @@
         function resetLabourEstimateList() {
             const container = $('labour-estimate-list');
             container.innerHTML = `
-                <div class="labour-item" style="margin-bottom:12px; display:flex; align-items:center; gap:12px;">
-                    <input type="text" placeholder="Task description" style="flex:1; border:none; border-bottom:1px solid #e0e0e0; padding:4px 0; font-size:14px; background:none; color:#333;">
-                    <input type="number" placeholder="0" step="0.5" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
+                <div class="labour-item" style="margin-bottom:8px;">
+                    <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                    <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
                     <span style="color:#666; font-size:14px;">hrs</span>
                 </div>
             `;
@@ -1737,13 +1876,10 @@
             const container = $('labour-estimate-list');
             const div = document.createElement('div');
             div.className = 'labour-item';
-            div.style.marginBottom = '12px';
-            div.style.display = 'flex';
-            div.style.alignItems = 'center';
-            div.style.gap = '12px';
+            div.style.marginBottom = '8px';
             div.innerHTML = `
-                <input type="text" placeholder="Task description" style="flex:1; border:none; border-bottom:1px solid #e0e0e0; padding:4px 0; font-size:14px; background:none; color:#333;">
-                <input type="number" placeholder="0" step="0.5" min="0" style="width:60px; border:none; background:none; font-size:14px; color:#333; text-align:right;">
+                <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
                 <span style="color:#666; font-size:14px;">hrs</span>
             `;
             container.appendChild(div);
@@ -1967,6 +2103,11 @@
         $('add-labour-item').onclick = addLabourItem;
         $('save-record-btn').onclick = saveJobRecord;
         $('send-bill-btn').onclick = sendBill;
+        
+        // Scheduled task modal events
+        $('scheduled-task-close').onclick = closeScheduledTaskModal;
+        $('cancel-task-btn').onclick = closeScheduledTaskModal;
+        $('save-task-btn').onclick = saveScheduledTask;
         
         // Add event listeners for real-time total updates
         document.addEventListener('input', (e) => {
