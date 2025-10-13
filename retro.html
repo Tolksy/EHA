@@ -1322,11 +1322,31 @@ All text is automatically saved as you type."></textarea>
             populateJobDays(jobEntries, jobId);
             
             // Add click event listeners for editable header fields
-            $('edit-job-name').onclick = () => editJobName(jobId);
-            $('edit-client-name').onclick = () => editClientName(jobId);
-            $('edit-job-id').onclick = () => editJobId(jobId);
-            $('edit-job-status').onclick = () => editJobStatus(jobId);
-            $('edit-job-priority').onclick = () => editJobPriority(jobId);
+            $('edit-job-name').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobName(jobId);
+            };
+            $('edit-client-name').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editClientName(jobId);
+            };
+            $('edit-job-id').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobId(jobId);
+            };
+            $('edit-job-status').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobStatus(jobId);
+            };
+            $('edit-job-priority').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobPriority(jobId);
+            };
             
             // Add click event listeners for editable summary fields
             $('edit-hours').onclick = () => editJobSummaryHours(jobId);
@@ -1570,6 +1590,10 @@ All text is automatically saved as you type."></textarea>
         // Job Header Editing Functions
         function editJobName(jobId) {
             const job = getJobs().find(j => j.id === jobId);
+            if (!job) {
+                alert('Job not found!');
+                return;
+            }
             const currentName = job.name || '';
             const newName = prompt(`Edit job name:\n\nCurrent: ${currentName}`, currentName);
             if (newName !== null && newName.trim() !== '') {
@@ -1577,7 +1601,8 @@ All text is automatically saved as you type."></textarea>
                 setJobs(getJobs().map(j => j.id === jobId ? job : j));
                 $('job-name-display').textContent = job.name;
                 $('project-name').value = job.name;
-                openJobTrackingPage(jobId); // Refresh to update everything
+                // Don't refresh the page, just update the display
+                renderJobTracking(); // Refresh the job tracking list
             }
         }
         
