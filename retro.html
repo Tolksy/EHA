@@ -562,8 +562,9 @@
                         </div>
                     </div>
                     
-                    <div style="text-align:center; margin-top:30px;">
-                        <button id="send-bill-btn" style="background:#4CAF50; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:14px; font-weight:bold;">"Send Bill"</button>
+                    <div style="text-align:center; margin-top:30px; display:flex; flex-direction:column; gap:10px;">
+                        <button id="save-record-btn" style="background:#2196F3; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:14px; font-weight:bold;">💾 Save Record</button>
+                        <button id="send-bill-btn" style="background:#4CAF50; color:white; border:none; padding:10px 20px; border-radius:4px; cursor:pointer; font-size:14px; font-weight:bold;">📄 Send Bill</button>
                     </div>
                 </div>
             </div>
@@ -1550,6 +1551,43 @@
             $('record-customer').value = customer ? customer.name : 'Unknown Customer';
             $('record-job').value = job.name;
             
+            // Check if there's a saved record for this job
+            const savedRecord = load(`job_record_${jobId}`, null);
+            
+            if (savedRecord) {
+                // Load from saved record
+                $('record-start-time').value = savedRecord.startTime || '';
+                $('record-end-time').value = savedRecord.endTime || '';
+                $('record-notes').value = savedRecord.notes || '';
+                $('record-expenses-notes').value = savedRecord.expenseNotes || '';
+                $('billable-expenses-input').value = savedRecord.totalExpenses || 0;
+                $('clayton-rate').value = savedRecord.claytonRate || 50;
+                $('ethan-rate').value = savedRecord.ethanRate || 5;
+                
+                // Populate labor items from saved record
+                const container = $('labour-estimate-list');
+                container.innerHTML = '';
+                if (savedRecord.laborItems && savedRecord.laborItems.length > 0) {
+                    savedRecord.laborItems.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <input type="text" value="${item.description}" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                            <input type="number" value="${item.hours}" step="0.5" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                        `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    resetLabourEstimateList();
+                }
+                
+                updateBillableTotals();
+                $('job-record-modal').style.display = 'flex';
+                return;
+            }
+            
+            // No saved record, gather data from calendar entries
             // Clear form fields
             $('record-start-time').value = '';
             $('record-end-time').value = '';
@@ -1751,6 +1789,72 @@
             $('total-billable').textContent = `$${(laborTotal + expensesTotal).toFixed(2)}`;
         }
         
+        function saveJobRecord() {
+            if (!state.recordModalJobId) return;
+            
+            const job = getJobs().find(j => j.id === state.recordModalJobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            // Get current hourly rates
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
+            // Collect all the data
+            const startTime = $('record-start-time').value;
+            const endTime = $('record-end-time').value;
+            const notes = $('record-notes').value;
+            const expenseNotes = $('record-expenses-notes').value.trim();
+            const totalExpenses = parseFloat($('billable-expenses-input').value) || 0;
+            
+            // Collect labor items
+            const laborItems = [];
+            const laborContainers = $('labour-estimate-list').querySelectorAll('.labour-item');
+            laborContainers.forEach(container => {
+                const inputs = container.querySelectorAll('input');
+                const description = inputs[0].value.trim();
+                const hours = parseFloat(inputs[1].value) || 0;
+                if (description && hours > 0) {
+                    let rate = claytonRate;
+                    if (description.toLowerCase().includes('ethan')) {
+                        rate = ethanRate;
+                    } else if (description.toLowerCase().includes('clayton')) {
+                        rate = claytonRate;
+                    }
+                    laborItems.push({ description, hours, rate, cost: hours * rate });
+                }
+            });
+            
+            const totalLabor = laborItems.reduce((sum, item) => sum + item.cost, 0);
+            const totalBillable = totalLabor + totalExpenses;
+            
+            // Create the record object
+            const jobRecord = {
+                jobId: state.recordModalJobId,
+                jobName: job.name,
+                customerName: customer ? customer.name : 'Unknown',
+                startTime,
+                endTime,
+                claytonRate,
+                ethanRate,
+                laborItems,
+                totalLabor,
+                totalExpenses,
+                expenseNotes,
+                totalBillable,
+                notes,
+                savedDate: new Date().toISOString()
+            };
+            
+            // Save to localStorage
+            save(`job_record_${state.recordModalJobId}`, jobRecord);
+            
+            alert('✅ Record saved successfully!');
+            closeJobRecordModal();
+            renderJobTracking();
+        }
+        
         function sendBill() {
             if (!state.recordModalJobId) return;
             
@@ -1865,6 +1969,7 @@
         // Job record modal events
         $('job-record-close').onclick = closeJobRecordModal;
         $('add-labour-item').onclick = addLabourItem;
+        $('save-record-btn').onclick = saveJobRecord;
         $('send-bill-btn').onclick = sendBill;
         
         // Add event listeners for real-time total updates
