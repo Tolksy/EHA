@@ -2772,40 +2772,72 @@ All text is automatically saved as you type."></textarea>
                 document.querySelectorAll('.drag-over').forEach(el => {
                     el.classList.remove('drag-over');
                 });
+                
+                // Reset visual styles after drag
+                isDragMode = false;
+                div.draggable = false;
+                div.style.cursor = 'pointer';
+                div.style.opacity = '1';
+                div.style.transform = 'scale(1)';
             });
             
-            let isDragging = false;
-            let dragStartTime = 0;
+            let dragTimer = null;
+            let isDragMode = false;
             
-            // Add mousedown to detect drag intent
+            // Mouse down - start timer for drag mode
             div.addEventListener('mousedown', (e) => {
                 if (!e.target.closest('.payment-status')) {
-                    dragStartTime = Date.now();
-                    isDragging = false;
+                    isDragMode = false;
+                    
+                    // Start 300ms timer for drag mode
+                    dragTimer = setTimeout(() => {
+                        isDragMode = true;
+                        div.draggable = true;
+                        div.style.cursor = 'grabbing';
+                        
+                        // Add visual feedback that drag mode is active
+                        div.style.opacity = '0.8';
+                        div.style.transform = 'scale(1.02)';
+                    }, 300);
                 }
             });
             
-            // Add mousemove to enable dragging after a delay
-            div.addEventListener('mousemove', (e) => {
-                if (dragStartTime > 0 && Date.now() - dragStartTime > 200) {
-                    div.draggable = true;
-                    isDragging = true;
-                }
-            });
-            
-            // Add mouseup to handle clicks
+            // Mouse up - handle click or cancel drag timer
             div.addEventListener('mouseup', (e) => {
-                if (!isDragging && !e.target.closest('.payment-status')) {
+                if (dragTimer) {
+                    clearTimeout(dragTimer);
+                    dragTimer = null;
+                }
+                
+                if (!isDragMode && !e.target.closest('.payment-status')) {
+                    // This was a click, not a drag
                     openJobTrackingPage(job.id);
                 }
-                dragStartTime = 0;
-                isDragging = false;
+                
+                // Reset drag mode
+                isDragMode = false;
                 div.draggable = false;
+                div.style.cursor = 'pointer';
+                div.style.opacity = '1';
+                div.style.transform = 'scale(1)';
             });
             
-            // Add click event as backup
+            // Mouse leave - cancel drag timer if mouse leaves element
+            div.addEventListener('mouseleave', (e) => {
+                if (dragTimer) {
+                    clearTimeout(dragTimer);
+                    dragTimer = null;
+                }
+                isDragMode = false;
+                div.draggable = false;
+                div.style.cursor = 'pointer';
+                div.style.opacity = '1';
+                div.style.transform = 'scale(1)';
+            });
+            
+            // Click event as backup (but only if not in drag mode)
             div.addEventListener('click', (e) => {
-                if (!isDragging && !e.target.closest('.payment-status')) {
+                if (!isDragMode && !e.target.closest('.payment-status')) {
                     openJobTrackingPage(job.id);
                 }
             });
