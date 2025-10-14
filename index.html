@@ -1317,16 +1317,22 @@ All text is automatically saved as you type."></textarea>
                 }
             });
             
+            // Load saved job summary data
+            const summaryData = load(`job_summary_${jobId}`, {});
+            const savedMaterialCosts = summaryData.materialCosts || totalExpenses;
+            const savedLaborCost = summaryData.laborCost || totalLabor;
+            const savedHours = summaryData.hours || totalHours;
+            
             // Update summary displays with new labels
-            $('total-hours-display').textContent = `${totalHours.toFixed(1)}h`;
-            $('total-expenses-display').textContent = `$${totalExpenses.toFixed(2)}`; // Material Costs
-            $('total-revenue-display').textContent = `$${totalLabor.toFixed(2)}`; // Labor Cost
-            $('total-profit-display').textContent = `$${(totalLabor + totalExpenses + (totalLabor + totalExpenses) * 0.10).toFixed(2)}`; // Total with Tax (10%)
-            $('total-cost-display').textContent = `${(totalLabor + totalExpenses).toFixed(2)}`;
-            $('daily-avg-display').textContent = jobEntries.length > 0 ? `${((totalLabor + totalExpenses) / jobEntries.length).toFixed(2)}` : '0.00';
+            $('total-hours-display').textContent = `${savedHours.toFixed(1)}h`;
+            $('total-expenses-display').textContent = `$${savedMaterialCosts.toFixed(2)}`; // Material Costs
+            $('total-revenue-display').textContent = `$${savedLaborCost.toFixed(2)}`; // Labor Cost
+            $('total-profit-display').textContent = `$${(savedLaborCost + savedMaterialCosts + (savedLaborCost + savedMaterialCosts) * 0.10).toFixed(2)}`; // Total with Tax (10%)
+            $('total-cost-display').textContent = `${(savedLaborCost + savedMaterialCosts).toFixed(2)}`;
+            $('daily-avg-display').textContent = jobEntries.length > 0 ? `${((savedLaborCost + savedMaterialCosts) / jobEntries.length).toFixed(2)}` : '0.00';
             
             // Update expenses status
-            if (totalExpenses === 0) {
+            if (savedMaterialCosts === 0) {
                 $('expenses-status-display').textContent = 'No expenses';
                 $('expenses-status-display').style.color = '#666';
             } else if (totalExpensesUnpaid === 0) {
