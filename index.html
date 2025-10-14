@@ -4,22 +4,111 @@
     <meta charset="utf-8">
     <title>Retro Day Tracker</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 12px; background:#f6f6f6; color:#222; }
+        :root {
+            /* Icelandic Minimalist Palette */
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --background: #ecf0f1;
+            --surface: #ffffff;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --border: #bdc3c7;
+            --success: #27ae60;
+            --warning: #e67e22;
+            --error: #e74c3c;
+            --priority: #6c757d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 12px; 
+            background: var(--background); 
+            color: var(--text);
+            line-height: 1.6;
+        }
         h1, h2 { margin: 8px 0; }
         button { cursor:pointer; }
         .cal-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-        .calendar { width:100%; max-width: 980px; border:1px solid #bbb; background:#fff; }
+        .calendar { 
+            width:100%; 
+            max-width: 980px; 
+            border:1px solid var(--border); 
+            background: var(--surface);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+        }
         .cal-row { display:flex; }
-        .cal-cell { flex:1; min-height:92px; border-right:1px solid #eee; border-top:1px solid #eee; padding:4px; position:relative; }
+        .cal-cell { 
+            flex:1; 
+            min-height:92px; 
+            border-right:1px solid var(--border); 
+            border-top:1px solid var(--border); 
+            padding:4px; 
+            position:relative;
+            background: var(--surface);
+        }
         .cal-row .cal-cell:last-child { border-right:none; }
-        .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
-        .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; pointer-events:none; }
-        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:normal; word-wrap:break-word; line-height:1.2; pointer-events:none; }
-        .legend { font-size:12px; margin:8px 0; }
-        .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
-        table { width:100%; border-collapse:collapse; font-size:13px; }
-        th, td { border:1px solid #ddd; padding:6px; text-align:left; }
-        th { background:#f4f4f4; }
+        .dow { 
+            background: var(--background); 
+            font-weight:500; 
+            text-align:center; 
+            padding:6px 0; 
+            border-top:none; 
+            color: var(--text);
+            font-size: 12px;
+        }
+        .date { 
+            font-size:11px; 
+            color: var(--text-light); 
+            position:absolute; 
+            top:4px; 
+            right:6px; 
+            pointer-events:none; 
+        }
+        .badge { 
+            margin-top:18px; 
+            font-size:11px; 
+            display:block; 
+            padding:2px 4px; 
+            border-left:6px solid var(--secondary); 
+            background: var(--background); 
+            color: var(--text); 
+            white-space:normal; 
+            word-wrap:break-word; 
+            line-height:1.2; 
+            pointer-events:none; 
+        }
+        .legend { font-size:12px; margin:8px 0; color: var(--text-light); }
+        .panel { 
+            background: var(--surface); 
+            border:1px solid var(--border); 
+            padding:16px; 
+            margin-top:12px; 
+            max-width: 980px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);
+        }
+        table { 
+            width:100%; 
+            border-collapse:collapse; 
+            font-size:13px; 
+            background: var(--surface);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(44, 62, 80, 0.1);
+        }
+        th, td { 
+            border:1px solid var(--border); 
+            padding:10px 12px; 
+            text-align:left; 
+        }
+        th { 
+            background: var(--background); 
+            color: var(--text);
+            font-weight: 500;
+        }
         .modal { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
         .modal-inner { width:360px; background:#fff; border:1px solid #999; padding:10px; }
         .row { display:flex; gap:6px; align-items:center; margin:6px 0; }
@@ -37,11 +126,26 @@
         .expense-row input[type="number"] { width:80px; }
         .expense-row input[type="text"] { flex:1; }
         .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
-        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:4px 6px; margin:2px 0; border-radius:3px; border-left:3px solid #888; cursor:pointer; transition:background-color 0.2s; min-height: 40px; }
-        .job-track-item:hover { background:#f0f0f0; }
-        .job-track-item.profit { border-left-color:#4CAF50; }
-        .job-track-item.loss { border-left-color:#f44336; }
-        .job-track-item.neutral { border-left-color:#ff9800; }
+        .job-track-item { 
+            background: var(--surface); 
+            border:1px solid var(--border); 
+            padding:8px 12px; 
+            margin:3px 0; 
+            border-radius:6px; 
+            border-left:3px solid var(--secondary); 
+            cursor:pointer; 
+            transition: all 0.2s ease; 
+            min-height: 40px;
+            box-shadow: 0 1px 3px rgba(44, 62, 80, 0.1);
+        }
+        .job-track-item:hover { 
+            background: var(--background); 
+            box-shadow: 0 2px 6px rgba(44, 62, 80, 0.15);
+            transform: translateY(-1px);
+        }
+        .job-track-item.profit { border-left-color: var(--success); }
+        .job-track-item.loss { border-left-color: var(--error); }
+        .job-track-item.neutral { border-left-color: var(--warning); }
         .job-track-item.job-color { border-left-color: var(--job-color); }
 
         /* Context Menu Styles */
@@ -338,9 +442,20 @@
 
             <!-- Business Dashboard Button -->
             <div style="margin-top:12px; text-align:center;">
-                <button id="business-dashboard-btn" style="background:#4CAF50; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+                <button id="business-dashboard-btn" style="background: var(--accent); color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition: background-color 0.2s ease; box-shadow: 0 2px 4px rgba(52, 152, 219, 0.2);">
                     📊 Business Dashboard
                 </button>
+            </div>
+
+            <!-- High Priority Task Feature -->
+            <div style="margin-top:20px; padding:16px; background: var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow: 0 2px 8px rgba(44, 62, 80, 0.1);">
+                <h3 style="margin:0 0 12px 0; color: var(--text); font-size:14px; font-weight:500; display:flex; align-items:center; gap:6px;">⚡ High Priority Task</h3>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="priority-task-input" placeholder="Enter high priority task..." style="flex:1; padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; background: var(--surface); color: var(--text); transition: border-color 0.2s ease;">
+                    <button id="add-priority-task-btn" style="background: var(--priority); color:white; border:none; padding:10px 16px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition: background-color 0.2s ease;">
+                        Add Task
+                    </button>
+                </div>
             </div>
         </div>
             </div>
@@ -608,8 +723,8 @@ All text is automatically saved as you type."></textarea>
         </div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" id="menuRecord">
-            <span class="icon">📝</span>
-            <span>Record</span>
+            <span class="icon">📊</span>
+            <span>Job Details</span>
         </div>
         <div class="context-menu-separator"></div>
         <div class="context-menu-item" id="menuDelete" style="color: #d32f2f;">
@@ -899,16 +1014,24 @@ All text is automatically saved as you type."></textarea>
                     // Add scheduled tasks display
                     const scheduledTasks = getTasksForDate(date);
                     if (scheduledTasks.length > 0) {
-                        scheduledTasks.forEach(task => {
-                            const taskDiv = document.createElement('div');
-                            taskDiv.className = 'scheduled-task';
-                            taskDiv.style.cssText = 'background: #e3f2fd; color: #1976d2; padding: 2px 4px; margin: 1px 0; border-radius: 2px; font-size: 11px; border-left: 3px solid #1976d2;';
+                    scheduledTasks.forEach(task => {
+                        const taskDiv = document.createElement('div');
+                        taskDiv.className = 'scheduled-task';
+                        
+                        // Different styling for high priority tasks
+                        if (task.priority === 'high') {
+                            taskDiv.style.cssText = 'background: var(--background); color: var(--text); padding: 3px 6px; margin: 2px 0; border-radius: 4px; font-size: 11px; border-left: 3px solid var(--priority); font-weight: 500;';
+                            taskDiv.textContent = `⚡ ${task.time} - ${task.title}`;
+                        } else {
+                            taskDiv.style.cssText = 'background: var(--background); color: var(--text-light); padding: 3px 6px; margin: 2px 0; border-radius: 4px; font-size: 11px; border-left: 3px solid var(--accent);';
                             taskDiv.textContent = `${task.time} - ${task.title}`;
-                            if (task.location) {
-                                taskDiv.textContent += ` (${task.location})`;
-                            }
-                            cell.appendChild(taskDiv);
-                        });
+                        }
+                        
+                        if (task.location) {
+                            taskDiv.textContent += ` (${task.location})`;
+                        }
+                        cell.appendChild(taskDiv);
+                    });
                     }
 
                     cell.addEventListener('click', ()=> openModal(date));
@@ -1422,10 +1545,11 @@ All text is automatically saved as you type."></textarea>
         
         // Job Tracking Page Functions
         function openJobTrackingPage(jobId) {
-            const job = getJobs().find(j => j.id === jobId);
-            const customer = getCustomers().find(c => c.id === job.clientId);
-            
-            if (!job) return;
+            try {
+                const job = getJobs().find(j => j.id === jobId);
+                const customer = getCustomers().find(c => c.id === job.clientId);
+                
+                if (!job) return;
             
             // Populate hidden inputs for app functionality
             $('project-name').value = job.name || '';
@@ -1587,8 +1711,14 @@ All text is automatically saved as you type."></textarea>
             // Load and display sub jobs
             loadSubJobs(jobId);
             
-            // Show the job tracking page
-            $('job-tracking-page').style.display = 'block';
+                // Show the job tracking page
+                $('job-tracking-page').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error opening job tracking page:', error);
+                // Fallback: just show the page even if there were errors
+                $('job-tracking-page').style.display = 'block';
+            }
         }
         
         function createCostChart(entries) {
@@ -2781,66 +2911,8 @@ All text is automatically saved as you type."></textarea>
                 div.style.transform = 'scale(1)';
             });
             
-            let dragTimer = null;
-            let isDragMode = false;
-            
-            // Mouse down - start timer for drag mode
-            div.addEventListener('mousedown', (e) => {
-                if (!e.target.closest('.payment-status')) {
-                    isDragMode = false;
-                    
-                    // Start 300ms timer for drag mode
-                    dragTimer = setTimeout(() => {
-                        isDragMode = true;
-                        div.draggable = true;
-                        div.style.cursor = 'grabbing';
-                        
-                        // Add visual feedback that drag mode is active
-                        div.style.opacity = '0.8';
-                        div.style.transform = 'scale(1.02)';
-                    }, 300);
-                }
-            });
-            
-            // Mouse up - handle click or cancel drag timer
-            div.addEventListener('mouseup', (e) => {
-                if (dragTimer) {
-                    clearTimeout(dragTimer);
-                    dragTimer = null;
-                }
-                
-                if (!isDragMode && !e.target.closest('.payment-status')) {
-                    // This was a click, not a drag
-                    openJobTrackingPage(job.id);
-                }
-                
-                // Reset drag mode
-                isDragMode = false;
-                div.draggable = false;
-                div.style.cursor = 'pointer';
-                div.style.opacity = '1';
-                div.style.transform = 'scale(1)';
-            });
-            
-            // Mouse leave - cancel drag timer if mouse leaves element
-            div.addEventListener('mouseleave', (e) => {
-                if (dragTimer) {
-                    clearTimeout(dragTimer);
-                    dragTimer = null;
-                }
-                isDragMode = false;
-                div.draggable = false;
-                div.style.cursor = 'pointer';
-                div.style.opacity = '1';
-                div.style.transform = 'scale(1)';
-            });
-            
-            // Click event as backup (but only if not in drag mode)
-            div.addEventListener('click', (e) => {
-                if (!isDragMode && !e.target.closest('.payment-status')) {
-                    openJobTrackingPage(job.id);
-                }
-            });
+            // Enable drag and drop by default
+            div.draggable = true;
             
             // Add right-click event for context menu
             div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
@@ -3067,8 +3139,8 @@ All text is automatically saved as you type."></textarea>
                     openJobEditModal(state.contextMenuJobId);
                     break;
                 case 'record':
-                    // Open the job record modal
-                    openJobRecordModal(state.contextMenuJobId);
+                    // Open the job tracking page
+                    openJobTrackingPage(state.contextMenuJobId);
                     break;
                 case 'delete':
                     // Show confirmation dialog before deleting
@@ -3445,6 +3517,65 @@ All text is automatically saved as you type."></textarea>
         function getTasksForDate(date) {
             const dateStr = date.toISOString().split('T')[0];
             return getScheduledTasks().filter(task => task.date === dateStr);
+        }
+        
+        function addHighPriorityTask() {
+            const taskText = $('priority-task-input').value.trim();
+            if (!taskText) {
+                alert('Please enter a task description');
+                return;
+            }
+            
+            // Get date and time from user
+            const dateInput = prompt('Enter date (YYYY-MM-DD format):\nExample: 2025-10-15', new Date().toISOString().split('T')[0]);
+            if (!dateInput) return;
+            
+            // Validate date format
+            const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dateRegex.test(dateInput)) {
+                alert('Invalid date format. Please use YYYY-MM-DD');
+                return;
+            }
+            
+            // Check if date is valid
+            const taskDate = new Date(dateInput);
+            if (isNaN(taskDate.getTime())) {
+                alert('Invalid date. Please enter a valid date.');
+                return;
+            }
+            
+            const timeInput = prompt('Enter time (HH:MM format):\nExample: 09:30', '09:00');
+            if (!timeInput) return;
+            
+            // Validate time format
+            const timeRegex = /^\d{2}:\d{2}$/;
+            if (!timeRegex.test(timeInput)) {
+                alert('Invalid time format. Please use HH:MM');
+                return;
+            }
+            
+            // Create the task
+            const tasks = getScheduledTasks();
+            const newTask = {
+                id: `task_${Date.now()}`,
+                title: taskText,
+                time: timeInput,
+                date: dateInput,
+                priority: 'high',
+                created: new Date().toISOString()
+            };
+            
+            tasks.push(newTask);
+            saveScheduledTasks(tasks);
+            
+            // Clear the input
+            $('priority-task-input').value = '';
+            
+            // Refresh calendar to show the new task
+            renderCalendar();
+            
+            // Show success message
+            alert(`✅ High priority task added!\n\n"${taskText}"\n📅 ${dateInput} at ${timeInput}`);
         }
 
         // Payment Tracking Functions
@@ -3874,6 +4005,7 @@ All text is automatically saved as you type."></textarea>
         $('menuRecord').onclick = () => handleContextMenuAction('record');
         $('menuDelete').onclick = () => handleContextMenuAction('delete');
         
+        
         // Hide context menu when clicking elsewhere
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.context-menu')) {
@@ -3926,6 +4058,18 @@ All text is automatically saved as you type."></textarea>
         // Business Dashboard button
         document.getElementById('business-dashboard-btn').addEventListener('click', () => {
             window.location.href = 'dashboard.html';
+        });
+        
+        // High Priority Task button
+        document.getElementById('add-priority-task-btn').addEventListener('click', () => {
+            addHighPriorityTask();
+        });
+        
+        // Allow Enter key to add task
+        document.getElementById('priority-task-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addHighPriorityTask();
+            }
         });
     })();
     </script>
