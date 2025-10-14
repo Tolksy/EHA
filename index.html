@@ -1862,8 +1862,13 @@ All text is automatically saved as you type."></textarea>
         }
         
         function createJobCalendar(jobId, entries) {
-            const container = $('job-calendar-content');
-            container.innerHTML = '';
+            try {
+                const container = $('job-calendar-content');
+                if (!container) {
+                    console.error('Job calendar container not found');
+                    return;
+                }
+                container.innerHTML = '';
             
             if (entries.length === 0) {
                 container.innerHTML = '<div style="color:#999; font-size:12px;">No work days recorded</div>';
@@ -1876,8 +1881,17 @@ All text is automatically saved as you type."></textarea>
             const workDates = [...new Set(entries.map(entry => entry.date))];
             $('work-days-count').textContent = workDates.length;
             
-            const lastDate = new Date(entries[entries.length - 1].date);
-            $('last-work-day').textContent = `${lastDate.getMonth() + 1}/${lastDate.getDate()}/${lastDate.getFullYear()}`;
+            const lastEntry = entries[entries.length - 1];
+            if (lastEntry && lastEntry.date) {
+                const lastDate = new Date(lastEntry.date);
+                if (!isNaN(lastDate.getTime())) {
+                    $('last-work-day').textContent = `${lastDate.getMonth() + 1}/${lastDate.getDate()}/${lastDate.getFullYear()}`;
+                } else {
+                    $('last-work-day').textContent = 'Invalid date';
+                }
+            } else {
+                $('last-work-day').textContent = 'None';
+            }
             
             // Create a mini calendar using the same structure as main calendar
             const year = new Date().getFullYear();
@@ -1962,6 +1976,15 @@ All text is automatically saved as you type."></textarea>
             }
             
             container.appendChild(calendarDiv);
+            } catch (error) {
+                console.error('Error creating job calendar:', error);
+                const container = $('job-calendar-content');
+                if (container) {
+                    container.innerHTML = '<div style="color: red; font-size: 12px;">Error loading calendar</div>';
+                }
+                $('work-days-count').textContent = '0';
+                $('last-work-day').textContent = 'Error';
+            }
         }
         
         function populateJobDays(entries, jobId) {
