@@ -1,126 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Context Menu Demo</title>
+    <meta charset="utf-8">
+    <title>Retro Day Tracker</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 40px 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5rem;
-        }
-
-        .subtitle {
-            color: rgba(255, 255, 255, 0.9);
-            text-align: center;
-            margin-bottom: 40px;
-            font-size: 1.1rem;
-        }
-
-        .jobs-list {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .job-item {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            user-select: none;
-        }
-
-        .job-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-
-        .job-item:active {
-            transform: translateY(0);
-        }
-
-        .job-name {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #2d3748;
-            margin-bottom: 8px;
-        }
-
-        .job-details {
-            color: #4a5568;
-            font-size: 0.95rem;
-        }
-
-        .job-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        .job-status.active {
-            background: #48bb78;
-            color: white;
-        }
-
-        .job-status.pending {
-            background: #ed8936;
-            color: white;
-        }
-
-        .job-status.completed {
-            background: #4299e1;
-            color: white;
-        }
-
+        body { font-family: Arial, sans-serif; margin: 12px; background:#f6f6f6; color:#222; }
+        h1, h2 { margin: 8px 0; }
+        button { cursor:pointer; }
+        .cal-header { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+        .calendar { width:100%; max-width: 980px; border:1px solid #bbb; background:#fff; }
+        .cal-row { display:flex; }
+        .cal-cell { flex:1; min-height:92px; border-right:1px solid #eee; border-top:1px solid #eee; padding:4px; position:relative; }
+        .cal-row .cal-cell:last-child { border-right:none; }
+        .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
+        .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; pointer-events:none; }
+        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
+        .legend { font-size:12px; margin:8px 0; }
+        .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th, td { border:1px solid #ddd; padding:6px; text-align:left; }
+        th { background:#f4f4f4; }
+        .modal { position:fixed; inset:0; background:rgba(0,0,0,0.4); display:none; align-items:center; justify-content:center; }
+        .modal-inner { width:360px; background:#fff; border:1px solid #999; padding:10px; }
+        .row { display:flex; gap:6px; align-items:center; margin:6px 0; }
+        label { font-size:12px; min-width:110px; }
+        input[type="text"], input[type="number"], select { width:100%; padding:4px; }
+        .small { font-size:12px; color:#666; }
+        .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:8px; }
+        .capsule { border:1px solid #ccc; padding:2px 6px; border-radius:10px; font-size:11px; display:inline-block; margin-right:6px; }
+        .footer { margin-top:8px; font-size:12px; color:#666; }
+        .entry-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:4px 0; border-radius:4px; }
+        .entry-item .entry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .entry-item .entry-details { font-size:12px; color:#666; }
+        .delete-entry { background:#ff4444; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
+        .expense-row { display:flex; gap:4px; align-items:center; margin:4px 0; }
+        .expense-row input[type="number"] { width:80px; }
+        .expense-row input[type="text"] { flex:1; }
+        .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
+        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:6px 0; border-radius:4px; border-left:4px solid #888; cursor:pointer; transition:background-color 0.2s; }
+        .job-track-item:hover { background:#f0f0f0; }
+        .job-track-item.profit { border-left-color:#4CAF50; }
+        .job-track-item.loss { border-left-color:#f44336; }
+        .job-track-item.neutral { border-left-color:#ff9800; }
+        .job-track-item.job-color { border-left-color: var(--job-color); }
+        
         /* Context Menu Styles */
         .context-menu {
             position: fixed;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-            padding: 8px 0;
-            min-width: 200px;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 4px 0;
+            min-width: 160px;
             display: none;
             z-index: 1000;
-            animation: menuFadeIn 0.15s ease-out;
-        }
-
-        @keyframes menuFadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
+            font-size: 12px;
         }
 
         .context-menu.show {
@@ -128,91 +63,349 @@
         }
 
         .context-menu-item {
-            padding: 12px 20px;
+            padding: 8px 12px;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             transition: background 0.15s;
-            color: #2d3748;
-            font-size: 0.95rem;
+            color: #333;
         }
 
         .context-menu-item:hover {
-            background: #f7fafc;
+            background: #f0f0f0;
         }
 
         .context-menu-item:active {
-            background: #edf2f7;
+            background: #e0e0e0;
         }
 
         .context-menu-item .icon {
-            font-size: 1.2rem;
-            width: 24px;
+            font-size: 14px;
+            width: 16px;
             text-align: center;
         }
 
         .context-menu-separator {
             height: 1px;
-            background: #e2e8f0;
-            margin: 8px 0;
+            background: #ddd;
+            margin: 4px 0;
         }
-
-        .instruction {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1rem;
+        .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+        .job-track-name { font-weight:bold; font-size:13px; }
+        .job-track-client { font-size:11px; color:#666; }
+        .job-track-stats { font-size:12px; color:#333; }
+        .profit-amount { font-weight:bold; font-size:11px; text-align:right; line-height:1.2; }
+        .profit-amount.positive { color:#4CAF50; }
+        .profit-amount.negative { color:#4CAF50; }
+        .profit-amount.neutral { color:#4CAF50; }
+        .payment-status { 
+            font-size:11px; 
+            font-weight:bold; 
+            padding:2px 6px; 
+            border-radius:4px; 
+            cursor:pointer; 
+            user-select:none;
+            transition: all 0.2s ease;
         }
-
-        .instruction strong {
-            font-weight: 700;
+        .payment-status.paid { 
+            background:#e8f5e8; 
+            color:#2e7d32; 
+            border:1px solid #4caf50;
         }
+        .payment-status.unpaid { 
+            background:#ffeaea; 
+            color:#c62828; 
+            border:1px solid #f44336;
+        }
+        .payment-status:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .week-cashflow-number {
+            position: absolute;
+            right: -50px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            background: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .cal-row { position: relative; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🔧 Job Manager</h1>
-        <p class="subtitle">Right-click Context Menu Demo</p>
-        
-        <div class="instruction">
-            <strong>Try it out!</strong> Right-click on any job below to see the context menu
+    <div style="display:flex; gap:12px; align-items:flex-start;">
+        <div style="flex:1;">
+            <div class="cal-header">
+                <button id="prev">&lt;</button>
+                <h1 id="title" style="flex:1"></h1>
+                <button id="next">&gt;</button>
+            </div>
+            <div class="legend small">Click a day → enter: Customer • Job (color) • Clayton/Ethan hours • Revenue • Expenses → Save</div>
+            <div id="calendar" class="calendar"></div>
         </div>
+        
+        <div style="width:300px; background:#fff; border:1px solid #bbb; padding:12px; border-radius:4px;">
+            <h2 style="margin:0 0 12px 0; font-size:16px;">Job Tracking</h2>
+            
+            <!-- Payment Summary -->
+            <div id="payment-summary" style="background:#f8f9fa; padding:8px; border-radius:4px; margin-bottom:12px; font-size:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:bold;">Payment Status</div>
+                    <div style="display:flex; gap:12px;">
+                        <span style="color:#2e7d32;">✅ <span id="paid-count">0</span></span>
+                        <span style="color:#c62828;">❌ <span id="unpaid-count">0</span></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="job-tracking" style="max-height:350px; overflow-y:auto;">
+                <div class="small" style="color:#999; font-style:italic;">Loading jobs...</div>
+            </div>
+        </div>
+    </div>
 
-        <div class="jobs-list">
-            <div class="job-item" data-job-id="1" data-job-name="Kitchen Renovation">
-                <div class="job-name">Kitchen Renovation</div>
-                <div class="job-details">Client: Sarah Johnson | Est. Hours: 40</div>
-                <span class="job-status active">Active</span>
+    <div class="panel">
+        <h2 style="margin-top:0">Snapshot</h2>
+        <div style="background:#f9f9f9; padding:16px; border-radius:6px; text-align:center;">
+            <div style="font-size:24px; font-weight:bold; color:#333; margin-bottom:8px;">
+                $<span id="monthly-profit">0.00</span>
+            </div>
+            <div style="font-size:12px; color:#666;">
+                <span id="paid-count-main">0</span> paid • <span id="unpaid-count-main">0</span> unpaid
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Jobs (last 5)</h2>
+        <table id="jobs-table">
+            <thead><tr><th>Job</th><th>Client</th><th>Created</th><th>Revenue</th><th>Labor</th><th>Expenses</th><th>Profit</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Customers</h2>
+        <div id="customers-list"></div>
+    </div>
+
+    <div class="panel">
+        <h2 style="margin-top:0">Day Entries (this month)</h2>
+        <table id="days-table">
+            <thead><tr><th>Date</th><th>Client</th><th>Job</th><th>Hours</th><th>Revenue</th><th>Expenses</th><th>Profit</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-inner" style="width: 500px; max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong id="form-date">Edit Day</strong>
+                <button id="close">x</button>
+            </div>
+            
+            <div id="existing-entries" style="margin-bottom: 16px;">
+                <h3 style="margin: 8px 0; font-size: 14px;">Existing Entries</h3>
+                <div id="entries-list"></div>
+            </div>
+            
+            <hr style="margin: 12px 0;">
+            
+            <h3 style="margin: 8px 0; font-size: 14px;">Add New Entry</h3>
+            <div class="row"><label>Customer</label>
+                <select id="customer"></select>
+            </div>
+            <div class="row"><label>New Customer</label><input id="newCustomer" type="text" placeholder="(optional)"></div>
+
+            <div class="row"><label>Job</label>
+                <select id="job"></select>
+            </div>
+            <div class="row"><label>New Job</label><input id="newJob" type="text" placeholder="(optional)"></div>
+            <div class="row"><label>Job Color</label><input id="jobColor" type="color" value="#2f7afe"></div>
+
+            <div class="row"><label>Clayton hrs</label><input id="hrsC" type="number" step="0.1" min="0" value="0"></div>
+            <div class="row"><label>Ethan hrs</label><input id="hrsE" type="number" step="0.1" min="0" value="0"></div>
+
+            <div class="row"><label>Revenue $</label><input id="revenue" type="number" step="0.01" min="0" value="0"></div>
+            
+            <div style="margin: 12px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:13px;">Expenses</strong>
+                    <button id="add-expense-row" style="font-size:11px; padding:3px 8px;">+ Add Expense</button>
+                </div>
+                <div id="expenses-list" style="max-height:150px; overflow-y:auto;"></div>
             </div>
 
-            <div class="job-item" data-job-id="2" data-job-name="Bathroom Remodel">
-                <div class="job-name">Bathroom Remodel</div>
-                <div class="job-details">Client: Mike Davis | Est. Hours: 25</div>
-                <span class="job-status pending">Pending</span>
+            <div class="actions">
+                <button id="add-entry">Add Entry</button>
+                <button id="save">Done</button>
+            </div>
+            <div class="footer small">Employees default wages: Clayton $50/h, Ethan $5/h (all hours billable)</div>
+        </div>
+    </div>
+
+    <div id="job-edit-modal" class="modal">
+        <div class="modal-inner" style="width: 500px; max-height: 80vh; overflow-y: auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <strong id="job-edit-title">Edit Job</strong>
+                <button id="job-edit-close">x</button>
+            </div>
+            
+            <div class="row"><label>Job Name</label><input id="edit-job-name" type="text"></div>
+            <div class="row"><label>Customer</label>
+                <select id="edit-job-customer"></select>
+            </div>
+            <div class="row"><label>Job Color</label><input id="edit-job-color" type="color" value="#2f7afe"></div>
+            
+            <hr style="margin: 12px 0;">
+            <h3 style="margin: 8px 0; font-size: 14px;">Adjust Hours (Cash Flow)</h3>
+            <div class="row"><label>Clayton Hours</label><input id="edit-clayton-hours" type="number" step="0.1" min="0" value="0"></div>
+            <div class="row"><label>Ethan Hours</label><input id="edit-ethan-hours" type="number" step="0.1" min="0" value="0"></div>
+            <div class="small" style="color:#666; margin-bottom:8px;">Clayton: $50/hour cash flow • Ethan: $5/hour cash flow</div>
+            
+            <hr style="margin: 12px 0;">
+            <div style="margin: 12px 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <strong style="font-size:13px;">Job Expenses (Drawdowns/Investments)</strong>
+                    <button id="add-job-expense-row" style="font-size:11px; padding:3px 8px;">+ Add Expense</button>
+                </div>
+                <div id="job-expenses-list" style="max-height:150px; overflow-y:auto;"></div>
             </div>
 
-            <div class="job-item" data-job-id="3" data-job-name="Office HVAC Installation">
-                <div class="job-name">Office HVAC Installation</div>
-                <div class="job-details">Client: TechCorp Inc. | Est. Hours: 60</div>
-                <span class="job-status active">Active</span>
+            <div class="actions">
+                <button id="save-job-edit">Save Changes</button>
+                <button id="delete-job" style="background:#ff4444; color:white;">Delete Job</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Tracking Page Modal -->
+    <div id="job-tracking-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:2000; overflow-y:auto;">
+        <div style="max-width:800px; margin:0 auto; padding:20px; font-family:Arial, sans-serif; line-height:1.6;">
+            <!-- Header -->
+            <div style="margin-bottom:30px; border-bottom:2px solid #333; padding-bottom:15px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <h1 style="margin:0; font-size:28px; color:#333;">Project Snapshot</h1>
+                <button id="close-job-tracking" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:14px;">Close</button>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; font-size:16px;">
+                    <div id="snapshot-edit-job-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB - Click to Edit</div>
+                        <div id="job-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
+                    </div>
+                    <div id="snapshot-edit-client-name" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                        <div style="color:#666; font-size:12px; margin-bottom:2px;">CLIENT - Click to Edit</div>
+                        <div id="client-name-display" style="font-weight:bold; color:#2c5aa0;">Loading...</div>
+                    </div>
+                </div>
+                <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; font-size:14px;">
+                        <div id="snapshot-edit-job-id" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">JOB ID - Click to Edit</div>
+                            <div id="job-id-display" style="font-weight:bold; color:#333;">Loading...</div>
+                        </div>
+                        <div id="snapshot-edit-job-status" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">STATUS - Click to Edit</div>
+                            <div id="job-status-display" style="font-weight:bold; color:#f57c00;">Active</div>
+                        </div>
+                        <div id="snapshot-edit-job-priority" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px; margin-bottom:2px;">PRIORITY - Click to Edit</div>
+                            <div id="job-priority-display" style="font-weight:bold; color:#388e3c;">Normal</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="job-item" data-job-id="4" data-job-name="Home Electrical Upgrade">
-                <div class="job-name">Home Electrical Upgrade</div>
-                <div class="job-details">Client: Robert Smith | Est. Hours: 15</div>
-                <span class="job-status completed">Completed</span>
+            <!-- Job Analytics Canvas -->
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+                
+                <!-- Left Column: Cost Graph -->
+                <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
+                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Cost Over Time</h3>
+                    <div id="cost-chart" style="height:200px; background:white; border:1px solid #ddd; border-radius:4px; position:relative; overflow:hidden;">
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#999; font-size:12px;">
+                            Loading chart...
+                    </div>
+                    </div>
+                    <div style="margin-top:10px; font-size:12px; color:#666;">
+                        <div>Total Cost: $<span id="total-cost-display">0.00</span></div>
+                        <div>Daily Avg: $<span id="daily-avg-display">0.00</span></div>
+                    </div>
+                    </div>
+
+                <!-- Right Column: Job Summary -->
+                <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
+                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Summary - Click to Edit</h3>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+                        <div id="edit-hours" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Total Hours</div>
+                            <div id="total-hours-display" style="font-weight:bold; color:#2c5aa0;">0.0h</div>
+                    </div>
+                        <div id="edit-material-costs" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Material Costs</div>
+                            <div id="total-expenses-display" style="font-weight:bold; color:#d32f2f;">$0.00</div>
+                    </div>
+                        <div id="edit-labor-cost" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Labor Cost</div>
+                            <div id="total-revenue-display" style="font-weight:bold; color:#388e3c;">$0.00</div>
+                    </div>
+                        <div id="edit-total-with-tax" style="cursor:pointer; padding:8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#e8f4fd'" onmouseout="this.style.background='transparent'">
+                            <div style="color:#666; font-size:12px;">Total with Tax</div>
+                            <div id="total-profit-display" style="font-weight:bold; color:#f57c00;">$0.00</div>
+                    </div>
+                    </div>
+                    <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
+                        <div style="color:#666; font-size:12px; margin-bottom:5px;">Expenses Status</div>
+                        <div id="expenses-status-display" style="font-weight:bold; color:#333;">No expenses</div>
+                    </div>
+                    </div>
+                    </div>
+
+            <!-- Days List with Editing -->
+            <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
+                <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Days - Click to Edit</h3>
+                <div id="job-days-list" style="max-height:300px; overflow-y:auto;">
+                    <!-- Days will be populated here -->
+                </div>
             </div>
 
-            <div class="job-item" data-job-id="5" data-job-name="Restaurant Plumbing Repair">
-                <div class="job-name">Restaurant Plumbing Repair</div>
-                <div class="job-details">Client: Downtown Bistro | Est. Hours: 8</div>
-                <span class="job-status pending">Pending</span>
+            <!-- Word Document Area -->
+            <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0; margin-top:20px;">
+                <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Project Notes & Documentation</h3>
+                <textarea id="project-notes-editor" style="width:100%; height:300px; border:1px solid #ddd; border-radius:4px; padding:15px; font-family:Arial, sans-serif; font-size:14px; line-height:1.5; resize:vertical; background:white;" placeholder="Start typing your project notes, documentation, or any other information here...
+
+This is your blank word document area - you can:
+• Add project specifications
+• Write meeting notes
+• Document client communications
+• Create project timelines
+• Add any other relevant information
+
+All text is automatically saved as you type."></textarea>
+                <div style="margin-top:10px; font-size:12px; color:#666; text-align:right;">
+                    <span id="notes-word-count">0 words</span> • Auto-saved
+                </div>
             </div>
+
+            <!-- Essential elements (keep these for app functionality) -->
+            <input type="hidden" id="project-name" value="">
+            <input type="hidden" id="job-number" value="">
+            <input type="hidden" id="client-name" value="">
+
+            <!-- Save Button (keep for app functionality) -->
+            <div style="text-align:center; margin-top:30px; padding-top:20px; border-top:1px solid #ddd;">
+                <button id="save-job-tracking" style="background:#4CAF50; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px; margin-right:10px;">Save Project Data</button>
+                <button id="print-job-tracking" style="background:#2196F3; color:white; border:none; padding:12px 24px; border-radius:4px; cursor:pointer; font-size:16px;">Print / Export</button>
+                    </div>
         </div>
     </div>
 
@@ -234,61 +427,2501 @@
         </div>
     </div>
 
+    <!-- Calendar Context Menu -->
+    <div class="context-menu" id="calendarContextMenu">
+        <div class="context-menu-item" id="menuAddTask">
+            <span class="icon">📅</span>
+            <span>Add Task</span>
+        </div>
+    </div>
+
+    <!-- Small Task Popup -->
+    <div id="task-popup" style="display: none; position: fixed; background: white; border: 1px solid #ddd; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1001; font-family: Arial, sans-serif; font-size: 14px; width: 350px;">
+        <!-- Close Button -->
+        <button id="task-popup-close" style="position: absolute; top: 8px; right: 8px; background: none; border: none; font-size: 16px; cursor: pointer; color: #999; width: 20px; height: 20px;">×</button>
+        
+        <!-- Header -->
+        <div style="margin-bottom: 15px;">
+            <div style="font-size: 16px; margin-bottom: 4px;">Add Task</div>
+            <div style="font-size: 12px; color: #666;" id="task-popup-date">Date: </div>
+        </div>
+        
+        <!-- Form -->
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            <!-- Task Title -->
+                    <div>
+                <input type="text" id="task-title" placeholder="Task title..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                    </div>
+            
+            <!-- Time and Duration -->
+            <div style="display: flex; gap: 8px;">
+                <input type="time" id="task-time" style="flex: 1; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                <select id="task-duration" style="flex: 1; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                    <option value="30">30m</option>
+                    <option value="60" selected>1h</option>
+                    <option value="90">1.5h</option>
+                    <option value="120">2h</option>
+                    <option value="240">4h</option>
+                    <option value="480">All day</option>
+                </select>
+            </div>
+            
+            <!-- Location -->
+                    <div>
+                <input type="text" id="task-location" placeholder="Location (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px;">
+                    </div>
+            
+            <!-- Notes -->
+                    <div>
+                <textarea id="task-notes" rows="2" placeholder="Notes (optional)..." style="width: 100%; border: 1px solid #ddd; padding: 6px 8px; font-size: 14px; border-radius: 4px; resize: none;"></textarea>
+            </div>
+            
+            <!-- Actions -->
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button id="save-task-btn" style="background: #007AFF; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Save</button>
+                <button id="cancel-task-btn" style="background: #999; color: white; border: none; padding: 8px 16px; font-size: 14px; cursor: pointer; border-radius: 4px; flex: 1;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Job Record Modal -->
+    <div id="job-record-modal" class="modal" style="display: none;">
+        <div class="modal-inner" style="width: 800px; max-height: 90vh; overflow-y: auto; background: white; padding: 60px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.4; color: #333;">
+            <!-- Close Button -->
+            <button id="job-record-close" style="position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 18px; cursor: pointer; color: #999;">×</button>
+            
+            <!-- Header -->
+            <div style="margin-bottom: 40px;">
+                <div style="font-size: 16px; margin-bottom: 8px;">Customer - <span id="record-customer"></span></div>
+                <div style="font-size: 16px;">Job - <span id="record-job"></span></div>
+            </div>
+            
+            <!-- Two Column Layout -->
+            <div style="display: flex; gap: 60px;">
+                <!-- Left Column -->
+                <div style="flex: 1;">
+                    <!-- Labour Estimate -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 12px;">Labour Estimate -</div>
+                        <div id="labour-estimate-list" style="margin-bottom: 12px;">
+                            <!-- Labour items will be populated here -->
+                        </div>
+                        <button id="add-labour-item" style="background: none; border: none; color: #007AFF; font-size: 14px; cursor: pointer; padding: 0;">+ Add Task</button>
+                    </div>
+                    
+                    <!-- Actual Time -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Actual Time on site</div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="time" id="record-start-time" style="border: none; background: none; font-size: 14px; color: #333;">
+                            <span>-</span>
+                            <input type="time" id="record-end-time" style="border: none; background: none; font-size: 14px; color: #333;">
+                        </div>
+                    </div>
+                    
+                    <!-- Expenses -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Expense's -</div>
+                        <textarea id="record-expenses-notes" rows="6" style="width: 100%; border: none; background: none; font-size: 14px; resize: none; color: #333;" placeholder="List expenses here..."></textarea>
+                    </div>
+                    
+                    <!-- General Notes -->
+                    <div>
+                        <div style="font-size: 16px; margin-bottom: 8px;">General Notes -</div>
+                        <textarea id="record-notes" rows="4" style="width: 100%; border: none; background: none; font-size: 14px; resize: none; color: #333;" placeholder="No general notes on this job"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div style="width: 200px;">
+                    <!-- Rates -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 12px;">Rates</div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Clayton</span>
+                            <input type="number" id="clayton-rate" value="50" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span>Ethan</span>
+                            <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
+                </div>
+            </div>
+
+                    <!-- Billable Summary -->
+                    <div style="margin-bottom: 30px;">
+                        <div style="font-size: 16px; margin-bottom: 8px;">Billable Labor =</div>
+                        <div id="billable-labor-total" style="margin-bottom: 20px;">$0.00</div>
+                        
+                        <div style="font-size: 16px; margin-bottom: 8px;">Billable Expenses =</div>
+                        <div style="margin-bottom: 20px;">
+                            <input type="number" id="billable-expenses-input" value="0" step="0.01" min="0" style="border: none; background: none; font-size: 14px; color: #333; width: 80px;">
+                        </div>
+                        
+                        <div style="border-top: 1px solid #ddd; padding-top: 12px; margin-top: 20px;">
+                            <div style="font-size: 16px; margin-bottom: 8px;">Total Billable =</div>
+                            <div id="total-billable" style="font-size: 18px; font-weight: bold;">$0.00</div>
+                        </div>
+            </div>
+
+                    <!-- Actions -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="save-record-btn" style="background: #007AFF; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer;">Save Record</button>
+                        <button id="send-bill-btn" style="background: #34C759; color: white; border: none; padding: 10px 20px; font-size: 14px; cursor: pointer;">Send Bill</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        const contextMenu = document.getElementById('contextMenu');
-        const jobItems = document.querySelectorAll('.job-item');
-        let selectedJob = null;
+    (function() {
+        const $ = (id) => document.getElementById(id);
+        const state = {
+            current: new Date(),
+            selectedISO: null,
+            expenseRows: [],
+            editingJobId: null,
+            jobExpenseRows: [],
+            contextMenuJobId: null,
+            recordModalJobId: null,
+            scheduledTaskDate: null,
+            calendarCellElement: null
+        };
 
-        // Prevent default context menu and show custom one
-        jobItems.forEach(job => {
-            job.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                
-                // Store the selected job
-                selectedJob = {
-                    id: job.dataset.jobId,
-                    name: job.dataset.jobName
-                };
+        // Minimal storage helpers
+        function load(key, fallback) {
+            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+        }
+        function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
-                // Position the context menu
-                const x = e.clientX;
-                const y = e.clientY;
+        function getCustomers() { return load('customers', []); }
+        function setCustomers(v) { save('customers', v); }
+        function getJobs() { return load('jobs', []); }
+        function setJobs(v) { save('jobs', v); }
+        function getDays() { return load('dayEntries', {}); }
+        function setDays(v) { save('dayEntries', v); }
+        
+        // Helper to get entries for a specific day
+        function getDayEntries(iso) {
+            const days = getDays();
+            const data = days[iso];
+            
+            // Handle backward compatibility: convert old single-entry format to array
+            if (data && !Array.isArray(data)) {
+                // Old format detected, convert to array
+                const entries = [data];
+                setDayEntries(iso, entries);
+                return entries;
+            }
+            
+            return data || [];
+        }
+        
+        // Helper to save entries for a specific day
+        function setDayEntries(iso, entries) {
+            const days = getDays();
+            days[iso] = entries;
+            setDays(days);
+            updateMonthlyProfit(); // Update snapshot when data changes
+        }
+
+        // Employees fixed
+        const EMPLOYEES = [
+            { id:'emp_clayton', name:'Clayton', wage:50 },
+            { id:'emp_ethan', name:'Ethan', wage:5 }
+        ];
+
+        function ymd(date) { return date.toISOString().split('T')[0]; }
+
+        function renderCalendar() {
+            const year = state.current.getFullYear();
+            const month = state.current.getMonth();
+            const title = new Date(year, month, 1).toLocaleDateString(undefined, { month:'long', year:'numeric' });
+            $('title').textContent = title;
+
+            const first = new Date(year, month, 1);
+            const start = new Date(first);
+            start.setDate(first.getDate() - first.getDay());
+            const days = [];
+            for (let i=0; i<42; i++) {
+                const d = new Date(start); d.setDate(start.getDate()+i); days.push(d);
+            }
+            const daysEl = document.createElement('div');
+            // Header row
+            let header = document.createElement('div'); header.className='cal-row';
+            ;['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(w=>{ const c=document.createElement('div'); c.className='cal-cell dow'; c.textContent=w; header.appendChild(c); });
+            daysEl.appendChild(header);
+            // 6 weeks rows
+            for (let w=0; w<6; w++) {
+                const row = document.createElement('div'); row.className='cal-row';
+                let weekCashFlow = 0; // Track total cash flow for this week
                 
-                contextMenu.style.left = x + 'px';
-                contextMenu.style.top = y + 'px';
+                for (let d=0; d<7; d++) {
+                    const date = days[w*7+d];
+                    const cell = document.createElement('div'); cell.className='cal-cell';
+                    if (date.getMonth()!==month) cell.style.background='#fbfbfb';
+                    const num = document.createElement('div'); num.className='date'; num.textContent = date.getDate(); cell.appendChild(num);
+
+                    // badges from saved entries
+                    const iso = ymd(date);
+                    const entries = getDayEntries(iso);
+                    if (entries.length > 0) {
+                        const jobs = getJobs();
+                        entries.forEach((entry, idx) => {
+                            const job = jobs.find(j => j.id === entry.jobId);
+                            const badge = document.createElement('span');
+                            badge.className='badge';
+                            const color = (job && job.color) ? job.color : '#888';
+                            badge.style.borderLeftColor = color;
+                            const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                            
+                            // Calculate cash flow from hours
+                            const claytonHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_clayton')?.hours || 0;
+                            const ethanHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_ethan')?.hours || 0;
+                            const cashFlow = (claytonHours * 50) + (ethanHours * 5);
+                            
+                            // Add to weekly total
+                            weekCashFlow += cashFlow;
+                            
+                            badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • +$${cashFlow}`;
+                            if (entries.length > 1) badge.textContent += ` (${idx+1})`;
+                            cell.appendChild(badge);
+                        });
+                    }
+
+                    // Add right-click event for scheduled tasks
+                    cell.addEventListener('contextmenu', (e) => {
+                        showCalendarContextMenu(e, date);
+                    });
+                    
+                    // Add scheduled tasks display
+                    const scheduledTasks = getTasksForDate(date);
+                    if (scheduledTasks.length > 0) {
+                        scheduledTasks.forEach(task => {
+                            const taskDiv = document.createElement('div');
+                            taskDiv.className = 'scheduled-task';
+                            taskDiv.style.cssText = 'background: #e3f2fd; color: #1976d2; padding: 2px 4px; margin: 1px 0; border-radius: 2px; font-size: 11px; border-left: 3px solid #1976d2;';
+                            taskDiv.textContent = `${task.time} - ${task.title}`;
+                            if (task.location) {
+                                taskDiv.textContent += ` (${task.location})`;
+                            }
+                            cell.appendChild(taskDiv);
+                        });
+                    }
+
+                    cell.addEventListener('click', ()=> openModal(date));
+                    row.appendChild(cell);
+                }
                 
-                // Show the menu
-                contextMenu.classList.add('show');
+                // Add weekly cash flow number to the right of the row
+                const weekNumber = document.createElement('div');
+                weekNumber.className = 'week-cashflow-number';
+                weekNumber.textContent = `$${weekCashFlow.toLocaleString()}`;
+                row.appendChild(weekNumber);
+                
+                daysEl.appendChild(row);
+            }
+            const cal = $('calendar');
+            cal.innerHTML = '';
+            cal.appendChild(daysEl);
+
+            renderJobsTable();
+            renderCustomersList();
+            renderDaysTable(year, month);
+            renderJobTracking();
+        }
+
+        function ensureCustomer(name) {
+            let customers = getCustomers();
+            let c = customers.find(x => x.name.toLowerCase() === name.toLowerCase());
+            if (!c) { c = { id: `cus_${Date.now()}`, name }; customers.push(c); setCustomers(customers); }
+            return c;
+        }
+        function ensureJob(clientId, name, color) {
+            let jobs = getJobs();
+            let j = jobs.find(x => x.clientId===clientId && x.name.toLowerCase()===name.toLowerCase());
+            if (!j) { j = { id:`job_${Date.now()}`, name, clientId, color: color||'#2f7afe', created: new Date().toISOString() }; jobs.push(j); setJobs(jobs); }
+            return j;
+        }
+
+        function openModal(date) {
+            state.selectedISO = ymd(date);
+            $('form-date').textContent = `Day: ${date.toLocaleDateString()}`;
+            
+            // Show existing entries
+            renderExistingEntries();
+            
+            // populate selects for new entry
+            populateSelects();
+            
+            // Clear form for new entry
+            clearForm();
+
+            $('modal').style.display = 'flex';
+        }
+        
+        function renderExistingEntries() {
+            const entries = getDayEntries(state.selectedISO);
+            const container = $('entries-list');
+            container.innerHTML = '';
+            
+            if (entries.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic;">No entries yet</div>';
+                return;
+            }
+            
+            const customers = getCustomers();
+            const jobs = getJobs();
+            
+            entries.forEach((entry, idx) => {
+                const div = document.createElement('div');
+                div.className = 'entry-item';
+                
+                const customer = customers.find(c => c.id === entry.clientId);
+                const job = jobs.find(j => j.id === entry.jobId);
+                const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                const revenue = entry.revenue||0;
+                const totalExpenses = (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                const profit = revenue - (entry.totals?.labor||0) - totalExpenses;
+                
+                // Build expenses breakdown if there are expenses
+                let expensesDetail = '';
+                if (entry.expenses && entry.expenses.length > 0) {
+                    const expList = entry.expenses.map(e => `${e.note}: $${e.amount.toFixed(2)}`).join(', ');
+                    expensesDetail = `<div style="font-size:11px; color:#888; margin-top:2px;">Expenses: ${expList}</div>`;
+                }
+                
+                div.innerHTML = `
+                    <div class="entry-header">
+                        <strong>${job ? job.name : 'No Job'} (${customer ? customer.name : 'No Customer'})</strong>
+                        <button class="delete-entry" onclick="deleteEntry(${idx})">Delete</button>
+                    </div>
+                    <div class="entry-details">
+                        ${hours}h • $${revenue} revenue • $${totalExpenses.toFixed(2)} expenses • $${profit.toFixed(2)} profit
+                        ${expensesDetail}
+                    </div>
+                `;
+                container.appendChild(div);
             });
-        });
+        }
+        
+        function populateSelects() {
+            const customers = getCustomers();
+            const jobs = getJobs();
+            const custSel = $('customer'); custSel.innerHTML = '';
+            const jobSel = $('job'); jobSel.innerHTML = '';
+            const opt0 = document.createElement('option'); opt0.value=''; opt0.textContent='(select)'; custSel.appendChild(opt0);
+            customers.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.name; custSel.appendChild(o); });
+            const optJ0 = document.createElement('option'); optJ0.value=''; optJ0.textContent='(select)'; jobSel.appendChild(optJ0);
 
-        // Hide context menu when clicking anywhere else
+            custSel.onchange = () => {
+                const cid = custSel.value; jobSel.innerHTML=''; const o0=document.createElement('option'); o0.value=''; o0.textContent='(select)'; jobSel.appendChild(o0);
+                jobs.filter(j=>j.clientId===cid).forEach(j=>{ const o=document.createElement('option'); o.value=j.id; o.textContent=j.name; jobSel.appendChild(o); });
+            };
+        }
+        
+        function clearForm() {
+            $('customer').value = '';
+            $('newCustomer').value = '';
+            $('job').innerHTML = '<option value="">(select)</option>';
+            $('newJob').value = '';
+            $('jobColor').value = '#2f7afe';
+            $('hrsC').value = '0';
+            $('hrsE').value = '0';
+            $('revenue').value = '0';
+            state.expenseRows = [];
+            renderExpenseRows();
+        }
+        
+        function addExpenseRow(amount = '', note = '') {
+            state.expenseRows.push({ amount, note, id: Date.now() });
+            renderExpenseRows();
+        }
+        
+        function removeExpenseRow(id) {
+            state.expenseRows = state.expenseRows.filter(r => r.id !== id);
+            renderExpenseRows();
+        }
+        
+        function renderExpenseRows() {
+            const container = $('expenses-list');
+            container.innerHTML = '';
+            
+            if (state.expenseRows.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic; padding:4px;">No expenses yet</div>';
+                return;
+            }
+            
+            state.expenseRows.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'expense-row';
+                div.innerHTML = `
+                    <span style="font-size:11px; color:#666;">$</span>
+                    <input type="number" step="0.01" min="0" value="${row.amount}" 
+                           onchange="updateExpenseRow(${row.id}, 'amount', this.value)" 
+                           placeholder="Amount">
+                    <input type="text" value="${row.note}" 
+                           onchange="updateExpenseRow(${row.id}, 'note', this.value)" 
+                           placeholder="Description (e.g., materials, gas, etc.)">
+                    <button onclick="removeExpenseRow(${row.id})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateExpenseRow(id, field, value) {
+            const row = state.expenseRows.find(r => r.id === id);
+            if (row) row[field] = value;
+        }
+        
+        // Make expense functions global for onclick handlers
+        window.removeExpenseRow = removeExpenseRow;
+        window.updateExpenseRow = updateExpenseRow;
+        
+        // Function to update all existing entries with new wage rates
+        function updateAllWageRates() {
+            const days = getDays();
+            let updated = false;
+            
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.manHours) {
+                        entry.manHours.forEach(manHour => {
+                            // Update wage rates based on employee ID
+                            if (manHour.employeeId === 'emp_clayton' && manHour.wage !== 50) {
+                                manHour.wage = 50;
+                                manHour.cost = manHour.hours * 50;
+                                updated = true;
+                            } else if (manHour.employeeId === 'emp_ethan' && manHour.wage !== 5) {
+                                manHour.wage = 5;
+                                manHour.cost = manHour.hours * 5;
+                                updated = true;
+                            }
+                        });
+                        
+                        // Recalculate totals if wages were updated
+                        if (updated) {
+                            const labor = entry.manHours.reduce((sum, m) => sum + (m.cost || 0), 0);
+                            const expenses = (entry.expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+                            const revenue = entry.revenue || 0;
+                            const profit = revenue - labor - expenses;
+                            
+                            entry.totals = {
+                                labor,
+                                expenses,
+                                revenue,
+                                profit
+                            };
+                        }
+                    }
+                });
+                
+                if (updated) {
+                    setDayEntries(date, entries);
+                }
+            });
+            
+            if (updated) {
+                console.log('Updated all entries with new wage rates');
+                renderCalendar();
+                renderJobTracking();
+            }
+        }
+        
+        // Job expense management functions
+        function addJobExpenseRow(amount = '', note = '') {
+            state.jobExpenseRows.push({ amount, note, id: Date.now() });
+            renderJobExpenseRows();
+        }
+        
+        function removeJobExpenseRow(id) {
+            state.jobExpenseRows = state.jobExpenseRows.filter(r => r.id !== id);
+            renderJobExpenseRows();
+        }
+        
+        function renderJobExpenseRows() {
+            const container = $('job-expenses-list');
+            container.innerHTML = '';
+            
+            if (state.jobExpenseRows.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic; padding:4px;">No expenses yet</div>';
+                return;
+            }
+            
+            state.jobExpenseRows.forEach((row, idx) => {
+                const div = document.createElement('div');
+                div.className = 'expense-row';
+                div.innerHTML = `
+                    <span style="font-size:11px; color:#666;">$</span>
+                    <input type="number" step="0.01" min="0" value="${row.amount}" 
+                           onchange="updateJobExpenseRow(${row.id}, 'amount', this.value)" 
+                           placeholder="Amount">
+                    <input type="text" value="${row.note}" 
+                           onchange="updateJobExpenseRow(${row.id}, 'note', this.value)" 
+                           placeholder="Description (e.g., materials, equipment, etc.)">
+                    <button onclick="removeJobExpenseRow(${row.id})">×</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+        
+        function updateJobExpenseRow(id, field, value) {
+            const row = state.jobExpenseRows.find(r => r.id === id);
+            if (row) row[field] = value;
+        }
+        
+        // Make job expense functions global for onclick handlers
+        window.removeJobExpenseRow = removeJobExpenseRow;
+        window.updateJobExpenseRow = updateJobExpenseRow;
+        
+        // Job editing functions
+        function openJobEditModal(jobId) {
+            const jobs = getJobs();
+            const customers = getCustomers();
+            const job = jobs.find(j => j.id === jobId);
+            
+            if (!job) return;
+            
+            // Store the job ID for editing
+            state.editingJobId = jobId;
+            
+            // Populate the form
+            $('edit-job-name').value = job.name;
+            $('edit-job-color').value = job.color || '#2f7afe';
+            
+            // Calculate total hours for this job
+            const days = getDays();
+            let claytonHours = 0;
+            let ethanHours = 0;
+            let jobExpenses = [];
+            
+            Object.values(days).forEach(entries => {
+                const entryList = Array.isArray(entries) ? entries : [entries];
+                entryList.forEach(entry => {
+                    if (entry && entry.jobId === jobId) {
+                        // Sum up hours
+                        if (entry.manHours) {
+                            entry.manHours.forEach(mh => {
+                                if (mh.employeeId === 'emp_clayton') {
+                                    claytonHours += mh.hours || 0;
+                                } else if (mh.employeeId === 'emp_ethan') {
+                                    ethanHours += mh.hours || 0;
+                                }
+                            });
+                        }
+                        
+                        // Collect expenses
+                        if (entry.expenses) {
+                            entry.expenses.forEach(exp => {
+                                jobExpenses.push({ amount: exp.amount, note: exp.note, id: Date.now() + Math.random() });
+                            });
+                        }
+                    }
+                });
+            });
+            
+            $('edit-clayton-hours').value = claytonHours;
+            $('edit-ethan-hours').value = ethanHours;
+            
+            // Set up job expenses
+            state.jobExpenseRows = jobExpenses;
+            renderJobExpenseRows();
+            
+            // Populate customer dropdown
+            const customerSelect = $('edit-job-customer');
+            customerSelect.innerHTML = '';
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.id;
+                option.textContent = customer.name;
+                if (customer.id === job.clientId) {
+                    option.selected = true;
+                }
+                customerSelect.appendChild(option);
+            });
+            
+            $('job-edit-modal').style.display = 'flex';
+        }
+        
+        function closeJobEditModal() {
+            $('job-edit-modal').style.display = 'none';
+            state.editingJobId = null;
+        }
+        
+        function saveJobEdit() {
+            if (!state.editingJobId) return;
+            
+            const jobs = getJobs();
+            const jobIndex = jobs.findIndex(j => j.id === state.editingJobId);
+            
+            if (jobIndex === -1) return;
+            
+            const newName = $('edit-job-name').value.trim();
+            const newCustomerId = $('edit-job-customer').value;
+            const newColor = $('edit-job-color').value;
+            const newClaytonHours = parseFloat($('edit-clayton-hours').value) || 0;
+            const newEthanHours = parseFloat($('edit-ethan-hours').value) || 0;
+            
+            if (!newName) {
+                alert('Job name is required');
+                return;
+            }
+            
+            if (!newCustomerId) {
+                alert('Please select a customer');
+                return;
+            }
+            
+            // Update the job
+            jobs[jobIndex].name = newName;
+            jobs[jobIndex].clientId = newCustomerId;
+            jobs[jobIndex].color = newColor;
+            
+            setJobs(jobs);
+            
+            // Update all calendar entries that reference this job
+            updateJobInCalendar(state.editingJobId, newName, newColor, newClaytonHours, newEthanHours);
+            
+            closeJobEditModal();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        function deleteJob() {
+            if (!state.editingJobId) return;
+            
+            if (!confirm('Are you sure you want to delete this job? This will remove it from all calendar entries.')) {
+                return;
+            }
+            
+            const jobs = getJobs();
+            const jobIndex = jobs.findIndex(j => j.id === state.editingJobId);
+            
+            if (jobIndex === -1) return;
+            
+            // Remove the job
+            jobs.splice(jobIndex, 1);
+            setJobs(jobs);
+            
+            // Remove job references from calendar entries
+            removeJobFromCalendar(state.editingJobId);
+            
+            closeJobEditModal();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        function updateJobInCalendar(jobId, newName, newColor, newClaytonHours, newEthanHours) {
+            const days = getDays();
+            const totalCurrentHours = newClaytonHours + newEthanHours;
+            
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.jobId === jobId) {
+                        // Update job name and color in the entry
+                        entry.jobName = newName;
+                        entry.jobColor = newColor;
+                        
+                        // Update hours proportionally across all entries for this job
+                        if (entry.manHours && totalCurrentHours > 0) {
+                            const currentClaytonHours = entry.manHours.find(mh => mh.employeeId === 'emp_clayton')?.hours || 0;
+                            const currentEthanHours = entry.manHours.find(mh => mh.employeeId === 'emp_ethan')?.hours || 0;
+                            const currentTotalHours = currentClaytonHours + currentEthanHours;
+                            
+                            if (currentTotalHours > 0) {
+                                // Calculate proportional adjustment
+                                const claytonRatio = currentClaytonHours / currentTotalHours;
+                                const ethanRatio = currentEthanHours / currentTotalHours;
+                                
+                                // Update hours proportionally
+                                const newClaytonEntryHours = newClaytonHours * claytonRatio;
+                                const newEthanEntryHours = newEthanHours * ethanRatio;
+                                
+                                entry.manHours.forEach(mh => {
+                                    if (mh.employeeId === 'emp_clayton') {
+                                        mh.hours = newClaytonEntryHours;
+                                        mh.cost = newClaytonEntryHours * 50;
+                                    } else if (mh.employeeId === 'emp_ethan') {
+                                        mh.hours = newEthanEntryHours;
+                                        mh.cost = newEthanEntryHours * 5;
+                                    }
+                                });
+                                
+                                // Recalculate totals
+                                const labor = entry.manHours.reduce((sum, m) => sum + (m.cost || 0), 0);
+                                const expenses = (entry.expenses || []).reduce((sum, e) => sum + (e.amount || 0), 0);
+                                const revenue = entry.revenue || 0;
+                                const profit = revenue - labor - expenses;
+                                
+                                entry.totals = {
+                                    labor,
+                                    expenses,
+                                    revenue,
+                                    profit
+                                };
+                            }
+                        }
+                        
+                        // Update expenses from job expense rows
+                        const jobExpenses = state.jobExpenseRows
+                            .filter(r => parseFloat(r.amount) > 0)
+                            .map(r => ({ 
+                                amount: parseFloat(r.amount), 
+                                note: r.note.trim() || 'Job expense' 
+                            }));
+                        
+                        entry.expenses = jobExpenses;
+                        
+                        // Recalculate totals with new expenses
+                        const labor = (entry.manHours || []).reduce((sum, m) => sum + (m.cost || 0), 0);
+                        const expenses = jobExpenses.reduce((sum, e) => sum + e.amount, 0);
+                        const revenue = entry.revenue || 0;
+                        const profit = revenue - labor - expenses;
+                        
+                        entry.totals = {
+                            labor,
+                            expenses,
+                            revenue,
+                            profit
+                        };
+                    }
+                });
+                setDayEntries(date, entries);
+            });
+        }
+        
+        function removeJobFromCalendar(jobId) {
+            const days = getDays();
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                const filteredEntries = entries.filter(entry => entry.jobId !== jobId);
+                if (filteredEntries.length !== entries.length) {
+                    setDayEntries(date, filteredEntries);
+                }
+            });
+        }
+        
+        // Helper function for labor rates
+        function getLaborRates() {
+            const savedRates = localStorage.getItem('laborRates');
+            if (savedRates) {
+                return JSON.parse(savedRates);
+            }
+            // Default rates
+            const defaultRates = {
+                'Clayton': 35.00,
+                'Ethan': 25.00
+            };
+            localStorage.setItem('laborRates', JSON.stringify(defaultRates));
+            return defaultRates;
+        }
+        
+        // Job Tracking Page Functions
+        function openJobTrackingPage(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            // Populate hidden inputs for app functionality
+            $('project-name').value = job.name || '';
+            $('job-number').value = job.id || '';
+            $('client-name').value = customer ? customer.name : '';
+            
+            // Update header displays
+            $('job-name-display').textContent = job.name || 'Unknown Job';
+            $('client-name-display').textContent = customer ? customer.name : 'Unknown Client';
+            $('job-id-display').textContent = job.id || 'No ID';
+            
+            // Load saved job details or use defaults
+            const jobDetails = load(`job_details_${jobId}`, {});
+            $('job-status-display').textContent = jobDetails.status || 'Active';
+            $('job-priority-display').textContent = jobDetails.priority || 'Normal';
+            
+            // Set status color
+            const status = jobDetails.status || 'Active';
+            const statusElement = $('job-status-display');
+            if (status === 'Completed') statusElement.style.color = '#388e3c';
+            else if (status === 'On Hold') statusElement.style.color = '#f57c00';
+            else if (status === 'Cancelled') statusElement.style.color = '#d32f2f';
+            else statusElement.style.color = '#2c5aa0';
+            
+            // Set priority color
+            const priority = jobDetails.priority || 'Normal';
+            const priorityElement = $('job-priority-display');
+            if (priority === 'High') priorityElement.style.color = '#d32f2f';
+            else if (priority === 'Low') priorityElement.style.color = '#666';
+            else priorityElement.style.color = '#388e3c';
+            
+            // Get job-specific calendar data
+            const days = getDays();
+            const jobEntries = [];
+            let totalRevenue = 0;
+            let totalLabor = 0;
+            let totalExpenses = 0;
+            let totalHours = 0;
+            
+            // Collect all entries for this job
+            let totalExpensesPaid = 0;
+            let totalExpensesUnpaid = 0;
+            
+            Object.entries(days).forEach(([date, entries]) => {
+                const entryList = Array.isArray(entries) ? entries : [entries];
+                entryList.forEach(entry => {
+                    if (entry && entry.jobId === jobId) {
+                        jobEntries.push({...entry, date});
+                        totalRevenue += parseFloat(entry.revenue || 0);
+                        totalHours += parseFloat(entry.manHours?.reduce((sum, h) => sum + parseFloat(h.hours || 0), 0) || 0);
+                        if (entry.expenses && Array.isArray(entry.expenses)) {
+                            const expenseAmount = entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                            totalExpenses += expenseAmount;
+                            
+                            if (entry.expensesPaid) {
+                                totalExpensesPaid += expenseAmount;
+                        } else {
+                                totalExpensesUnpaid += expenseAmount;
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Calculate labor cost
+            const laborRates = getLaborRates();
+            jobEntries.forEach(entry => {
+                if (entry.manHours && Array.isArray(entry.manHours)) {
+                    entry.manHours.forEach(manHour => {
+                        const rate = laborRates[manHour.name] || 0;
+                        totalLabor += parseFloat(manHour.hours || 0) * rate;
+                    });
+                }
+            });
+            
+            // Update summary displays with new labels
+            $('total-hours-display').textContent = `${totalHours.toFixed(1)}h`;
+            $('total-expenses-display').textContent = `$${totalExpenses.toFixed(2)}`; // Material Costs
+            $('total-revenue-display').textContent = `$${totalLabor.toFixed(2)}`; // Labor Cost
+            $('total-profit-display').textContent = `$${(totalLabor + totalExpenses + (totalLabor + totalExpenses) * 0.10).toFixed(2)}`; // Total with Tax (10%)
+            $('total-cost-display').textContent = `${(totalLabor + totalExpenses).toFixed(2)}`;
+            $('daily-avg-display').textContent = jobEntries.length > 0 ? `${((totalLabor + totalExpenses) / jobEntries.length).toFixed(2)}` : '0.00';
+            
+            // Update expenses status
+            if (totalExpenses === 0) {
+                $('expenses-status-display').textContent = 'No expenses';
+                $('expenses-status-display').style.color = '#666';
+            } else if (totalExpensesUnpaid === 0) {
+                $('expenses-status-display').textContent = `✅ All paid ($${totalExpensesPaid.toFixed(2)})`;
+                $('expenses-status-display').style.color = '#388e3c';
+            } else if (totalExpensesPaid === 0) {
+                $('expenses-status-display').textContent = `❌ None paid ($${totalExpensesUnpaid.toFixed(2)} pending)`;
+                $('expenses-status-display').style.color = '#d32f2f';
+            } else {
+                $('expenses-status-display').textContent = `🔄 Partial ($${totalExpensesPaid.toFixed(2)} paid, $${totalExpensesUnpaid.toFixed(2)} pending)`;
+                $('expenses-status-display').style.color = '#f57c00';
+            }
+            
+            // Create cost chart
+            createCostChart(jobEntries);
+            
+            // Populate days list
+            populateJobDays(jobEntries, jobId);
+            
+            // Add click event listeners for editable header fields
+            $('snapshot-edit-job-name').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobName(jobId);
+            };
+            $('snapshot-edit-client-name').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editClientName(jobId);
+            };
+            $('snapshot-edit-job-id').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobId(jobId);
+            };
+            $('snapshot-edit-job-status').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobStatus(jobId);
+            };
+            $('snapshot-edit-job-priority').onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                editJobPriority(jobId);
+            };
+            
+            // Add click event listeners for editable summary fields
+            $('edit-hours').onclick = () => editJobSummaryHours(jobId);
+            $('edit-material-costs').onclick = () => editJobSummaryMaterialCosts(jobId);
+            $('edit-labor-cost').onclick = () => editJobSummaryLaborCost(jobId);
+            $('edit-total-with-tax').onclick = () => editJobSummaryTotalWithTax(jobId);
+            
+            // Load and setup project notes
+            loadProjectNotes(jobId);
+            setupProjectNotesEditor(jobId);
+            
+            // Show the job tracking page
+            $('job-tracking-page').style.display = 'block';
+        }
+        
+        function createCostChart(entries) {
+            const chartContainer = $('cost-chart');
+            chartContainer.innerHTML = '';
+            
+            if (entries.length === 0) {
+                chartContainer.innerHTML = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#999; font-size:12px;">No data available</div>';
+                return;
+            }
+            
+            // Sort entries by date
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Get the first and last dates
+            const firstDate = new Date(entries[0].date);
+            const lastDate = new Date(entries[entries.length - 1].date);
+            
+            // Start one day before the first job day
+            const startDate = new Date(firstDate);
+            startDate.setDate(startDate.getDate() - 1);
+            
+            // Create chart data starting from day before
+            const chartData = [];
+            let cumulativeCost = 0;
+            
+            // Add starting point (day before job starts)
+            chartData.push({
+                date: startDate.toISOString().split('T')[0],
+                cost: 0,
+                dayCost: 0,
+                isJobDay: false
+            });
+            
+            // Add each day from start to end
+            const currentDate = new Date(startDate);
+            while (currentDate <= lastDate) {
+                const dateStr = currentDate.toISOString().split('T')[0];
+                const dayEntry = entries.find(entry => entry.date === dateStr);
+                
+                if (dayEntry) {
+                    // This is a job day - calculate costs
+                    const laborCost = dayEntry.manHours ? dayEntry.manHours.reduce((sum, h) => sum + (parseFloat(h.hours || 0) * (getLaborRates()[h.name] || 0)), 0) : 0;
+                    const expenseCost = dayEntry.expenses ? dayEntry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+                    const dayCost = laborCost + expenseCost;
+                    cumulativeCost += dayCost;
+                    
+                    chartData.push({
+                        date: dateStr,
+                        cost: cumulativeCost,
+                        dayCost: dayCost,
+                        isJobDay: true
+                    });
+                } else {
+                    // No work this day - cost stays the same
+                    chartData.push({
+                        date: dateStr,
+                        cost: cumulativeCost,
+                        dayCost: 0,
+                        isJobDay: false
+                    });
+                }
+                
+                currentDate.setDate(currentDate.getDate() + 1);
+            }
+            
+            // Create SVG chart
+            const maxCost = Math.max(...chartData.map(d => d.cost), 100); // Minimum scale of $100
+            const width = 320;
+            const height = 200;
+            
+            let svg = `<svg width="${width}" height="${height}" style="margin:10px;">
+                <defs>
+                    <linearGradient id="costGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:0.2" />
+                    </linearGradient>
+                </defs>`;
+            
+            // Draw grid lines
+            for (let i = 0; i <= 4; i++) {
+                const y = (height - 60) * (i / 4) + 30;
+                svg += `<line x1="50" y1="${y}" x2="${width-30}" y2="${y}" stroke="#eee" stroke-width="1"/>`;
+                svg += `<text x="45" y="${y+5}" font-size="10" fill="#666" text-anchor="end">$${(maxCost * (4-i) / 4).toFixed(0)}</text>`;
+            }
+            
+            // Draw X-axis labels (dates)
+            const labelCount = Math.min(5, chartData.length);
+            for (let i = 0; i < labelCount; i++) {
+                const index = Math.floor((chartData.length - 1) * (i / (labelCount - 1)));
+                const x = 50 + (width - 80) * (i / (labelCount - 1));
+                const date = new Date(chartData[index].date);
+                const dateLabel = `${date.getMonth() + 1}/${date.getDate()}`;
+                svg += `<text x="${x}" y="${height-10}" font-size="9" fill="#666" text-anchor="middle">${dateLabel}</text>`;
+            }
+            
+            // Draw cost line
+            const points = chartData.map((d, i) => {
+                const x = 50 + (width - 80) * (i / (chartData.length - 1));
+                const y = height - 30 - ((height - 60) * (d.cost / maxCost));
+                return `${x},${y}`;
+            }).join(' ');
+            
+            svg += `<polyline points="${points}" fill="none" stroke="#4CAF50" stroke-width="2"/>`;
+            svg += `<polygon points="50,${height-30} ${points} ${width-30},${height-30}" fill="url(#costGradient)"/>`;
+            
+            // Add dots for data points (only on job days)
+            chartData.forEach((d, i) => {
+                if (d.isJobDay) {
+                    const x = 50 + (width - 80) * (i / (chartData.length - 1));
+                    const y = height - 30 - ((height - 60) * (d.cost / maxCost));
+                    svg += `<circle cx="${x}" cy="${y}" r="3" fill="#4CAF50"/>`;
+                }
+            });
+            
+            svg += '</svg>';
+            chartContainer.innerHTML = svg;
+        }
+        
+        function populateJobDays(entries, jobId) {
+            const daysList = $('job-days-list');
+            daysList.innerHTML = '';
+            
+            if (entries.length === 0) {
+                daysList.innerHTML = '<div style="text-align:center; color:#666; padding:20px;">No days recorded for this job</div>';
+                return;
+            }
+            
+            // Sort by date (newest first)
+            entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            entries.forEach(entry => {
+                const dateStr = new Date(entry.date).toLocaleDateString();
+                const laborRates = getLaborRates();
+                
+                // Calculate costs for this day
+                const laborCost = entry.manHours ? entry.manHours.reduce((sum, h) => sum + (parseFloat(h.hours || 0) * (laborRates[h.name] || 0)), 0) : 0;
+                const expenseCost = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+                const totalHours = entry.manHours ? entry.manHours.reduce((sum, h) => sum + parseFloat(h.hours || 0), 0) : 0;
+                const expensesPaid = entry.expensesPaid || false;
+                
+                const dayElement = document.createElement('div');
+                dayElement.style.cssText = 'border:1px solid #ddd; border-radius:6px; padding:12px; margin-bottom:8px; background:white; transition:all 0.2s;';
+                dayElement.style.backgroundColor = 'white';
+                
+                // Build worker details HTML
+                let workerDetailsHTML = '';
+                if (entry.manHours && entry.manHours.length > 0) {
+                    workerDetailsHTML = entry.manHours.map(worker => {
+                        const rate = laborRates[worker.name] || 0;
+                        const hours = parseFloat(worker.hours || 0);
+                        const cost = hours * rate;
+                        return `
+                            <div style="background:#f8f9fa; padding:8px; border-radius:4px; margin-bottom:4px; cursor:pointer; transition:background 0.2s;" 
+                                 onmouseover="this.style.background='#e8f4fd'" 
+                                 onmouseout="this.style.background='#f8f9fa'"
+                                 onclick="event.stopPropagation(); editWorkerDay('${entry.date}', '${worker.name}', ${jobId})">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div>
+                                        <span style="font-weight:bold; color:#2c5aa0;">${worker.name}</span>
+                                        <span style="color:#666; font-size:11px; margin-left:8px;">${hours.toFixed(1)}h @ $${rate.toFixed(2)}/h</span>
+                                    </div>
+                                    <div style="font-weight:bold; color:#d32f2f;">$${cost.toFixed(2)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    workerDetailsHTML = '<div style="color:#999; font-size:11px; text-align:center; padding:8px;">No workers logged</div>';
+                }
+                
+                dayElement.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="font-weight:bold; color:#333;">${dateStr}</div>
+                        <div style="font-size:12px; color:#666;">Revenue: $${parseFloat(entry.revenue || 0).toFixed(2)}</div>
+                    </div>
+                    
+                    <div style="margin-bottom:8px;">
+                        <div style="font-size:11px; color:#666; margin-bottom:4px; font-weight:600;">WORKERS (Click to edit)</div>
+                        ${workerDetailsHTML}
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; font-size:12px; padding-top:8px; border-top:1px solid #eee;">
+                        <div>
+                            <div style="color:#666;">Total Hours: <span style="color:#2c5aa0; font-weight:bold;">${totalHours.toFixed(1)}h</span></div>
+                            <div style="color:#666;">Labor Cost: <span style="color:#d32f2f; font-weight:bold;">$${laborCost.toFixed(2)}</span></div>
+                        </div>
+                        <div>
+                            <div style="color:#666;">Expenses: <span style="color:#d32f2f; font-weight:bold;">$${expenseCost.toFixed(2)}</span></div>
+                            <div style="color:#666;">Expenses Paid: <span style="color:#${expensesPaid ? '388e3c' : '#d32f2f'}; font-weight:bold;">${expensesPaid ? '✅ Yes' : '❌ No'}</span></div>
+                        </div>
+                        <div>
+                            <div style="color:#666;">Total Cost: <span style="color:#333; font-weight:bold;">$${(laborCost + expenseCost).toFixed(2)}</span></div>
+                            <div style="color:#666;">Profit: <span style="color:#${(parseFloat(entry.revenue || 0) - laborCost - expenseCost) >= 0 ? '388e3c' : 'd32f2f'}; font-weight:bold;">$${(parseFloat(entry.revenue || 0) - laborCost - expenseCost).toFixed(2)}</span></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px solid #eee; font-size:11px; color:#888; text-align:center;">
+                        Click card to edit revenue, expenses, and payment status
+                    </div>
+                `;
+                
+                // Add hover effects
+                dayElement.addEventListener('mouseenter', () => {
+                    dayElement.style.backgroundColor = '#f5f5f5';
+                    dayElement.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                });
+                
+                dayElement.addEventListener('mouseleave', () => {
+                    dayElement.style.backgroundColor = 'white';
+                    dayElement.style.boxShadow = 'none';
+                });
+                
+                // Add click handler to edit this day
+                dayElement.addEventListener('click', () => {
+                    editJobDay(entry, jobId);
+                });
+                
+                daysList.appendChild(dayElement);
+            });
+        }
+        
+        function editJobDay(entry, jobId) {
+            const dateStr = new Date(entry.date).toLocaleDateString();
+            const currentRevenue = parseFloat(entry.revenue || 0);
+            const currentExpenses = entry.expenses ? entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0) : 0;
+            const expensesPaid = entry.expensesPaid || false;
+            
+            // Create a more comprehensive editor
+            const newRevenue = prompt(`Edit revenue for ${dateStr}:\n\nCurrent: $${currentRevenue.toFixed(2)}`, currentRevenue.toFixed(2));
+            if (newRevenue !== null) {
+                entry.revenue = parseFloat(newRevenue) || 0;
+                
+                // Ask about expenses
+                const newExpenses = prompt(`Edit total expenses for ${dateStr}:\n\nCurrent: $${currentExpenses.toFixed(2)}`, currentExpenses.toFixed(2));
+                if (newExpenses !== null) {
+                    const expenseAmount = parseFloat(newExpenses) || 0;
+                    // Update expenses array
+                    if (expenseAmount > 0) {
+                        entry.expenses = [{ description: 'Job Expenses', amount: expenseAmount }];
+                    } else {
+                        entry.expenses = [];
+                    }
+                    
+                    // Ask about expenses paid status
+                    const paidStatus = confirm(`Have expenses been paid by client for ${dateStr}?\n\nCurrent: ${expensesPaid ? 'Yes' : 'No'}\n\nClick OK for Yes, Cancel for No`);
+                    entry.expensesPaid = paidStatus;
+                }
+                
+                setDayEntries(entry.date, entry);
+                openJobTrackingPage(jobId); // Refresh the view
+            }
+        }
+        
+        function editWorkerDay(date, workerName, jobId) {
+            // Get the day entry
+            const allEntries = getDayEntries();
+            const entry = allEntries.find(e => e.date === date);
+            
+            if (!entry || !entry.manHours) {
+                alert('No entry found for this date!');
+                return;
+            }
+            
+            // Find the worker in this entry
+            const workerIndex = entry.manHours.findIndex(w => w.name === workerName);
+            if (workerIndex === -1) {
+                alert('Worker not found in this entry!');
+                return;
+            }
+            
+            const worker = entry.manHours[workerIndex];
+            const laborRates = getLaborRates();
+            const currentHours = parseFloat(worker.hours || 0);
+            const currentRate = laborRates[workerName] || 0;
+            
+            const dateStr = new Date(date).toLocaleDateString();
+            
+            // Check if worker is undefined
+            if (workerName === 'undefined' || !workerName || workerName.trim() === '') {
+                // Define the worker
+                const newWorkerName = prompt(
+                    `Define worker name for ${dateStr}:\n\nCurrent hours: ${currentHours.toFixed(1)}\n\nEnter worker name:`,
+                    ''
+                );
+                
+                if (newWorkerName !== null && newWorkerName.trim() !== '') {
+                    const definedName = newWorkerName.trim();
+                    
+                    // Ask for hourly rate
+                    const newRate = prompt(
+                        `Set hourly rate for ${definedName}:\n\nHours: ${currentHours.toFixed(1)}\n\nEnter hourly rate:`,
+                        '25.00'
+                    );
+                    
+                    if (newRate !== null) {
+                        const rate = parseFloat(newRate) || 0;
+                        
+                        // Update the worker's name
+                        entry.manHours[workerIndex].name = definedName;
+                        
+                        // Save the rate
+                        const rates = getLaborRates();
+                        rates[definedName] = rate;
+                        localStorage.setItem('laborRates', JSON.stringify(rates));
+                        
+                        // Save the updated entry
+                        setDayEntries(date, entry);
+                        
+                        // Refresh the view
+                        openJobTrackingPage(jobId);
+                    }
+                }
+                return;
+            }
+            
+            // Edit hours
+            const newHours = prompt(
+                `Edit hours for ${workerName} on ${dateStr}:\n\nCurrent: ${currentHours.toFixed(1)} hours @ $${currentRate.toFixed(2)}/hour\nCurrent Cost: $${(currentHours * currentRate).toFixed(2)}\n\nEnter new hours:`,
+                currentHours.toFixed(1)
+            );
+            
+            if (newHours !== null) {
+                const hours = parseFloat(newHours) || 0;
+                
+                // Edit hourly rate
+                const newRate = prompt(
+                    `Edit hourly rate for ${workerName} on ${dateStr}:\n\nCurrent: $${currentRate.toFixed(2)}/hour\nNew Hours: ${hours.toFixed(1)}\nNew Cost: $${(hours * currentRate).toFixed(2)}\n\nEnter new hourly rate:`,
+                    currentRate.toFixed(2)
+                );
+                
+                if (newRate !== null) {
+                    const rate = parseFloat(newRate) || 0;
+                    
+                    // Update the worker's hours
+                    entry.manHours[workerIndex].hours = hours;
+                    
+                    // Update the labor rates in localStorage if changed
+                    if (rate !== currentRate) {
+                        const rates = getLaborRates();
+                        rates[workerName] = rate;
+                        localStorage.setItem('laborRates', JSON.stringify(rates));
+                    }
+                    
+                    // Save the updated entry
+                    setDayEntries(date, entry);
+                    
+                    // Refresh the view
+                    openJobTrackingPage(jobId);
+                }
+            }
+        }
+        
+        function closeJobTrackingPage() {
+            $('job-tracking-page').style.display = 'none';
+        }
+        
+        // Job Header Editing Functions
+        function editJobName(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            if (!job) {
+                alert('Job not found!');
+                return;
+            }
+            const currentName = job.name || '';
+            const newName = prompt(`Edit job name:\n\nCurrent: ${currentName}`, currentName);
+            if (newName !== null && newName.trim() !== '') {
+                job.name = newName.trim();
+                setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                $('job-name-display').textContent = job.name;
+                $('project-name').value = job.name;
+                // Don't refresh the page, just update the display
+                renderJobTracking(); // Refresh the job tracking list
+            }
+        }
+        
+        function editClientName(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            const currentName = customer ? customer.name : '';
+            const newName = prompt(`Edit client name:\n\nCurrent: ${currentName}`, currentName);
+            if (newName !== null && newName.trim() !== '') {
+                if (customer) {
+                    customer.name = newName.trim();
+                    setCustomers(getCustomers().map(c => c.id === customer.id ? customer : c));
+                    $('client-name-display').textContent = customer.name;
+                    $('client-name').value = customer.name;
+                } else {
+                    // Create new customer if none exists
+                    const newCustomer = {
+                        id: Date.now().toString(),
+                        name: newName.trim()
+                    };
+                    setCustomers([...getCustomers(), newCustomer]);
+                    job.clientId = newCustomer.id;
+                    setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                    $('client-name-display').textContent = newCustomer.name;
+                    $('client-name').value = newCustomer.name;
+                }
+            }
+        }
+        
+        function editJobId(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const currentId = job.id || '';
+            const newId = prompt(`Edit job ID:\n\nCurrent: ${currentId}`, currentId);
+            if (newId !== null && newId.trim() !== '') {
+                // Check if new ID already exists
+                const existingJob = getJobs().find(j => j.id === newId.trim() && j.id !== jobId);
+                if (existingJob) {
+                    alert('Job ID already exists. Please choose a different ID.');
+                    return;
+                }
+                job.id = newId.trim();
+                setJobs(getJobs().map(j => j.id === jobId ? job : j));
+                $('job-id-display').textContent = job.id;
+                $('job-number').value = job.id;
+                openJobTrackingPage(newId.trim()); // Refresh with new ID
+            }
+        }
+        
+        function editJobStatus(jobId) {
+            const jobDetails = load(`job_details_${jobId}`, {});
+            const currentStatus = jobDetails.status || 'Active';
+            const statuses = ['Active', 'On Hold', 'Completed', 'Cancelled'];
+            const statusList = statuses.map((s, i) => `${i + 1}. ${s}`).join('\n');
+            const choice = prompt(`Edit job status:\n\nCurrent: ${currentStatus}\n\nOptions:\n${statusList}\n\nEnter number (1-4):`, '1');
+            
+            if (choice !== null) {
+                const choiceNum = parseInt(choice);
+                if (choiceNum >= 1 && choiceNum <= 4) {
+                    const newStatus = statuses[choiceNum - 1];
+                    jobDetails.status = newStatus;
+                    save(`job_details_${jobId}`, jobDetails);
+                    $('job-status-display').textContent = newStatus;
+                    
+                    // Update color
+                    const statusElement = $('job-status-display');
+                    if (newStatus === 'Completed') statusElement.style.color = '#388e3c';
+                    else if (newStatus === 'On Hold') statusElement.style.color = '#f57c00';
+                    else if (newStatus === 'Cancelled') statusElement.style.color = '#d32f2f';
+                    else statusElement.style.color = '#2c5aa0';
+                }
+            }
+        }
+        
+        function editJobPriority(jobId) {
+            const jobDetails = load(`job_details_${jobId}`, {});
+            const currentPriority = jobDetails.priority || 'Normal';
+            const priorities = ['Low', 'Normal', 'High'];
+            const priorityList = priorities.map((p, i) => `${i + 1}. ${p}`).join('\n');
+            const choice = prompt(`Edit job priority:\n\nCurrent: ${currentPriority}\n\nOptions:\n${priorityList}\n\nEnter number (1-3):`, '2');
+            
+            if (choice !== null) {
+                const choiceNum = parseInt(choice);
+                if (choiceNum >= 1 && choiceNum <= 3) {
+                    const newPriority = priorities[choiceNum - 1];
+                    jobDetails.priority = newPriority;
+                    save(`job_details_${jobId}`, jobDetails);
+                    $('job-priority-display').textContent = newPriority;
+                    
+                    // Update color
+                    const priorityElement = $('job-priority-display');
+                    if (newPriority === 'High') priorityElement.style.color = '#d32f2f';
+                    else if (newPriority === 'Low') priorityElement.style.color = '#666';
+                    else priorityElement.style.color = '#388e3c';
+                }
+            }
+        }
+        
+        // Job Summary Editing Functions
+        function editJobSummaryHours(jobId) {
+            const currentHours = parseFloat($('total-hours-display').textContent.replace('h', ''));
+            const newHours = prompt(`Edit total hours for this job:\n\nCurrent: ${currentHours}h`, currentHours);
+            if (newHours !== null) {
+                const hours = parseFloat(newHours) || 0;
+                $('total-hours-display').textContent = `${hours.toFixed(1)}h`;
+                // Update job data if needed
+                updateJobSummaryData(jobId, 'hours', hours);
+            }
+        }
+        
+        function editJobSummaryMaterialCosts(jobId) {
+            const currentCosts = parseFloat($('total-expenses-display').textContent.replace('$', ''));
+            const newCosts = prompt(`Edit total material costs for this job:\n\nCurrent: $${currentCosts.toFixed(2)}`, currentCosts.toFixed(2));
+            if (newCosts !== null) {
+                const costs = parseFloat(newCosts) || 0;
+                $('total-expenses-display').textContent = `$${costs.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'materialCosts', costs);
+                updateTotalWithTax(jobId);
+            }
+        }
+        
+        function editJobSummaryLaborCost(jobId) {
+            const currentCost = parseFloat($('total-revenue-display').textContent.replace('$', ''));
+            const newCost = prompt(`Edit total labor cost for this job:\n\nCurrent: $${currentCost.toFixed(2)}`, currentCost.toFixed(2));
+            if (newCost !== null) {
+                const cost = parseFloat(newCost) || 0;
+                $('total-revenue-display').textContent = `$${cost.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'laborCost', cost);
+                updateTotalWithTax(jobId);
+            }
+        }
+        
+        function editJobSummaryTotalWithTax(jobId) {
+            const currentTotal = parseFloat($('total-profit-display').textContent.replace('$', ''));
+            const newTotal = prompt(`Edit total with tax for this job:\n\nCurrent: $${currentTotal.toFixed(2)}`, currentTotal.toFixed(2));
+            if (newTotal !== null) {
+                const total = parseFloat(newTotal) || 0;
+                $('total-profit-display').textContent = `$${total.toFixed(2)}`;
+                updateJobSummaryData(jobId, 'totalWithTax', total);
+            }
+        }
+        
+        function updateJobSummaryData(jobId, field, value) {
+            // Store the edited summary data for this job
+            const summaryData = load(`job_summary_${jobId}`, {});
+            summaryData[field] = value;
+            summaryData.lastUpdated = new Date().toISOString();
+            save(`job_summary_${jobId}`, summaryData);
+        }
+        
+        function updateTotalWithTax(jobId) {
+            // Auto-calculate total with tax based on labor + materials + 10% tax
+            const laborCost = parseFloat($('total-revenue-display').textContent.replace('$', ''));
+            const materialCosts = parseFloat($('total-expenses-display').textContent.replace('$', ''));
+            const subtotal = laborCost + materialCosts;
+            const tax = subtotal * 0.10; // 10% tax
+            const totalWithTax = subtotal + tax;
+            $('total-profit-display').textContent = `$${totalWithTax.toFixed(2)}`;
+            updateJobSummaryData(jobId, 'totalWithTax', totalWithTax);
+        }
+        
+        // Project Notes Functions
+        function loadProjectNotes(jobId) {
+            const notesData = load(`project_notes_${jobId}`, '');
+            $('project-notes-editor').value = notesData;
+            updateWordCount();
+        }
+        
+        function setupProjectNotesEditor(jobId) {
+            const editor = $('project-notes-editor');
+            
+            // Auto-save on input
+            editor.addEventListener('input', () => {
+                updateWordCount();
+                saveProjectNotes(jobId);
+            });
+            
+            // Auto-save on paste
+            editor.addEventListener('paste', () => {
+                setTimeout(() => {
+                    updateWordCount();
+                    saveProjectNotes(jobId);
+                }, 100);
+            });
+        }
+        
+        function saveProjectNotes(jobId) {
+            const content = $('project-notes-editor').value;
+            save(`project_notes_${jobId}`, content);
+        }
+        
+        function updateWordCount() {
+            const content = $('project-notes-editor').value;
+            const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
+            $('notes-word-count').textContent = `${wordCount} words`;
+        }
+        
+        function saveJobTrackingData() {
+            const jobId = $('job-number').value;
+            if (!jobId) return;
+            
+            // Collect all form data
+            const projectData = {};
+            const inputs = $('job-tracking-page').querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if (input.type === 'checkbox') {
+                    projectData[input.id] = input.checked;
+                } else {
+                    projectData[input.id] = input.value;
+                }
+            });
+            
+            // Save to localStorage
+            save(`project_${jobId}`, projectData);
+            
+            // Show success message
+            alert('Project data saved successfully!');
+        }
+        
+        function printJobTrackingData() {
+            // Hide buttons for printing
+            const buttons = $('job-tracking-page').querySelectorAll('button');
+            buttons.forEach(btn => btn.style.display = 'none');
+            
+            // Print the page
+            window.print();
+            
+            // Show buttons again
+            buttons.forEach(btn => btn.style.display = 'inline-block');
+        }
+        
+        function deleteEntry(index) {
+            const entries = getDayEntries(state.selectedISO);
+            entries.splice(index, 1);
+            setDayEntries(state.selectedISO, entries);
+            renderExistingEntries();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        // Make deleteEntry global for onclick handlers
+        window.deleteEntry = deleteEntry;
+
+        function closeModal() { $('modal').style.display = 'none'; }
+
+        function addEntry() {
+            const newCustName = $('newCustomer').value.trim();
+            const custSel = $('customer').value;
+            let customerId = custSel;
+            if (!customerId && newCustName) customerId = ensureCustomer(newCustName).id;
+            if (!customerId) { alert('Select or enter a customer'); return; }
+
+            const newJobName = $('newJob').value.trim();
+            const jobSel = $('job').value;
+            let jobId = jobSel;
+            if (!jobId && newJobName) jobId = ensureJob(customerId, newJobName, $('jobColor').value).id;
+            if (!jobId) { alert('Select or enter a job'); return; }
+
+            const hrsC = parseFloat($('hrsC').value)||0;
+            const hrsE = parseFloat($('hrsE').value)||0;
+            const revenue = parseFloat($('revenue').value)||0;
+            
+            // Collect expenses from expense rows
+            const expenses = state.expenseRows
+                .filter(r => parseFloat(r.amount) > 0)
+                .map(r => ({ 
+                    amount: parseFloat(r.amount), 
+                    note: r.note.trim() || 'No description' 
+                }));
+
+            const labor = hrsC*EMPLOYEES[0].wage + hrsE*EMPLOYEES[1].wage;
+            const totalExpenses = expenses.reduce((s,e)=>s+e.amount,0);
+            const profit = revenue - labor - totalExpenses;
+
+            const newEntry = {
+                id: `entry_${Date.now()}`,
+                date: state.selectedISO,
+                clientId: customerId,
+                jobId,
+                manHours:[
+                    { employeeId: EMPLOYEES[0].id, hours: hrsC, wage: EMPLOYEES[0].wage, cost: hrsC*EMPLOYEES[0].wage },
+                    { employeeId: EMPLOYEES[1].id, hours: hrsE, wage: EMPLOYEES[1].wage, cost: hrsE*EMPLOYEES[1].wage }
+                ],
+                revenue,
+                expenses,
+                totals:{ labor, expenses: totalExpenses, revenue, profit }
+            };
+            
+            const entries = getDayEntries(state.selectedISO);
+            entries.push(newEntry);
+            setDayEntries(state.selectedISO, entries);
+            
+            // Clear form and refresh display
+            clearForm();
+            renderExistingEntries();
+            renderCalendar();
+            renderJobTracking();
+        }
+        
+        function saveDay() {
+            closeModal();
+        }
+
+        function renderJobsTable() {
+            const jobs = getJobs().slice().sort((a,b)=>new Date(b.created)-new Date(a.created));
+            const last5 = jobs.slice(0,5);
+            const days = getDays();
+            const tbody = $('jobs-table').querySelector('tbody'); tbody.innerHTML = '';
+            last5.forEach(job => {
+                const stats = jobStats(job.id, days);
+                const tr = document.createElement('tr');
+                const customer = getCustomers().find(c=>c.id===job.clientId);
+                tr.innerHTML = `<td>${job.name}</td><td>${customer?customer.name:''}</td><td>${new Date(job.created).toLocaleDateString()}</td>`+
+                    `<td>$${stats.revenue.toFixed(2)}</td><td>$${stats.labor.toFixed(2)}</td><td>$${stats.expenses.toFixed(2)}</td>`+
+                    `<td>$${(stats.revenue-stats.labor-stats.expenses).toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function jobStats(jobId, daysMap) {
+            let revenue=0, labor=0, expenses=0;
+            Object.values(daysMap).forEach(entries => {
+                if (Array.isArray(entries)) {
+                    entries.forEach(d => {
+                        if (d.jobId===jobId) {
+                            revenue += d.revenue||0;
+                            labor   += (d.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
+                            expenses+= (d.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                        }
+                    });
+                } else if (entries.jobId===jobId) {
+                    // Handle old single-entry format for backward compatibility
+                    revenue += entries.revenue||0;
+                    labor   += (entries.manHours||[]).reduce((s,m)=>s+(m.cost||0),0);
+                    expenses+= (entries.expenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+                }
+            });
+            return { revenue, labor, expenses };
+        }
+
+        function renderCustomersList() {
+            const wrap = $('customers-list'); wrap.innerHTML = '';
+            const customers = getCustomers();
+            if (customers.length === 0) { wrap.textContent = '(no customers yet)'; return; }
+            customers.forEach(c => {
+                const span = document.createElement('span'); span.className='capsule'; span.textContent=c.name; wrap.appendChild(span);
+            });
+        }
+
+        function renderDaysTable(year, month) {
+            const start = new Date(year, month, 1);
+            const end = new Date(year, month+1, 0);
+            const days = getDays();
+            const tbody = $('days-table').querySelector('tbody'); tbody.innerHTML='';
+            const customers = getCustomers(); const jobs = getJobs();
+            for (let d=new Date(start); d<=end; d.setDate(d.getDate()+1)) {
+                const iso = ymd(d);
+                const entries = getDayEntries(iso);
+                if (entries.length === 0) continue;
+                
+                entries.forEach((entry, idx) => {
+                    const client = customers.find(c=>c.id===entry.clientId);
+                    const job = jobs.find(j=>j.id===entry.jobId);
+                    const hours = (entry.manHours||[]).reduce((s,m)=>s+(m.hours||0),0);
+                    const tr = document.createElement('tr');
+                    const dateStr = idx === 0 ? d.toLocaleDateString() : '';
+                    tr.innerHTML = `<td>${dateStr}</td><td>${client?client.name:''}</td><td>${job?job.name:''}</td>`+
+                        `<td>${hours}</td><td>$${(entry.revenue||0).toFixed(2)}</td>`+
+                        `<td>$${((entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0)).toFixed(2)}</td>`+
+                        `<td>$${(entry.totals?entry.totals.profit:((entry.revenue||0) - (entry.manHours||[]).reduce((s,m)=>s+(m.cost||0),0) - (entry.expenses||[]).reduce((s,e)=>s+(e.amount||0),0))).toFixed(2)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+        
+        function renderJobTracking() {
+            const container = $('job-tracking');
+            const jobs = getJobs();
+            const customers = getCustomers();
+            const days = getDays();
+            
+            if (jobs.length === 0) {
+                container.innerHTML = '<div class="small" style="color:#999; font-style:italic;">No jobs yet</div>';
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            // Sort jobs by most recent activity (based on last entry date)
+            const jobsWithStats = jobs.map(job => {
+                const stats = jobStats(job.id, days);
+                const customer = customers.find(c => c.id === job.clientId);
+                
+                // Find the most recent entry for this job
+                let lastActivity = null;
+                Object.entries(days).forEach(([date, entries]) => {
+                    const entryList = Array.isArray(entries) ? entries : [entries];
+                    entryList.forEach(entry => {
+                        if (entry && entry.jobId === job.id) {
+                            if (!lastActivity || date > lastActivity) {
+                                lastActivity = date;
+                            }
+                        }
+                    });
+                });
+                
+                return {
+                    ...job,
+                    customer,
+                    stats,
+                    lastActivity,
+                    profit: stats.revenue - stats.labor - stats.expenses
+                };
+            });
+            
+            // Sort by last activity (most recent first), then by profit
+            jobsWithStats.sort((a, b) => {
+                if (a.lastActivity && b.lastActivity) {
+                    return new Date(b.lastActivity) - new Date(a.lastActivity);
+                }
+                if (a.lastActivity) return -1;
+                if (b.lastActivity) return 1;
+                return b.profit - a.profit;
+            });
+            
+            jobsWithStats.forEach(job => {
+                const div = document.createElement('div');
+                div.className = 'job-track-item job-color';
+                
+                // Use the job's color instead of profit/loss status
+                div.style.setProperty('--job-color', job.color || '#888');
+                
+                // Always show as gross profit in green
+                let profitClass = 'positive';
+                
+                const totalHours = Object.values(days).reduce((total, entries) => {
+                    const entryList = Array.isArray(entries) ? entries : [entries];
+                    return total + entryList.reduce((sum, entry) => {
+                        if (entry && entry.jobId === job.id) {
+                            return sum + (entry.manHours || []).reduce((h, m) => h + (m.hours || 0), 0);
+                        }
+                        return sum;
+                    }, 0);
+                }, 0);
+                
+                const paymentStatus = getPaymentStatus(job.id);
+                const isPaid = paymentStatus === 'paid';
+                
+                div.innerHTML = `
+                    <div class="job-track-header">
+                        <div>
+                            <div class="job-track-name">${job.name}</div>
+                            <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
+                        </div>
+                        <div class="job-track-right">
+                        <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
+                            <div class="payment-status ${isPaid ? 'paid' : 'unpaid'}" data-job-id="${job.id}">
+                                ${isPaid ? '✅ Paid' : '❌ Unpaid'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="job-track-stats">
+                        <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
+                        <div>Labor: $${job.stats.labor.toFixed(2)} (${totalHours.toFixed(1)}h)</div>
+                        <div>Expenses: $${job.stats.expenses.toFixed(2)}</div>
+                        ${job.lastActivity ? `<div style="font-size:10px; color:#888; margin-top:2px;">Last: ${new Date(job.lastActivity).toLocaleDateString()}</div>` : ''}
+                    </div>
+                `;
+                
+                // Add click event to open job tracking page (but not on payment status)
+                div.addEventListener('click', (e) => {
+                    if (!e.target.closest('.payment-status')) {
+                        openJobTrackingPage(job.id);
+                    }
+                });
+                
+                // Add right-click event for context menu
+                div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
+                
+                // Add click event to payment status to toggle
+                const paymentElement = div.querySelector('.payment-status');
+                paymentElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    togglePaymentStatus(job.id);
+                });
+                
+                container.appendChild(div);
+            });
+            
+            // Update payment summary counts
+            updatePaymentSummary();
+        }
+        
+        function updatePaymentSummary() {
+            const jobs = getJobs();
+            const statuses = getPaymentStatuses();
+            
+            let paidCount = 0;
+            let unpaidCount = 0;
+            
+            jobs.forEach(job => {
+                const status = statuses[job.id] || 'unpaid';
+                if (status === 'paid') {
+                    paidCount++;
+                } else {
+                    unpaidCount++;
+                }
+            });
+            
+            $('paid-count').textContent = paidCount;
+            $('unpaid-count').textContent = unpaidCount;
+            
+            // Also update the main snapshot
+            $('paid-count-main').textContent = paidCount;
+            $('unpaid-count-main').textContent = unpaidCount;
+        }
+
+        function updateMonthlyProfit() {
+            const days = getDays();
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            let monthlyProfit = 0;
+            
+            Object.entries(days).forEach(([dateStr, entries]) => {
+                const entryDate = new Date(dateStr);
+                if (entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear) {
+                    const entryList = Array.isArray(entries) ? entries : [entries];
+                    entryList.forEach(entry => {
+                        if (entry) {
+                            const revenue = parseFloat(entry.revenue || 0);
+                            
+                            // Fix: Calculate expenses from array
+                            let totalExpenses = 0;
+                            if (entry.expenses && Array.isArray(entry.expenses)) {
+                                totalExpenses = entry.expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+                            }
+                            
+                            // Calculate labor cost
+                            let laborCost = 0;
+                            if (entry.manHours) {
+                                const claytonHours = (entry.manHours.find(m => m.employeeId === 'emp_clayton')?.hours || 0);
+                                const ethanHours = (entry.manHours.find(m => m.employeeId === 'emp_ethan')?.hours || 0);
+                                laborCost = (claytonHours * 50) + (ethanHours * 5);
+                            }
+                            
+                            monthlyProfit += revenue - laborCost - totalExpenses;
+                        }
+                    });
+                }
+            });
+            
+            $('monthly-profit').textContent = monthlyProfit.toFixed(2);
+        }
+        
+        // Context Menu Functions
+        function showContextMenu(event, jobId) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            const contextMenu = $('contextMenu');
+            state.contextMenuJobId = jobId;
+            
+            // Position the context menu
+            const x = event.clientX;
+            const y = event.clientY;
+            
+            contextMenu.style.left = x + 'px';
+            contextMenu.style.top = y + 'px';
+            
+            // Show the menu
+            contextMenu.classList.add('show');
+        }
+        
+        function hideContextMenu() {
+            const contextMenu = $('contextMenu');
+            contextMenu.classList.remove('show');
+            state.contextMenuJobId = null;
+        }
+        
+        function handleContextMenuAction(action) {
+            if (!state.contextMenuJobId) return;
+            
+            const job = getJobs().find(j => j.id === state.contextMenuJobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            switch(action) {
+                case 'bill':
+                    // For now, just show an alert - you can implement actual billing later
+                    alert(`💰 Bill for: ${job.name}\nClient: ${customer ? customer.name : 'Unknown'}\nJob ID: ${job.id}\n\nThis will open the billing interface.`);
+                    break;
+                case 'edit':
+                    // Open the existing job edit modal
+                    openJobEditModal(state.contextMenuJobId);
+                    break;
+                case 'record':
+                    // Open the job record modal
+                    openJobRecordModal(state.contextMenuJobId);
+                    break;
+            }
+            
+            hideContextMenu();
+        }
+        
+        // Job Record Modal Functions
+        // Scheduled Tasks Functions
+        function getScheduledTasks() {
+            return load('scheduled_tasks', []);
+        }
+
+        function saveScheduledTasks(tasks) {
+            save('scheduled_tasks', tasks);
+        }
+
+        function showCalendarContextMenu(event, date) {
+            event.preventDefault();
+            hideCalendarContextMenu();
+            
+            const menu = $('calendarContextMenu');
+            menu.style.display = 'block';
+            menu.style.left = event.pageX + 'px';
+            menu.style.top = event.pageY + 'px';
+            
+            // Store the cell element and date for popup positioning
+            state.scheduledTaskDate = date;
+            state.calendarCellElement = event.target.closest('.cal-cell');
+        }
+
+        function hideCalendarContextMenu() {
+            $('calendarContextMenu').style.display = 'none';
+        }
+
+        function openScheduledTaskModal() {
+            if (!state.scheduledTaskDate || !state.calendarCellElement) return;
+            
+            $('task-popup-date').textContent = `Date: ${state.scheduledTaskDate.toLocaleDateString()}`;
+            
+            // Clear form
+            $('task-title').value = '';
+            $('task-time').value = '';
+            $('task-duration').value = '60';
+            $('task-location').value = '';
+            $('task-notes').value = '';
+            
+            // Position popup beside the calendar cell
+            const cellRect = state.calendarCellElement.getBoundingClientRect();
+            const popup = $('task-popup');
+            
+            // Position to the right of the cell with some padding
+            popup.style.left = (cellRect.right + 10) + 'px';
+            popup.style.top = cellRect.top + 'px';
+            
+            // Make sure popup doesn't go off screen
+            const popupWidth = 350;
+            const viewportWidth = window.innerWidth;
+            
+            if (cellRect.right + popupWidth + 20 > viewportWidth) {
+                // Position to the left of the cell instead
+                popup.style.left = (cellRect.left - popupWidth - 10) + 'px';
+            }
+            
+            popup.style.display = 'block';
+            hideCalendarContextMenu();
+        }
+
+        function closeScheduledTaskModal() {
+            $('task-popup').style.display = 'none';
+            state.scheduledTaskDate = null;
+        }
+
+        function saveScheduledTask() {
+            const title = $('task-title').value.trim();
+            if (!title) {
+                alert('Please enter a task title');
+                return;
+            }
+
+            const time = $('task-time').value;
+            if (!time) {
+                alert('Please select a time');
+                return;
+            }
+
+            const task = {
+                id: Date.now().toString(),
+                date: state.scheduledTaskDate.toISOString().split('T')[0],
+                title: title,
+                time: time,
+                duration: parseInt($('task-duration').value),
+                location: $('task-location').value.trim(),
+                notes: $('task-notes').value.trim()
+            };
+
+            const tasks = getScheduledTasks();
+            tasks.push(task);
+            saveScheduledTasks(tasks);
+
+            closeScheduledTaskModal();
+            renderCalendar(); // Refresh calendar to show the new task
+        }
+
+        function getTasksForDate(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            return getScheduledTasks().filter(task => task.date === dateStr);
+        }
+
+        // Payment Tracking Functions
+        function getPaymentStatuses() {
+            return load('payment_statuses', {});
+        }
+
+        function setPaymentStatuses(statuses) {
+            save('payment_statuses', statuses);
+        }
+
+        function getPaymentStatus(jobId) {
+            const statuses = getPaymentStatuses();
+            return statuses[jobId] || 'unpaid';
+        }
+
+        function setPaymentStatus(jobId, status) {
+            const statuses = getPaymentStatuses();
+            statuses[jobId] = status;
+            setPaymentStatuses(statuses);
+        }
+
+        function togglePaymentStatus(jobId) {
+            const currentStatus = getPaymentStatus(jobId);
+            const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+            setPaymentStatus(jobId, newStatus);
+            renderJobTracking(); // Refresh the display
+        }
+
+        function openJobRecordModal(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            state.recordModalJobId = jobId;
+            
+            // Populate the form with job and customer info
+            $('record-customer').textContent = customer ? customer.name : 'Unknown Customer';
+            $('record-job').textContent = job.name;
+            
+            // Check if there's a saved record for this job
+            const savedRecord = load(`job_record_${jobId}`, null);
+            
+            if (savedRecord) {
+                // Load from saved record
+                $('record-start-time').value = savedRecord.startTime || '';
+                $('record-end-time').value = savedRecord.endTime || '';
+                $('record-notes').value = savedRecord.notes || '';
+                $('record-expenses-notes').value = savedRecord.expenseNotes || '';
+                $('billable-expenses-input').value = savedRecord.totalExpenses || 0;
+                $('clayton-rate').value = savedRecord.claytonRate || 50;
+                $('ethan-rate').value = savedRecord.ethanRate || 5;
+                
+                // Populate labor items from saved record
+                const container = $('labour-estimate-list');
+                container.innerHTML = '';
+                if (savedRecord.laborItems && savedRecord.laborItems.length > 0) {
+                    savedRecord.laborItems.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <input type="text" value="${item.description}" style="width:70%; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                            <input type="number" value="${item.hours}" step="0.5" min="0" style="width:25%; margin-left:5px; padding:3px; border:1px solid #ccc; border-radius:2px; font-size:12px;">
+                        `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    resetLabourEstimateList();
+                }
+                
+                updateBillableTotals();
+                $('job-record-modal').style.display = 'flex';
+                return;
+            }
+            
+            // No saved record, gather data from calendar entries
+            // Clear form fields
+            $('record-start-time').value = '';
+            $('record-end-time').value = '';
+            $('record-notes').value = '';
+            $('record-expenses-notes').value = '';
+            $('billable-expenses-input').value = '0';
+            
+            // Gather all calendar entries for this job
+            const days = getDays();
+            let totalClaytonHours = 0;
+            let totalEthanHours = 0;
+            const allExpenses = [];
+            const laborByDate = [];
+            
+            Object.keys(days).forEach(date => {
+                const entries = getDayEntries(date);
+                entries.forEach(entry => {
+                    if (entry.jobId === jobId) {
+                        // Collect hours
+                        let claytonHours = 0;
+                        let ethanHours = 0;
+                        
+                        if (entry.manHours) {
+                            entry.manHours.forEach(mh => {
+                                if (mh.employeeId === 'emp_clayton') {
+                                    claytonHours += mh.hours || 0;
+                                    totalClaytonHours += mh.hours || 0;
+                                } else if (mh.employeeId === 'emp_ethan') {
+                                    ethanHours += mh.hours || 0;
+                                    totalEthanHours += mh.hours || 0;
+                                }
+                            });
+                        }
+                        
+                        // Store labor by date if there are hours
+                        if (claytonHours > 0 || ethanHours > 0) {
+                            const dateObj = new Date(date);
+                            laborByDate.push({
+                                date: dateObj.toLocaleDateString(),
+                                claytonHours,
+                                ethanHours,
+                                totalHours: claytonHours + ethanHours
+                            });
+                        }
+                        
+                        // Collect expenses
+                        if (entry.expenses && entry.expenses.length > 0) {
+                            entry.expenses.forEach(expense => {
+                                allExpenses.push({
+                                    description: expense.note || 'Expense',
+                                    amount: expense.amount || 0
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Populate labour estimate list with calendar data
+            populateLabourEstimateFromCalendar(laborByDate, totalClaytonHours, totalEthanHours);
+            
+            // Calculate total expenses from calendar
+            const totalExpenses = allExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+            $('billable-expenses-input').value = totalExpenses.toFixed(2);
+            
+            // Populate expense notes if any
+            if (allExpenses.length > 0) {
+                const expenseText = allExpenses.map(exp => `${exp.description}: $${exp.amount.toFixed(2)}`).join('\n');
+                $('record-expenses-notes').value = expenseText;
+            }
+            
+            updateBillableTotals();
+            
+            // Show the modal
+            $('job-record-modal').style.display = 'flex';
+        }
+        
+        function closeJobRecordModal() {
+            $('job-record-modal').style.display = 'none';
+            state.recordModalJobId = null;
+        }
+        
+        function populateLabourEstimateFromCalendar(laborByDate, totalClaytonHours, totalEthanHours) {
+            const container = $('labour-estimate-list');
+            container.innerHTML = '';
+            
+            // If there's data from the calendar, populate it
+            if (laborByDate.length > 0) {
+                // Add entries for each date
+                laborByDate.forEach(labor => {
+                    if (labor.claytonHours > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <span style="color:#333;">Clayton - ${labor.date} ${labor.claytonHours}hrs</span>
+                        `;
+                        container.appendChild(div);
+                    }
+                    
+                    if (labor.ethanHours > 0) {
+                        const div = document.createElement('div');
+                        div.className = 'labour-item';
+                        div.style.marginBottom = '8px';
+                        div.innerHTML = `
+                            <span style="color:#333;">Ethan - ${labor.date} ${labor.ethanHours}hrs</span>
+                        `;
+                        container.appendChild(div);
+                    }
+                });
+            } else {
+                // No data, show empty field
+                const div = document.createElement('div');
+                div.className = 'labour-item';
+                div.style.marginBottom = '8px';
+                div.innerHTML = `
+                    <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                    <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
+                    <span style="color:#666; font-size:14px;">hrs</span>
+                `;
+                container.appendChild(div);
+            }
+        }
+        
+        function resetLabourEstimateList() {
+            const container = $('labour-estimate-list');
+            container.innerHTML = `
+                <div class="labour-item" style="margin-bottom:8px;">
+                    <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                    <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
+                    <span style="color:#666; font-size:14px;">hrs</span>
+                </div>
+            `;
+        }
+        
+        function addLabourItem() {
+            const container = $('labour-estimate-list');
+            const div = document.createElement('div');
+            div.className = 'labour-item';
+            div.style.marginBottom = '8px';
+            div.innerHTML = `
+                <input type="text" placeholder="Task description" style="border:none; background:none; font-size:14px; color:#333; width:200px;">
+                <input type="number" placeholder="0" step="0.5" min="0" style="border:none; background:none; font-size:14px; color:#333; width:50px; text-align:right;">
+                <span style="color:#666; font-size:14px;">hrs</span>
+            `;
+            container.appendChild(div);
+            updateBillableTotals();
+        }
+        
+        function updateBillableTotals() {
+            // Get current hourly rates from inputs
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
+            // Calculate labor total based on who did the work
+            const laborItems = $('labour-estimate-list').querySelectorAll('.labour-item');
+            let laborTotal = 0;
+            
+            laborItems.forEach(item => {
+                const inputs = item.querySelectorAll('input');
+                if (inputs.length >= 2) {
+                    const description = inputs[0].value.toLowerCase();
+                    const hours = parseFloat(inputs[1].value) || 0;
+                    
+                    // Check if it's Clayton or Ethan based on description
+                    if (description.includes('clayton')) {
+                        laborTotal += hours * claytonRate;
+                    } else if (description.includes('ethan')) {
+                        laborTotal += hours * ethanRate;
+                    } else {
+                        // Default to Clayton's rate if not specified
+                        laborTotal += hours * claytonRate;
+                    }
+                }
+            });
+            
+            // Get expenses total from the simple input field
+            const expensesTotal = parseFloat($('billable-expenses-input').value) || 0;
+            
+            // Update displays
+            $('billable-labor-total').textContent = `$${laborTotal.toFixed(2)}`;
+            $('total-billable').textContent = `$${(laborTotal + expensesTotal).toFixed(2)}`;
+        }
+        
+        function saveJobRecord() {
+            if (!state.recordModalJobId) return;
+            
+            const job = getJobs().find(j => j.id === state.recordModalJobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            // Get current hourly rates
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
+            // Collect all the data
+            const startTime = $('record-start-time').value;
+            const endTime = $('record-end-time').value;
+            const notes = $('record-notes').value;
+            const expenseNotes = $('record-expenses-notes').value.trim();
+            const totalExpenses = parseFloat($('billable-expenses-input').value) || 0;
+            
+            // Collect labor items
+            const laborItems = [];
+            const laborContainers = $('labour-estimate-list').querySelectorAll('.labour-item');
+            laborContainers.forEach(container => {
+                const inputs = container.querySelectorAll('input');
+                const description = inputs[0].value.trim();
+                const hours = parseFloat(inputs[1].value) || 0;
+                if (description && hours > 0) {
+                    let rate = claytonRate;
+                    if (description.toLowerCase().includes('ethan')) {
+                        rate = ethanRate;
+                    } else if (description.toLowerCase().includes('clayton')) {
+                        rate = claytonRate;
+                    }
+                    laborItems.push({ description, hours, rate, cost: hours * rate });
+                }
+            });
+            
+            const totalLabor = laborItems.reduce((sum, item) => sum + item.cost, 0);
+            const totalBillable = totalLabor + totalExpenses;
+            
+            // Create the record object
+            const jobRecord = {
+                jobId: state.recordModalJobId,
+                jobName: job.name,
+                customerName: customer ? customer.name : 'Unknown',
+                startTime,
+                endTime,
+                claytonRate,
+                ethanRate,
+                laborItems,
+                totalLabor,
+                totalExpenses,
+                expenseNotes,
+                totalBillable,
+                notes,
+                savedDate: new Date().toISOString()
+            };
+            
+            // Save to localStorage
+            save(`job_record_${state.recordModalJobId}`, jobRecord);
+            
+            alert('✅ Record saved successfully!');
+            closeJobRecordModal();
+            renderJobTracking();
+        }
+        
+        function sendBill() {
+            if (!state.recordModalJobId) return;
+            
+            const job = getJobs().find(j => j.id === state.recordModalJobId);
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            
+            if (!job) return;
+            
+            // Collect all the data
+            const startTime = $('record-start-time').value;
+            const endTime = $('record-end-time').value;
+            const notes = $('record-notes').value;
+            
+            // Get current hourly rates
+            const claytonRate = parseFloat($('clayton-rate').value) || 50;
+            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            
+            // Collect labor items
+            const laborItems = [];
+            const laborContainers = $('labour-estimate-list').querySelectorAll('.labour-item');
+            laborContainers.forEach(container => {
+                const inputs = container.querySelectorAll('input');
+                const description = inputs[0].value.trim();
+                const hours = parseFloat(inputs[1].value) || 0;
+                if (description && hours > 0) {
+                    // Determine rate based on who did the work
+                    let rate = claytonRate; // Default to Clayton's rate
+                    if (description.toLowerCase().includes('ethan')) {
+                        rate = ethanRate; // Ethan's rate
+                    } else if (description.toLowerCase().includes('clayton')) {
+                        rate = claytonRate; // Clayton's rate
+                    }
+                    laborItems.push({ description, hours, rate, cost: hours * rate });
+                }
+            });
+            
+            // Get total expenses from the input field
+            const totalExpenses = parseFloat($('billable-expenses-input').value) || 0;
+            const expenseNotes = $('record-expenses-notes').value.trim();
+            
+            // For now, just show what would be sent
+            let summary = `📝 Bill for: ${job.name}\nClient: ${customer ? customer.name : 'Unknown'}\n\n`;
+            
+            if (startTime && endTime) {
+                summary += `Time on site: ${startTime} - ${endTime}\n`;
+            }
+            
+            if (laborItems.length > 0) {
+                summary += `\nLabor:\n`;
+                laborItems.forEach(item => {
+                    summary += `• ${item.description}: ${item.hours}h @ $${item.rate}/hr = $${item.cost.toFixed(2)}\n`;
+                });
+            }
+            
+            const totalLabor = laborItems.reduce((sum, item) => sum + item.cost, 0);
+            
+            if (totalExpenses > 0) {
+                summary += `\nExpenses: $${totalExpenses.toFixed(2)}\n`;
+                if (expenseNotes) {
+                    summary += `Details: ${expenseNotes}\n`;
+                }
+            }
+            
+            const totalBillable = totalLabor + totalExpenses;
+            
+            summary += `\nTotal Billable: $${totalBillable.toFixed(2)}`;
+            
+            if (notes) {
+                summary += `\n\nNotes: ${notes}`;
+            }
+            
+            alert(summary + '\n\nBill would be sent to client.');
+            closeJobRecordModal();
+        }
+
+        // Events
+        $('prev').onclick = ()=>{ state.current.setMonth(state.current.getMonth()-1); renderCalendar(); updateMonthlyProfit(); };
+        $('next').onclick = ()=>{ state.current.setMonth(state.current.getMonth()+1); renderCalendar(); updateMonthlyProfit(); };
+        $('close').onclick = closeModal;
+        $('add-entry').onclick = addEntry;
+        $('add-expense-row').onclick = ()=> addExpenseRow();
+        $('save').onclick = saveDay;
+        
+        // Job edit modal events
+        $('job-edit-close').onclick = closeJobEditModal;
+        $('save-job-edit').onclick = saveJobEdit;
+        $('delete-job').onclick = deleteJob;
+        $('add-job-expense-row').onclick = ()=> addJobExpenseRow();
+        
+        // Job tracking page events
+        $('close-job-tracking').onclick = closeJobTrackingPage;
+        $('save-job-tracking').onclick = saveJobTrackingData;
+        $('print-job-tracking').onclick = printJobTrackingData;
+        
+        // Context menu events
+        $('menuBill').onclick = () => handleContextMenuAction('bill');
+        $('menuEdit').onclick = () => handleContextMenuAction('edit');
+        $('menuRecord').onclick = () => handleContextMenuAction('record');
+        
+        // Hide context menu when clicking elsewhere
         document.addEventListener('click', (e) => {
-            if (!contextMenu.contains(e.target)) {
-                contextMenu.classList.remove('show');
+            if (!e.target.closest('.context-menu')) {
+                hideContextMenu();
+                hideCalendarContextMenu();
+            }
+        });
+        
+        // Hide context menu on scroll
+        document.addEventListener('scroll', () => {
+            hideContextMenu();
+            hideCalendarContextMenu();
+        });
+        
+        // Job record modal events
+        $('job-record-close').onclick = closeJobRecordModal;
+        $('add-labour-item').onclick = addLabourItem;
+        $('save-record-btn').onclick = saveJobRecord;
+        $('send-bill-btn').onclick = sendBill;
+        
+        // Scheduled task popup events
+        $('task-popup-close').onclick = closeScheduledTaskModal;
+        $('cancel-task-btn').onclick = closeScheduledTaskModal;
+        $('save-task-btn').onclick = saveScheduledTask;
+        
+        // Calendar context menu events
+        $('menuAddTask').onclick = openScheduledTaskModal;
+        
+        // Add event listeners for real-time total updates
+        document.addEventListener('input', (e) => {
+            if (e.target.closest('#labour-estimate-list') || 
+                e.target.id === 'billable-expenses-input' ||
+                e.target.id === 'clayton-rate' ||
+                e.target.id === 'ethan-rate') {
+                updateBillableTotals();
             }
         });
 
-        // Hide context menu on scroll
-        document.addEventListener('scroll', () => {
-            contextMenu.classList.remove('show');
-        });
+        // Seed example if empty (to make it feel alive)
+        if (getCustomers().length===0) { setCustomers([{ id:'cus_demo', name:'Curtis Crandon' }]); }
+        if (getJobs().length===0) { setJobs([{ id:'job_demo', name:'6042 Hall Road', clientId:'cus_demo', color:'#2f7afe', created:new Date().toISOString() }]); }
 
-        // Menu item actions
-        document.getElementById('menuBill').addEventListener('click', () => {
-            alert(`💰 Bill selected for:\n${selectedJob.name} (ID: ${selectedJob.id})\n\nThis will open the billing interface.`);
-            contextMenu.classList.remove('show');
-        });
+        // Update all existing entries with new wage rates
+        updateAllWageRates();
 
-        document.getElementById('menuEdit').addEventListener('click', () => {
-            alert(`✏️ Edit selected for:\n${selectedJob.name} (ID: ${selectedJob.id})\n\nThis will open the edit form.`);
-            contextMenu.classList.remove('show');
-        });
-
-        document.getElementById('menuRecord').addEventListener('click', () => {
-            alert(`📝 Record selected for:\n${selectedJob.name} (ID: ${selectedJob.id})\n\nThis will open the time recording interface.`);
-            contextMenu.classList.remove('show');
-        });
+        renderCalendar();
+        updateMonthlyProfit();
+        updatePaymentSummary();
+    })();
     </script>
 </body>
 </html>
+
+
