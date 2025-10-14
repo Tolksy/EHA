@@ -14,7 +14,7 @@
         .cal-row .cal-cell:last-child { border-right:none; }
         .dow { background:#fafafa; font-weight:bold; text-align:center; padding:6px 0; border-top:none; }
         .date { font-size:11px; color:#555; position:absolute; top:4px; right:6px; pointer-events:none; }
-        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; }
+        .badge { margin-top:18px; font-size:11px; display:block; padding:2px 4px; border-left:6px solid #888; background:#f2f2f8; color:#333; white-space:normal; word-wrap:break-word; line-height:1.2; pointer-events:none; }
         .legend { font-size:12px; margin:8px 0; }
         .panel { background:#fff; border:1px solid #bbb; padding:8px; margin-top:12px; max-width: 980px; }
         table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -498,23 +498,23 @@
             </div>
 
             <!-- Job Analytics Canvas -->
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:20px; margin-bottom:20px;">
                 
-                <!-- Left Column: Cost Graph -->
+                <!-- Left Column: Job Calendar -->
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
-                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Cost Over Time</h3>
-                    <div id="cost-chart" style="height:200px; background:white; border:1px solid #ddd; border-radius:4px; position:relative; overflow:hidden;">
-                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#999; font-size:12px;">
-                            Loading chart...
-                    </div>
+                    <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Calendar</h3>
+                    <div id="job-calendar-container" style="height:200px; background:white; border:1px solid #ddd; border-radius:4px; position:relative; overflow:auto; padding:10px;">
+                        <div id="job-calendar-content" style="color:#999; font-size:12px; text-align:center; padding:20px;">
+                            Loading calendar...
+                        </div>
                     </div>
                     <div style="margin-top:10px; font-size:12px; color:#666;">
-                        <div>Total Cost: $<span id="total-cost-display">0.00</span></div>
-                        <div>Daily Avg: $<span id="daily-avg-display">0.00</span></div>
+                        <div>Work Days: <span id="work-days-count">0</span></div>
+                        <div>Last Work: <span id="last-work-day">None</span></div>
                     </div>
                     </div>
 
-                <!-- Right Column: Job Summary -->
+                <!-- Middle Column: Job Summary -->
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
                     <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">Job Summary - Click to Edit</h3>
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
@@ -538,6 +538,20 @@
                     <div style="margin-top:15px; padding-top:15px; border-top:1px solid #ddd;">
                         <div style="color:#666; font-size:12px; margin-bottom:5px;">Expenses Status</div>
                         <div id="expenses-status-display" style="font-weight:bold; color:#333;">No expenses</div>
+                    </div>
+                    </div>
+
+                <!-- Right Column: Sub Jobs -->
+                <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h3 style="margin:0; color:#333; font-size:16px;">Sub Jobs</h3>
+                        <button id="add-sub-job-btn" style="background:#4CAF50; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">+ Add</button>
+                    </div>
+                    <div id="sub-jobs-list" style="max-height:200px; overflow-y:auto;">
+                        <!-- Sub jobs will be populated here -->
+                        <div style="text-align:center; color:#999; font-style:italic; padding:20px; font-size:12px;">
+                            No sub jobs yet. Click "Add" to create one.
+                        </div>
                     </div>
                     </div>
                     </div>
@@ -860,7 +874,18 @@ All text is automatically saved as you type."></textarea>
                             // Add to weekly total
                             weekCashFlow += cashFlow;
                             
-                            badge.textContent = `${job ? job.name : 'No Job'} • ${hours}h • +$${cashFlow}`;
+                            // Get customer name
+                            const customer = getCustomers().find(c => c.id === job?.clientId);
+                            const customerName = customer ? customer.name : '';
+                            
+                            // Format the display text with job name and customer
+                            let displayText = job ? job.name : 'No Job';
+                            if (customerName && job) {
+                                displayText += ` (${customerName})`;
+                            }
+                            displayText += ` • ${hours}h • +$${cashFlow}`;
+                            
+                            badge.textContent = displayText;
                             if (entries.length > 1) badge.textContent += ` (${idx+1})`;
                             cell.appendChild(badge);
                         });
@@ -1516,8 +1541,8 @@ All text is automatically saved as you type."></textarea>
                 $('expenses-status-display').style.color = '#f57c00';
             }
             
-            // Create cost chart
-            createCostChart(jobEntries);
+            // Create job calendar
+            createJobCalendar(jobId, jobEntries);
             
             // Populate days list
             populateJobDays(jobEntries, jobId);
@@ -1558,6 +1583,9 @@ All text is automatically saved as you type."></textarea>
             // Load and setup project notes
             loadProjectNotes(jobId);
             setupProjectNotesEditor(jobId);
+            
+            // Load and display sub jobs
+            loadSubJobs(jobId);
             
             // Show the job tracking page
             $('job-tracking-page').style.display = 'block';
@@ -1678,6 +1706,137 @@ All text is automatically saved as you type."></textarea>
             
             svg += '</svg>';
             chartContainer.innerHTML = svg;
+        }
+        
+        function createJobCalendar(jobId, entries) {
+            const container = $('job-calendar-content');
+            container.innerHTML = '';
+            
+            if (entries.length === 0) {
+                container.innerHTML = '<div style="color:#999; font-size:12px;">No work days recorded</div>';
+                $('work-days-count').textContent = '0';
+                $('last-work-day').textContent = 'None';
+                return;
+            }
+            
+            // Sort entries by date
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            
+            // Get unique work dates
+            const workDates = [...new Set(entries.map(entry => entry.date))];
+            
+            // Update summary
+            $('work-days-count').textContent = workDates.length;
+            const lastDate = new Date(entries[entries.length - 1].date);
+            $('last-work-day').textContent = `${lastDate.getMonth() + 1}/${lastDate.getDate()}/${lastDate.getFullYear()}`;
+            
+            // Create calendar grid
+            const calendarDiv = document.createElement('div');
+            calendarDiv.style.cssText = `
+                display: grid;
+                grid-template-columns: repeat(7, 1fr);
+                gap: 2px;
+                font-size: 10px;
+            `;
+            
+            // Get the month of the first work day
+            const firstDate = new Date(entries[0].date);
+            const currentMonth = firstDate.getMonth();
+            const currentYear = firstDate.getFullYear();
+            
+            // Create month header
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthHeader = document.createElement('div');
+            monthHeader.style.cssText = `
+                grid-column: 1 / -1;
+                text-align: center;
+                font-weight: bold;
+                font-size: 12px;
+                margin-bottom: 5px;
+                color: #333;
+            `;
+            monthHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            calendarDiv.appendChild(monthHeader);
+            
+            // Day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.style.cssText = `
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 9px;
+                    color: #666;
+                    padding: 2px;
+                `;
+                dayHeader.textContent = day;
+                calendarDiv.appendChild(dayHeader);
+            });
+            
+            // Get first day of month and number of days
+            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+            const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDayOfMonth.getDate();
+            const startingDayOfWeek = firstDayOfMonth.getDay();
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.style.cssText = `
+                    height: 20px;
+                    background: #f8f8f8;
+                    border: 1px solid #eee;
+                `;
+                calendarDiv.appendChild(emptyCell);
+            }
+            
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.style.cssText = `
+                    height: 20px;
+                    background: white;
+                    border: 1px solid #ddd;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 9px;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                `;
+                
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const hasWork = workDates.includes(dateStr);
+                
+                if (hasWork) {
+                    dayCell.style.background = '#e3f2fd';
+                    dayCell.style.color = '#1976d2';
+                    dayCell.style.fontWeight = 'bold';
+                    
+                    // Count entries for this day
+                    const dayEntries = entries.filter(entry => entry.date === dateStr);
+                    const totalHours = dayEntries.reduce((sum, entry) => {
+                        return sum + (entry.manHours || []).reduce((mhSum, mh) => mhSum + parseFloat(mh.hours || 0), 0);
+                    }, 0);
+                    
+                    dayCell.textContent = `${day}`;
+                    dayCell.title = `${dayEntries.length} entries, ${totalHours.toFixed(1)}h total`;
+                } else {
+                    dayCell.textContent = day;
+                    dayCell.style.color = '#999';
+                }
+                
+                dayCell.onmouseover = () => {
+                    if (!hasWork) dayCell.style.background = '#f5f5f5';
+                };
+                dayCell.onmouseout = () => {
+                    if (!hasWork) dayCell.style.background = 'white';
+                };
+                
+                calendarDiv.appendChild(dayCell);
+            }
+            
+            container.appendChild(calendarDiv);
         }
         
         function populateJobDays(entries, jobId) {
@@ -2349,12 +2508,43 @@ All text is automatically saved as you type."></textarea>
                     category = 'pending';
                 }
                 
+                // Calculate overhead profit for completed jobs
+                let profit;
+                if (isPaid) {
+                    // For completed jobs, calculate overhead profit
+                    // Clayton: $50/hr billed - $40/hr base = $10/hr profit
+                    // Ethan: $25/hr billed - $20/hr base = $5/hr profit
+                    let overheadProfit = 0;
+                    
+                    // Calculate overhead profit from man hours
+                    Object.values(days).forEach(entries => {
+                        const entryList = Array.isArray(entries) ? entries : [entries];
+                        entryList.forEach(entry => {
+                            if (entry && entry.jobId === job.id) {
+                                (entry.manHours || []).forEach(manHour => {
+                                    const hours = parseFloat(manHour.hours || 0);
+                                    if (manHour.employeeId === 'emp_clayton') {
+                                        overheadProfit += hours * 10; // $10/hr overhead profit
+                                    } else if (manHour.employeeId === 'emp_ethan') {
+                                        overheadProfit += hours * 5; // $5/hr overhead profit
+                                    }
+                                });
+                            }
+                        });
+                    });
+                    
+                    profit = overheadProfit - stats.expenses; // Subtract expenses from overhead profit
+                } else {
+                    // For non-completed jobs, use regular profit calculation
+                    profit = stats.revenue - stats.labor - stats.expenses;
+                }
+                
                 return {
                     ...job,
                     customer,
                     stats,
                     lastActivity,
-                    profit: stats.revenue - stats.labor - stats.expenses,
+                    profit,
                     isPaid,
                     category
                 };
@@ -2540,7 +2730,7 @@ All text is automatically saved as you type."></textarea>
                         <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
                     </div>
                     <div class="job-track-right">
-                    <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
+                    <div class="profit-amount ${profitClass}">${job.isPaid ? 'Overhead Profit' : 'Gross Profit'}<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
                         <div class="payment-status ${job.isPaid ? 'paid' : 'unpaid'}" data-job-id="${job.id}">
                             ${job.isPaid ? '✅ Paid' : '❌ Unpaid'}
                         </div>
@@ -2907,6 +3097,191 @@ All text is automatically saved as you type."></textarea>
                     }, 300);
                 }
             }, 3000);
+        }
+        
+        // Sub Jobs Functions
+        function getCurrentJobId() {
+            return $('job-number').value;
+        }
+        
+        function getSubJobs(jobId) {
+            return load(`sub_jobs_${jobId}`, []);
+        }
+        
+        function setSubJobs(jobId, subJobs) {
+            save(`sub_jobs_${jobId}`, subJobs);
+        }
+        
+        function addSubJob(jobId) {
+            const subJobName = prompt('Enter sub job name:');
+            if (!subJobName || subJobName.trim() === '') return;
+            
+            const subJobs = getSubJobs(jobId);
+            const newSubJob = {
+                id: `sub_${Date.now()}`,
+                name: subJobName.trim(),
+                status: 'active', // active, completed, on-hold
+                description: '',
+                estimatedHours: 0,
+                actualHours: 0,
+                estimatedCost: 0,
+                actualCost: 0,
+                createdDate: new Date().toISOString().split('T')[0]
+            };
+            
+            subJobs.push(newSubJob);
+            setSubJobs(jobId, subJobs);
+            loadSubJobs(jobId);
+        }
+        
+        function loadSubJobs(jobId) {
+            const subJobs = getSubJobs(jobId);
+            const container = $('sub-jobs-list');
+            
+            if (subJobs.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; color:#999; font-style:italic; padding:20px; font-size:12px;">
+                        No sub jobs yet. Click "Add" to create one.
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            subJobs.forEach(subJob => {
+                const subJobDiv = document.createElement('div');
+                subJobDiv.className = 'sub-job-item';
+                subJobDiv.style.cssText = `
+                    background: white;
+                    border: 1px solid #ddd;
+                    border-radius: 2px;
+                    padding: 2px 3px;
+                    margin-bottom: 1px;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                `;
+                subJobDiv.onmouseover = () => subJobDiv.style.backgroundColor = '#f8f9fa';
+                subJobDiv.onmouseout = () => subJobDiv.style.backgroundColor = 'white';
+                subJobDiv.onclick = () => editSubJob(jobId, subJob.id);
+                
+                const statusColor = subJob.status === 'completed' ? '#4CAF50' : 
+                                  subJob.status === 'on-hold' ? '#ff9800' : '#2196F3';
+                
+                subJobDiv.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1px;">
+                        <div style="font-weight:bold; font-size:8px; color:#333;">${subJob.name}</div>
+                        <div style="font-size:6px; padding:0px 2px; border-radius:3px; background:${statusColor}; color:white;">
+                            ${subJob.status}
+                        </div>
+                    </div>
+                    <div style="font-size:6px; color:#666; margin-bottom:1px;">
+                        ${subJob.description || 'No description'}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:6px; color:#888;">
+                        <span>Est: ${subJob.estimatedHours}h / $${subJob.estimatedCost}</span>
+                        <span>Act: ${subJob.actualHours}h / $${subJob.actualCost}</span>
+                    </div>
+                `;
+                
+                container.appendChild(subJobDiv);
+            });
+        }
+        
+        function editSubJob(jobId, subJobId) {
+            const subJobs = getSubJobs(jobId);
+            const subJob = subJobs.find(sj => sj.id === subJobId);
+            if (!subJob) return;
+            
+            const editModal = document.createElement('div');
+            editModal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                z-index: 3000;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            `;
+            
+            editModal.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-height: 80vh; overflow-y: auto;">
+                    <h3 style="margin:0 0 15px 0;">Edit Sub Job</h3>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Name:</label>
+                        <input type="text" id="sub-job-name" value="${subJob.name}" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Status:</label>
+                        <select id="sub-job-status" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                            <option value="active" ${subJob.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="on-hold" ${subJob.status === 'on-hold' ? 'selected' : ''}>On Hold</option>
+                            <option value="completed" ${subJob.status === 'completed' ? 'selected' : ''}>Completed</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:10px;">
+                        <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Description:</label>
+                        <textarea id="sub-job-description" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px; height:60px; resize:vertical;">${subJob.description}</textarea>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+                        <div>
+                            <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Est. Hours:</label>
+                            <input type="number" id="sub-job-est-hours" value="${subJob.estimatedHours}" step="0.5" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        </div>
+                        <div>
+                            <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Est. Cost:</label>
+                            <input type="number" id="sub-job-est-cost" value="${subJob.estimatedCost}" step="0.01" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                        <div>
+                            <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Act. Hours:</label>
+                            <input type="number" id="sub-job-act-hours" value="${subJob.actualHours}" step="0.5" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        </div>
+                        <div>
+                            <label style="display:block; margin-bottom:5px; font-size:12px; color:#666;">Act. Cost:</label>
+                            <input type="number" id="sub-job-act-cost" value="${subJob.actualCost}" step="0.01" style="width:100%; padding:8px; border:1px solid #ddd; border-radius:4px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; gap:10px;">
+                        <button id="save-sub-job" style="background:#4CAF50; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; flex:1;">Save</button>
+                        <button id="delete-sub-job" style="background:#f44336; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; flex:1;">Delete</button>
+                        <button id="cancel-sub-job" style="background:#666; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; flex:1;">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editModal);
+            
+            // Event handlers
+            $('save-sub-job').onclick = () => {
+                subJob.name = $('sub-job-name').value;
+                subJob.status = $('sub-job-status').value;
+                subJob.description = $('sub-job-description').value;
+                subJob.estimatedHours = parseFloat($('sub-job-est-hours').value) || 0;
+                subJob.estimatedCost = parseFloat($('sub-job-est-cost').value) || 0;
+                subJob.actualHours = parseFloat($('sub-job-act-hours').value) || 0;
+                subJob.actualCost = parseFloat($('sub-job-act-cost').value) || 0;
+                
+                setSubJobs(jobId, subJobs);
+                loadSubJobs(jobId);
+                document.body.removeChild(editModal);
+            };
+            
+            $('delete-sub-job').onclick = () => {
+                if (confirm('Are you sure you want to delete this sub job?')) {
+                    const updatedSubJobs = subJobs.filter(sj => sj.id !== subJobId);
+                    setSubJobs(jobId, updatedSubJobs);
+                    loadSubJobs(jobId);
+                    document.body.removeChild(editModal);
+                }
+            };
+            
+            $('cancel-sub-job').onclick = () => {
+                document.body.removeChild(editModal);
+            };
         }
         
         // Job Record Modal Functions
@@ -3430,6 +3805,7 @@ All text is automatically saved as you type."></textarea>
         $('close-job-tracking').onclick = closeJobTrackingPage;
         $('save-job-tracking').onclick = saveJobTrackingData;
         $('print-job-tracking').onclick = printJobTrackingData;
+        $('add-sub-job-btn').onclick = () => addSubJob(getCurrentJobId());
         
         // Context menu events
         $('menuBill').onclick = () => handleContextMenuAction('bill');
