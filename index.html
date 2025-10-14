@@ -43,7 +43,7 @@
         .job-track-item.loss { border-left-color:#f44336; }
         .job-track-item.neutral { border-left-color:#ff9800; }
         .job-track-item.job-color { border-left-color: var(--job-color); }
-        
+
         /* Context Menu Styles */
         .context-menu {
             position: fixed;
@@ -165,12 +165,12 @@
                         <span style="color:#c62828;">❌ <span id="unpaid-count">0</span></span>
                     </div>
                 </div>
-            </div>
-            
+        </div>
+
             <div id="job-tracking" style="max-height:350px; overflow-y:auto;">
                 <div class="small" style="color:#999; font-style:italic;">Loading jobs...</div>
             </div>
-            
+
             <!-- Business Dashboard Button -->
             <div style="margin-top:12px; text-align:center;">
                 <button id="business-dashboard-btn" style="background:#4CAF50; color:white; border:none; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
@@ -178,7 +178,7 @@
                 </button>
             </div>
         </div>
-    </div>
+            </div>
 
     <div class="panel">
         <h2 style="margin-top:0">Snapshot</h2>
@@ -190,7 +190,7 @@
                 <span id="paid-count-main">0</span> paid • <span id="unpaid-count-main">0</span> unpaid
             </div>
         </div>
-    </div>
+            </div>
 
     <div class="panel">
         <h2 style="margin-top:0">Jobs (last 5)</h2>
@@ -198,12 +198,12 @@
             <thead><tr><th>Job</th><th>Client</th><th>Created</th><th>Revenue</th><th>Labor</th><th>Expenses</th><th>Profit</th></tr></thead>
             <tbody></tbody>
         </table>
-    </div>
+            </div>
 
     <div class="panel">
         <h2 style="margin-top:0">Customers</h2>
         <div id="customers-list"></div>
-    </div>
+            </div>
 
     <div class="panel">
         <h2 style="margin-top:0">Day Entries (this month)</h2>
@@ -256,7 +256,7 @@
                 <button id="add-entry">Add Entry</button>
                 <button id="save">Done</button>
             </div>
-            <div class="footer small">Employees default wages: Clayton $50/h, Ethan $5/h (all hours billable)</div>
+            <div class="footer small">Employees default wages: Clayton $50/h, Ethan $25/h (all hours billable)</div>
         </div>
     </div>
 
@@ -277,7 +277,7 @@
             <h3 style="margin: 8px 0; font-size: 14px;">Adjust Hours (Cash Flow)</h3>
             <div class="row"><label>Clayton Hours</label><input id="edit-clayton-hours" type="number" step="0.1" min="0" value="0"></div>
             <div class="row"><label>Ethan Hours</label><input id="edit-ethan-hours" type="number" step="0.1" min="0" value="0"></div>
-            <div class="small" style="color:#666; margin-bottom:8px;">Clayton: $50/hour cash flow • Ethan: $5/hour cash flow</div>
+            <div class="small" style="color:#666; margin-bottom:8px;">Clayton: $50/hour cash flow • Ethan: $25/hour cash flow</div>
             
             <hr style="margin: 12px 0;">
             <div style="margin: 12px 0;">
@@ -550,7 +550,7 @@ All text is automatically saved as you type."></textarea>
                         </div>
                         <div style="display: flex; justify-content: space-between;">
                             <span>Ethan</span>
-                            <input type="number" id="ethan-rate" value="5" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
+                            <input type="number" id="ethan-rate" value="25" step="1" min="0" style="width: 50px; border: none; background: none; font-size: 14px; color: #333; text-align: right;">
                 </div>
             </div>
 
@@ -635,7 +635,7 @@ All text is automatically saved as you type."></textarea>
         // Employees fixed
         const EMPLOYEES = [
             { id:'emp_clayton', name:'Clayton', wage:50 },
-            { id:'emp_ethan', name:'Ethan', wage:5 }
+            { id:'emp_ethan', name:'Ethan', wage:25 }
         ];
 
         function ymd(date) { return date.toISOString().split('T')[0]; }
@@ -685,7 +685,7 @@ All text is automatically saved as you type."></textarea>
                             // Calculate cash flow from hours
                             const claytonHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_clayton')?.hours || 0;
                             const ethanHours = (entry.manHours||[]).find(m=>m.employeeId==='emp_ethan')?.hours || 0;
-                            const cashFlow = (claytonHours * 50) + (ethanHours * 5);
+                            const cashFlow = (claytonHours * 50) + (ethanHours * 25);
                             
                             // Add to weekly total
                             weekCashFlow += cashFlow;
@@ -900,9 +900,9 @@ All text is automatically saved as you type."></textarea>
                                 manHour.wage = 50;
                                 manHour.cost = manHour.hours * 50;
                                 updated = true;
-                            } else if (manHour.employeeId === 'emp_ethan' && manHour.wage !== 5) {
-                                manHour.wage = 5;
-                                manHour.cost = manHour.hours * 5;
+                            } else if (manHour.employeeId === 'emp_ethan' && manHour.wage !== 25) {
+                                manHour.wage = 25;
+                                manHour.cost = manHour.hours * 25;
                                 updated = true;
                             }
                         });
@@ -1152,7 +1152,7 @@ All text is automatically saved as you type."></textarea>
                                         mh.cost = newClaytonEntryHours * 50;
                                     } else if (mh.employeeId === 'emp_ethan') {
                                         mh.hours = newEthanEntryHours;
-                                        mh.cost = newEthanEntryHours * 5;
+                                        mh.cost = newEthanEntryHours * 25;
                                     }
                                 });
                                 
@@ -1218,7 +1218,7 @@ All text is automatically saved as you type."></textarea>
             }
             // Default rates
             const defaultRates = {
-                'Clayton': 35.00,
+                'Clayton': 50.00,
                 'Ethan': 25.00
             };
             localStorage.setItem('laborRates', JSON.stringify(defaultRates));
@@ -2288,7 +2288,7 @@ All text is automatically saved as you type."></textarea>
                             if (entry.manHours) {
                                 const claytonHours = (entry.manHours.find(m => m.employeeId === 'emp_clayton')?.hours || 0);
                                 const ethanHours = (entry.manHours.find(m => m.employeeId === 'emp_ethan')?.hours || 0);
-                                laborCost = (claytonHours * 50) + (ethanHours * 5);
+                                laborCost = (claytonHours * 50) + (ethanHours * 25);
                             }
                             
                             monthlyProfit += revenue - laborCost - totalExpenses;
@@ -2307,16 +2307,16 @@ All text is automatically saved as you type."></textarea>
             
             const contextMenu = $('contextMenu');
             state.contextMenuJobId = jobId;
-            
-            // Position the context menu
+
+                // Position the context menu
             const x = event.clientX;
             const y = event.clientY;
-            
-            contextMenu.style.left = x + 'px';
-            contextMenu.style.top = y + 'px';
-            
-            // Show the menu
-            contextMenu.classList.add('show');
+                
+                contextMenu.style.left = x + 'px';
+                contextMenu.style.top = y + 'px';
+                
+                // Show the menu
+                contextMenu.classList.add('show');
         }
         
         function hideContextMenu() {
@@ -2503,7 +2503,7 @@ All text is automatically saved as you type."></textarea>
                 $('record-expenses-notes').value = savedRecord.expenseNotes || '';
                 $('billable-expenses-input').value = savedRecord.totalExpenses || 0;
                 $('clayton-rate').value = savedRecord.claytonRate || 50;
-                $('ethan-rate').value = savedRecord.ethanRate || 5;
+                $('ethan-rate').value = savedRecord.ethanRate || 25;
                 
                 // Populate labor items from saved record
                 const container = $('labour-estimate-list');
@@ -2681,7 +2681,7 @@ All text is automatically saved as you type."></textarea>
         function updateBillableTotals() {
             // Get current hourly rates from inputs
             const claytonRate = parseFloat($('clayton-rate').value) || 50;
-            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            const ethanRate = parseFloat($('ethan-rate').value) || 25;
             
             // Calculate labor total based on who did the work
             const laborItems = $('labour-estimate-list').querySelectorAll('.labour-item');
@@ -2723,7 +2723,7 @@ All text is automatically saved as you type."></textarea>
             
             // Get current hourly rates
             const claytonRate = parseFloat($('clayton-rate').value) || 50;
-            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            const ethanRate = parseFloat($('ethan-rate').value) || 25;
             
             // Collect all the data
             const startTime = $('record-start-time').value;
@@ -2794,7 +2794,7 @@ All text is automatically saved as you type."></textarea>
             
             // Get current hourly rates
             const claytonRate = parseFloat($('clayton-rate').value) || 50;
-            const ethanRate = parseFloat($('ethan-rate').value) || 5;
+            const ethanRate = parseFloat($('ethan-rate').value) || 25;
             
             // Collect labor items
             const laborItems = [];
@@ -2885,7 +2885,7 @@ All text is automatically saved as you type."></textarea>
                 hideCalendarContextMenu();
             }
         });
-        
+
         // Hide context menu on scroll
         document.addEventListener('scroll', () => {
             hideContextMenu();
