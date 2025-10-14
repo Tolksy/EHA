@@ -2622,8 +2622,33 @@ All text is automatically saved as you type."></textarea>
             // Save the updated payment statuses
             setPaymentStatuses(statuses);
             
-            // Re-render the job tracking to reflect the changes
-            renderJobTracking();
+            // Find the dragged job element
+            const draggedElement = document.querySelector(`[data-job-id="${jobId}"]`);
+            if (!draggedElement) return;
+            
+            // Find the target group
+            const targetGroup = document.querySelector(`.job-group-header.${targetCategory}`);
+            if (!targetGroup) return;
+            
+            const targetJobsContainer = targetGroup.parentElement.querySelector('.job-group-jobs');
+            if (!targetJobsContainer) return;
+            
+            // Update the payment status in the dragged element
+            const paymentElement = draggedElement.querySelector('.payment-status');
+            if (paymentElement) {
+                const isPaid = statuses[jobId] === 'paid';
+                paymentElement.className = `payment-status ${isPaid ? 'paid' : 'unpaid'}`;
+                paymentElement.textContent = isPaid ? '✅ Paid' : '❌ Unpaid';
+            }
+            
+            // Remove the job from its current location
+            draggedElement.remove();
+            
+            // Add the job to the target group
+            targetJobsContainer.appendChild(draggedElement);
+            
+            // Update the group counts
+            updateGroupCounts();
             
             // Show a brief confirmation
             const jobName = job.name || 'Job';
@@ -2660,6 +2685,25 @@ All text is automatically saved as you type."></textarea>
                     }, 300);
                 }
             }, 2000);
+        }
+        
+        function updateGroupCounts() {
+            // Update the count badges for each group
+            const groups = ['active', 'pending', 'completed'];
+            groups.forEach(groupType => {
+                const groupHeader = document.querySelector(`.job-group-header.${groupType}`);
+                if (groupHeader) {
+                    const jobsContainer = groupHeader.parentElement.querySelector('.job-group-jobs');
+                    const jobCount = jobsContainer.querySelectorAll('.job-track-item').length;
+                    const countElement = groupHeader.querySelector('.job-group-count');
+                    if (countElement) {
+                        countElement.textContent = jobCount;
+                    }
+                }
+            });
+            
+            // Update the payment summary
+            updatePaymentSummary();
         }
         
         function updatePaymentSummary() {
