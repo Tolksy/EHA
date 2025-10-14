@@ -1296,11 +1296,22 @@ All text is automatically saved as you type."></textarea>
             });
             
             // Calculate labor cost
-            const laborRates = getLaborRates();
             jobEntries.forEach(entry => {
                 if (entry.manHours && Array.isArray(entry.manHours)) {
                     entry.manHours.forEach(manHour => {
-                        const rate = laborRates[manHour.name] || 0;
+                        let rate = 0;
+                        if (manHour.employeeId === 'emp_clayton') {
+                            rate = 50;
+                        } else if (manHour.employeeId === 'emp_ethan') {
+                            rate = 25;
+                        } else if (manHour.wage) {
+                            // Use stored wage if available
+                            rate = manHour.wage;
+                        } else if (manHour.name) {
+                            // Fallback to name-based lookup
+                            const laborRates = getLaborRates();
+                            rate = laborRates[manHour.name] || 0;
+                        }
                         totalLabor += parseFloat(manHour.hours || 0) * rate;
                     });
                 }
