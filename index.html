@@ -1872,121 +1872,93 @@ All text is automatically saved as you type."></textarea>
                 return;
             }
             
-            // Sort entries by date
-            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-            
-            // Get unique work dates
+            // Update summary stats
             const workDates = [...new Set(entries.map(entry => entry.date))];
-            
-            // Update summary
             $('work-days-count').textContent = workDates.length;
+            
             const lastDate = new Date(entries[entries.length - 1].date);
             $('last-work-day').textContent = `${lastDate.getMonth() + 1}/${lastDate.getDate()}/${lastDate.getFullYear()}`;
             
-            // Create calendar grid
-            const calendarDiv = document.createElement('div');
-            calendarDiv.style.cssText = `
-                display: grid;
-                grid-template-columns: repeat(7, 1fr);
-                gap: 2px;
-                font-size: 10px;
-            `;
+            // Create a mini calendar using the same structure as main calendar
+            const year = new Date().getFullYear();
+            const month = new Date().getMonth();
             
-            // Get the month of the first work day
-            const firstDate = new Date(entries[0].date);
-            const currentMonth = firstDate.getMonth();
-            const currentYear = firstDate.getFullYear();
-            
-            // Create month header
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const monthHeader = document.createElement('div');
-            monthHeader.style.cssText = `
-                grid-column: 1 / -1;
-                text-align: center;
-                font-weight: bold;
-                font-size: 12px;
-                margin-bottom: 5px;
-                color: #333;
-            `;
-            monthHeader.textContent = `${monthNames[currentMonth]} ${currentYear}`;
-            calendarDiv.appendChild(monthHeader);
-            
-            // Day headers
-            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            dayHeaders.forEach(day => {
-                const dayHeader = document.createElement('div');
-                dayHeader.style.cssText = `
-                    text-align: center;
-                    font-weight: bold;
-                    font-size: 9px;
-                    color: #666;
-                    padding: 2px;
-                `;
-                dayHeader.textContent = day;
-                calendarDiv.appendChild(dayHeader);
-            });
-            
-            // Get first day of month and number of days
-            const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-            const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-            const daysInMonth = lastDayOfMonth.getDate();
-            const startingDayOfWeek = firstDayOfMonth.getDay();
-            
-            // Add empty cells for days before the first day of the month
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyCell = document.createElement('div');
-                emptyCell.style.cssText = `
-                    height: 20px;
-                    background: #f8f8f8;
-                    border: 1px solid #eee;
-                `;
-                calendarDiv.appendChild(emptyCell);
+            const first = new Date(year, month, 1);
+            const start = new Date(first);
+            start.setDate(first.getDate() - first.getDay());
+            const days = [];
+            for (let i=0; i<42; i++) {
+                const d = new Date(start); d.setDate(start.getDate()+i); days.push(d);
             }
             
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayCell = document.createElement('div');
-                dayCell.style.cssText = `
-                    height: 20px;
-                    background: white;
-                    border: 1px solid #ddd;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 9px;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                `;
+            const calendarDiv = document.createElement('div');
+            calendarDiv.className = 'calendar'; // Use existing calendar styles
+            calendarDiv.style.cssText = 'width: 100%; max-width: 300px; margin: 0 auto;';
+            
+            // Header row
+            let header = document.createElement('div'); 
+            header.className='cal-row';
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(w=>{ 
+                const c=document.createElement('div'); 
+                c.className='cal-cell dow'; 
+                c.textContent=w; 
+                header.appendChild(c); 
+            });
+            calendarDiv.appendChild(header);
+            
+            // 6 weeks rows - but only show this job's entries
+            for (let w=0; w<6; w++) {
+                const row = document.createElement('div'); row.className='cal-row';
                 
-                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const hasWork = workDates.includes(dateStr);
-                
-                if (hasWork) {
-                    dayCell.style.background = '#e3f2fd';
-                    dayCell.style.color = '#1976d2';
-                    dayCell.style.fontWeight = 'bold';
+                for (let d=0; d<7; d++) {
+                    const date = days[w*7+d];
+                    const cell = document.createElement('div'); cell.className='cal-cell';
+                    if (date.getMonth()!==month) cell.style.background='#fbfbfb';
                     
-                    // Count entries for this day
-                    const dayEntries = entries.filter(entry => entry.date === dateStr);
-                    const totalHours = dayEntries.reduce((sum, entry) => {
-                        return sum + (entry.manHours || []).reduce((mhSum, mh) => mhSum + parseFloat(mh.hours || 0), 0);
-                    }, 0);
+                    // Add today's date highlighting
+                    const today = new Date();
+                    const todayISO = ymd(today);
+                    if (ymd(date) === todayISO) {
+                        cell.classList.add('today');
+                    }
                     
-                    dayCell.textContent = `${day}`;
-                    dayCell.title = `${dayEntries.length} entries, ${totalHours.toFixed(1)}h total`;
-                } else {
-                    dayCell.textContent = day;
-                    dayCell.style.color = '#999';
+                    const num = document.createElement('div'); num.className='date'; 
+                    num.textContent = date.getDate(); 
+                    cell.appendChild(num);
+
+                    // Only show badges for this specific job
+                    const iso = ymd(date);
+                    const jobEntriesForDate = entries.filter(entry => entry.date === iso);
+                    
+                    if (jobEntriesForDate.length > 0) {
+                        const job = getJobs().find(j => j.id === jobId);
+                        const badge = document.createElement('span');
+                        badge.className='badge';
+                        const color = (job && job.color) ? job.color : '#888';
+                        badge.style.borderLeftColor = color;
+                        
+                        const hours = jobEntriesForDate.reduce((s,entry)=>s+(entry.manHours||[]).reduce((sum,m)=>sum+(m.hours||0),0),0);
+                        const claytonHours = jobEntriesForDate.reduce((s,entry)=>(entry.manHours||[]).find(m=>m.employeeId==='emp_clayton')?.hours || 0,0);
+                        const ethanHours = jobEntriesForDate.reduce((s,entry)=>(entry.manHours||[]).find(m=>m.employeeId==='emp_ethan')?.hours || 0,0);
+                        const cashFlow = (claytonHours * 50) + (ethanHours * 25);
+                        
+                        // Get customer name
+                        const customer = getCustomers().find(c => c.id === job?.clientId);
+                        const customerName = customer ? customer.name : '';
+                        
+                        let displayText = job ? job.name : 'No Job';
+                        if (customerName && job) {
+                            displayText += ` (${customerName})`;
+                        }
+                        displayText += ` • ${hours}h • +$${cashFlow}`;
+                        
+                        badge.textContent = displayText;
+                        cell.appendChild(badge);
+                    }
+                    
+                    row.appendChild(cell);
                 }
-                
-                dayCell.onmouseover = () => {
-                    if (!hasWork) dayCell.style.background = '#f5f5f5';
-                };
-                dayCell.onmouseout = () => {
-                    if (!hasWork) dayCell.style.background = 'white';
-                };
-                
-                calendarDiv.appendChild(dayCell);
+                calendarDiv.appendChild(row);
             }
             
             container.appendChild(calendarDiv);
