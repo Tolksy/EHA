@@ -37,7 +37,7 @@
         .expense-row input[type="number"] { width:80px; }
         .expense-row input[type="text"] { flex:1; }
         .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
-        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:2px 3px; margin:1px 0; border-radius:2px; border-left:2px solid #888; cursor:pointer; transition:background-color 0.2s; }
+        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:3px 4px; margin:2px 0; border-radius:3px; border-left:3px solid #888; cursor:pointer; transition:background-color 0.2s; }
         .job-track-item:hover { background:#f0f0f0; }
         .job-track-item.profit { border-left-color:#4CAF50; }
         .job-track-item.loss { border-left-color:#f44336; }
@@ -91,32 +91,32 @@
             background: #ddd;
             margin: 4px 0;
         }
-        .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1px; }
-        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
-        .job-track-name { font-weight:bold; font-size:9px; }
-        .job-track-client { font-size:7px; color:#666; }
-        .job-track-stats { font-size:7px; color:#333; display:flex; gap:4px; flex-wrap:wrap; }
-        .profit-amount { font-weight:bold; font-size:7px; text-align:right; line-height:1.0; }
+        .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
+        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+        .job-track-name { font-weight:bold; font-size:11px; }
+        .job-track-client { font-size:9px; color:#666; }
+        .job-track-stats { font-size:9px; color:#333; display:flex; gap:5px; flex-wrap:wrap; }
+        .profit-amount { font-weight:bold; font-size:9px; text-align:right; line-height:1.2; }
         .profit-amount.positive { color:#4CAF50; }
         .profit-amount.negative { color:#4CAF50; }
         .profit-amount.neutral { color:#4CAF50; }
         
         /* Job Group Styles */
         .job-group {
-            margin-bottom: 4px;
+            margin-bottom: 5px;
         }
         
         .job-group-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 2px 4px;
+            padding: 3px 5px;
             background: #f5f5f5;
             border: 1px solid #ddd;
-            border-radius: 2px;
+            border-radius: 3px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 9px;
+            font-size: 11px;
             transition: background-color 0.2s;
         }
         
@@ -148,9 +148,9 @@
         .job-group-count {
             background: #666;
             color: white;
-            padding: 0px 2px;
-            border-radius: 4px;
-            font-size: 7px;
+            padding: 0px 3px;
+            border-radius: 5px;
+            font-size: 9px;
             font-weight: bold;
         }
         
@@ -186,7 +186,7 @@
         }
         
         .job-group-jobs {
-            padding: 2px 0;
+            padding: 3px 0;
         }
         
         /* Drag and Drop Styles */
@@ -266,10 +266,10 @@
             }
         }
         .payment-status { 
-            font-size:6px; 
+            font-size:8px; 
             font-weight:bold; 
-            padding:0px 2px; 
-            border-radius:2px; 
+            padding:0px 3px; 
+            border-radius:3px; 
             cursor:pointer; 
             user-select:none;
             transition: all 0.2s ease;
@@ -2398,7 +2398,6 @@ All text is automatically saved as you type."></textarea>
             
             groupConfigs.forEach(config => {
                 const jobs = jobGroups[config.key];
-                if (jobs.length === 0) return;
                 
                 // Create group container
                 const groupDiv = document.createElement('div');
@@ -2422,11 +2421,18 @@ All text is automatically saved as you type."></textarea>
                 const jobsDiv = document.createElement('div');
                 jobsDiv.className = 'job-group-jobs';
                 
-                // Add jobs to this group
-                jobs.forEach(job => {
-                    const jobDiv = createJobItem(job, days);
-                    jobsDiv.appendChild(jobDiv);
-                });
+                // Add jobs to this group or show empty message
+                if (jobs.length === 0) {
+                    const emptyDiv = document.createElement('div');
+                    emptyDiv.style.cssText = 'text-align: center; color: #999; font-style: italic; font-size: 10px; padding: 10px;';
+                    emptyDiv.textContent = 'No jobs in this category';
+                    jobsDiv.appendChild(emptyDiv);
+                } else {
+                    jobs.forEach(job => {
+                        const jobDiv = createJobItem(job, days);
+                        jobsDiv.appendChild(jobDiv);
+                    });
+                }
                 
                 contentDiv.appendChild(jobsDiv);
                 groupDiv.appendChild(headerDiv);
