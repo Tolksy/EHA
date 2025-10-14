@@ -37,7 +37,7 @@
         .expense-row input[type="number"] { width:80px; }
         .expense-row input[type="text"] { flex:1; }
         .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
-        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:8px; margin:6px 0; border-radius:4px; border-left:4px solid #888; cursor:pointer; transition:background-color 0.2s; }
+        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:2px 3px; margin:1px 0; border-radius:2px; border-left:2px solid #888; cursor:pointer; transition:background-color 0.2s; }
         .job-track-item:hover { background:#f0f0f0; }
         .job-track-item.profit { border-left-color:#4CAF50; }
         .job-track-item.loss { border-left-color:#f44336; }
@@ -91,32 +91,32 @@
             background: #ddd;
             margin: 4px 0;
         }
-        .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
-        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-        .job-track-name { font-weight:bold; font-size:13px; }
-        .job-track-client { font-size:11px; color:#666; }
-        .job-track-stats { font-size:12px; color:#333; }
-        .profit-amount { font-weight:bold; font-size:11px; text-align:right; line-height:1.2; }
+        .job-track-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1px; }
+        .job-track-right { display:flex; flex-direction:column; align-items:flex-end; gap:1px; }
+        .job-track-name { font-weight:bold; font-size:9px; }
+        .job-track-client { font-size:7px; color:#666; }
+        .job-track-stats { font-size:7px; color:#333; display:flex; gap:4px; flex-wrap:wrap; }
+        .profit-amount { font-weight:bold; font-size:7px; text-align:right; line-height:1.0; }
         .profit-amount.positive { color:#4CAF50; }
         .profit-amount.negative { color:#4CAF50; }
         .profit-amount.neutral { color:#4CAF50; }
         
         /* Job Group Styles */
         .job-group {
-            margin-bottom: 12px;
+            margin-bottom: 4px;
         }
         
         .job-group-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 8px 12px;
+            padding: 2px 4px;
             background: #f5f5f5;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 2px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 9px;
             transition: background-color 0.2s;
         }
         
@@ -148,9 +148,9 @@
         .job-group-count {
             background: #666;
             color: white;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 11px;
+            padding: 0px 2px;
+            border-radius: 4px;
+            font-size: 7px;
             font-weight: bold;
         }
         
@@ -186,7 +186,7 @@
         }
         
         .job-group-jobs {
-            padding: 8px 0;
+            padding: 2px 0;
         }
         
         /* Drag and Drop Styles */
@@ -266,10 +266,10 @@
             }
         }
         .payment-status { 
-            font-size:11px; 
+            font-size:6px; 
             font-weight:bold; 
-            padding:2px 6px; 
-            border-radius:4px; 
+            padding:0px 2px; 
+            border-radius:2px; 
             cursor:pointer; 
             user-select:none;
             transition: all 0.2s ease;
@@ -332,7 +332,7 @@
                 </div>
         </div>
 
-            <div id="job-tracking" style="max-height:350px; overflow-y:auto;">
+            <div id="job-tracking" style="max-height:1200px; overflow-y:auto;">
                 <div class="small" style="color:#999; font-style:italic;">Loading jobs...</div>
             </div>
 
