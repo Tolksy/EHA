@@ -100,6 +100,171 @@
         .profit-amount.positive { color:#4CAF50; }
         .profit-amount.negative { color:#4CAF50; }
         .profit-amount.neutral { color:#4CAF50; }
+        
+        /* Job Group Styles */
+        .job-group {
+            margin-bottom: 12px;
+        }
+        
+        .job-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+        
+        .job-group-header:hover {
+            background: #e8e8e8;
+        }
+        
+        .job-group-header.active {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        
+        .job-group-header.pending {
+            background: #fff3e0;
+            border-color: #ff9800;
+        }
+        
+        .job-group-header.completed {
+            background: #e8f5e8;
+            border-color: #4caf50;
+        }
+        
+        .job-group-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .job-group-count {
+            background: #666;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .job-group-header.active .job-group-count {
+            background: #2196f3;
+        }
+        
+        .job-group-header.pending .job-group-count {
+            background: #ff9800;
+        }
+        
+        .job-group-header.completed .job-group-count {
+            background: #4caf50;
+        }
+        
+        .job-group-toggle {
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        
+        .job-group-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .job-group-content {
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .job-group-content.collapsed {
+            max-height: 0;
+        }
+        
+        .job-group-jobs {
+            padding: 8px 0;
+        }
+        
+        /* Drag and Drop Styles */
+        .job-track-item {
+            transition: all 0.2s ease;
+        }
+        
+        .job-track-item.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+            z-index: 1000;
+        }
+        
+        .job-group-header.drag-over {
+            background: #e3f2fd !important;
+            border-color: #2196f3 !important;
+            transform: scale(1.02);
+        }
+        
+        .job-group-header.active.drag-over {
+            background: #bbdefb !important;
+        }
+        
+        .job-group-header.pending.drag-over {
+            background: #ffe0b2 !important;
+        }
+        
+        .job-group-header.completed.drag-over {
+            background: #c8e6c9 !important;
+        }
+        
+        .job-group-jobs.drag-over {
+            background: rgba(33, 150, 243, 0.1);
+            border: 2px dashed #2196f3;
+            border-radius: 4px;
+            min-height: 20px;
+        }
+        
+        .drag-ghost {
+            opacity: 0.8;
+            transform: rotate(5deg);
+        }
+        
+        .drop-indicator {
+            height: 2px;
+            background: #2196f3;
+            margin: 4px 0;
+            border-radius: 1px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .drop-indicator.active {
+            opacity: 1;
+        }
+        
+        /* Notification animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
         .payment-status { 
             font-size:11px; 
             font-weight:bold; 
@@ -153,7 +318,7 @@
             <div id="calendar" class="calendar"></div>
         </div>
         
-        <div style="width:300px; background:#fff; border:1px solid #bbb; padding:12px; border-radius:4px;">
+        <div style="width:450px; background:#fff; border:1px solid #bbb; padding:12px; border-radius:4px;">
             <h2 style="margin:0 0 12px 0; font-size:16px;">Job Tracking</h2>
             
             <!-- Payment Summary -->
@@ -2150,7 +2315,7 @@ All text is automatically saved as you type."></textarea>
             
             container.innerHTML = '';
             
-            // Sort jobs by most recent activity (based on last entry date)
+            // Prepare jobs with stats and categorization
             const jobsWithStats = jobs.map(job => {
                 const stats = jobStats(job.id, days);
                 const customer = customers.find(c => c.id === job.clientId);
@@ -2168,91 +2333,327 @@ All text is automatically saved as you type."></textarea>
                     });
                 });
                 
+                const paymentStatus = getPaymentStatus(job.id);
+                const isPaid = paymentStatus === 'paid';
+                
+                // Categorize jobs
+                let category = 'active';
+                if (isPaid) {
+                    category = 'completed';
+                } else if (stats.revenue > 0 || stats.labor > 0 || stats.expenses > 0) {
+                    category = 'pending';
+                }
+                
                 return {
                     ...job,
                     customer,
                     stats,
                     lastActivity,
-                    profit: stats.revenue - stats.labor - stats.expenses
+                    profit: stats.revenue - stats.labor - stats.expenses,
+                    isPaid,
+                    category
                 };
             });
             
-            // Sort by last activity (most recent first), then by profit
-            jobsWithStats.sort((a, b) => {
-                if (a.lastActivity && b.lastActivity) {
-                    return new Date(b.lastActivity) - new Date(a.lastActivity);
-                }
-                if (a.lastActivity) return -1;
-                if (b.lastActivity) return 1;
-                return b.profit - a.profit;
+            // Group jobs by category
+            const jobGroups = {
+                active: jobsWithStats.filter(job => job.category === 'active'),
+                pending: jobsWithStats.filter(job => job.category === 'pending'),
+                completed: jobsWithStats.filter(job => job.category === 'completed')
+            };
+            
+            // Sort each group by last activity (most recent first)
+            Object.keys(jobGroups).forEach(category => {
+                jobGroups[category].sort((a, b) => {
+                    if (a.lastActivity && b.lastActivity) {
+                        return new Date(b.lastActivity) - new Date(a.lastActivity);
+                    }
+                    if (a.lastActivity) return -1;
+                    if (b.lastActivity) return 1;
+                    return b.profit - a.profit;
+                });
             });
             
-            jobsWithStats.forEach(job => {
-                const div = document.createElement('div');
-                div.className = 'job-track-item job-color';
+            // Create group headers and content
+            const groupConfigs = [
+                { 
+                    key: 'active', 
+                    title: '🔵 Active Jobs', 
+                    icon: '🔵',
+                    defaultExpanded: true 
+                },
+                { 
+                    key: 'pending', 
+                    title: '🟡 Pending Payment', 
+                    icon: '🟡',
+                    defaultExpanded: false 
+                },
+                { 
+                    key: 'completed', 
+                    title: '🟢 Completed', 
+                    icon: '🟢',
+                    defaultExpanded: false 
+                }
+            ];
+            
+            groupConfigs.forEach(config => {
+                const jobs = jobGroups[config.key];
+                if (jobs.length === 0) return;
                 
-                // Use the job's color instead of profit/loss status
-                div.style.setProperty('--job-color', job.color || '#888');
+                // Create group container
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'job-group';
                 
-                // Always show as gross profit in green
-                let profitClass = 'positive';
-                
-                const totalHours = Object.values(days).reduce((total, entries) => {
-                    const entryList = Array.isArray(entries) ? entries : [entries];
-                    return total + entryList.reduce((sum, entry) => {
-                        if (entry && entry.jobId === job.id) {
-                            return sum + (entry.manHours || []).reduce((h, m) => h + (m.hours || 0), 0);
-                        }
-                        return sum;
-                    }, 0);
-                }, 0);
-                
-                const paymentStatus = getPaymentStatus(job.id);
-                const isPaid = paymentStatus === 'paid';
-                
-                div.innerHTML = `
-                    <div class="job-track-header">
-                        <div>
-                            <div class="job-track-name">${job.name}</div>
-                            <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
-                        </div>
-                        <div class="job-track-right">
-                        <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
-                            <div class="payment-status ${isPaid ? 'paid' : 'unpaid'}" data-job-id="${job.id}">
-                                ${isPaid ? '✅ Paid' : '❌ Unpaid'}
-                            </div>
-                        </div>
+                // Create group header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = `job-group-header ${config.key}`;
+                headerDiv.innerHTML = `
+                    <div class="job-group-title">
+                        <span>${config.title}</span>
+                        <span class="job-group-count">${jobs.length}</span>
                     </div>
-                    <div class="job-track-stats">
-                        <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
-                        <div>Labor: $${job.stats.labor.toFixed(2)} (${totalHours.toFixed(1)}h)</div>
-                        <div>Expenses: $${job.stats.expenses.toFixed(2)}</div>
-                        ${job.lastActivity ? `<div style="font-size:10px; color:#888; margin-top:2px;">Last: ${new Date(job.lastActivity).toLocaleDateString()}</div>` : ''}
-                    </div>
+                    <span class="job-group-toggle ${config.defaultExpanded ? '' : 'collapsed'}">▼</span>
                 `;
                 
-                // Add click event to open job tracking page (but not on payment status)
-                div.addEventListener('click', (e) => {
-                    if (!e.target.closest('.payment-status')) {
-                        openJobTrackingPage(job.id);
+                // Create group content
+                const contentDiv = document.createElement('div');
+                contentDiv.className = `job-group-content ${config.defaultExpanded ? '' : 'collapsed'}`;
+                
+                const jobsDiv = document.createElement('div');
+                jobsDiv.className = 'job-group-jobs';
+                
+                // Add jobs to this group
+                jobs.forEach(job => {
+                    const jobDiv = createJobItem(job, days);
+                    jobsDiv.appendChild(jobDiv);
+                });
+                
+                contentDiv.appendChild(jobsDiv);
+                groupDiv.appendChild(headerDiv);
+                groupDiv.appendChild(contentDiv);
+                container.appendChild(groupDiv);
+                
+                // Add click handler for expand/collapse
+                headerDiv.addEventListener('click', () => {
+                    const isCollapsed = contentDiv.classList.contains('collapsed');
+                    const toggle = headerDiv.querySelector('.job-group-toggle');
+                    
+                    if (isCollapsed) {
+                        contentDiv.classList.remove('collapsed');
+                        toggle.classList.remove('collapsed');
+                    } else {
+                        contentDiv.classList.add('collapsed');
+                        toggle.classList.add('collapsed');
                     }
                 });
                 
-                // Add right-click event for context menu
-                div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
-                
-                // Add click event to payment status to toggle
-                const paymentElement = div.querySelector('.payment-status');
-                paymentElement.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    togglePaymentStatus(job.id);
+                // Add drag and drop functionality to group headers
+                headerDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    headerDiv.classList.add('drag-over');
                 });
                 
-                container.appendChild(div);
+                headerDiv.addEventListener('dragleave', (e) => {
+                    if (!headerDiv.contains(e.relatedTarget)) {
+                        headerDiv.classList.remove('drag-over');
+                    }
+                });
+                
+                headerDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    headerDiv.classList.remove('drag-over');
+                    
+                    const jobId = e.dataTransfer.getData('text/plain');
+                    const targetCategory = config.key;
+                    
+                    // Move job to new category
+                    moveJobToCategory(jobId, targetCategory);
+                });
+                
+                // Add drag and drop functionality to job container
+                jobsDiv.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    jobsDiv.classList.add('drag-over');
+                });
+                
+                jobsDiv.addEventListener('dragleave', (e) => {
+                    if (!jobsDiv.contains(e.relatedTarget)) {
+                        jobsDiv.classList.remove('drag-over');
+                    }
+                });
+                
+                jobsDiv.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    jobsDiv.classList.remove('drag-over');
+                    
+                    const jobId = e.dataTransfer.getData('text/plain');
+                    const targetCategory = config.key;
+                    
+                    // Move job to new category
+                    moveJobToCategory(jobId, targetCategory);
+                });
             });
             
             // Update payment summary counts
             updatePaymentSummary();
+        }
+        
+        function createJobItem(job, days) {
+            const div = document.createElement('div');
+            div.className = 'job-track-item job-color';
+            div.draggable = true;
+            div.dataset.jobId = job.id;
+            
+            // Use the job's color instead of profit/loss status
+            div.style.setProperty('--job-color', job.color || '#888');
+            
+            // Always show as gross profit in green
+            let profitClass = 'positive';
+            
+            const totalHours = Object.values(days).reduce((total, entries) => {
+                const entryList = Array.isArray(entries) ? entries : [entries];
+                return total + entryList.reduce((sum, entry) => {
+                    if (entry && entry.jobId === job.id) {
+                        return sum + (entry.manHours || []).reduce((h, m) => h + (m.hours || 0), 0);
+                    }
+                    return sum;
+                }, 0);
+            }, 0);
+            
+            div.innerHTML = `
+                <div class="job-track-header">
+                    <div>
+                        <div class="job-track-name">${job.name}</div>
+                        <div class="job-track-client">${job.customer ? job.customer.name : 'No Customer'}</div>
+                    </div>
+                    <div class="job-track-right">
+                    <div class="profit-amount ${profitClass}">Gross Profit<br/>+$${Math.abs(job.profit).toFixed(2)}</div>
+                        <div class="payment-status ${job.isPaid ? 'paid' : 'unpaid'}" data-job-id="${job.id}">
+                            ${job.isPaid ? '✅ Paid' : '❌ Unpaid'}
+                        </div>
+                    </div>
+                </div>
+                <div class="job-track-stats">
+                    <div>Revenue: $${job.stats.revenue.toFixed(2)}</div>
+                    <div>Labor: $${job.stats.labor.toFixed(2)} (${totalHours.toFixed(1)}h)</div>
+                    <div>Expenses: $${job.stats.expenses.toFixed(2)}</div>
+                    ${job.lastActivity ? `<div style="font-size:10px; color:#888; margin-top:2px;">Last: ${new Date(job.lastActivity).toLocaleDateString()}</div>` : ''}
+                </div>
+            `;
+            
+            // Add drag and drop events
+            div.addEventListener('dragstart', (e) => {
+                div.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', job.id);
+                e.dataTransfer.effectAllowed = 'move';
+                
+                // Create a custom drag image
+                const dragImage = div.cloneNode(true);
+                dragImage.classList.add('drag-ghost');
+                dragImage.style.position = 'absolute';
+                dragImage.style.top = '-1000px';
+                document.body.appendChild(dragImage);
+                e.dataTransfer.setDragImage(dragImage, 0, 0);
+                
+                // Clean up the drag image after a short delay
+                setTimeout(() => {
+                    if (document.body.contains(dragImage)) {
+                        document.body.removeChild(dragImage);
+                    }
+                }, 0);
+            });
+            
+            div.addEventListener('dragend', (e) => {
+                div.classList.remove('dragging');
+                // Remove all drag-over classes from all elements
+                document.querySelectorAll('.drag-over').forEach(el => {
+                    el.classList.remove('drag-over');
+                });
+            });
+            
+            // Add click event to open job tracking page (but not on payment status)
+            div.addEventListener('click', (e) => {
+                if (!e.target.closest('.payment-status')) {
+                    openJobTrackingPage(job.id);
+                }
+            });
+            
+            // Add right-click event for context menu
+            div.addEventListener('contextmenu', (e) => showContextMenu(e, job.id));
+            
+            // Add click event to payment status to toggle
+            const paymentElement = div.querySelector('.payment-status');
+            paymentElement.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePaymentStatus(job.id);
+            });
+            
+            return div;
+        }
+        
+        function moveJobToCategory(jobId, targetCategory) {
+            // Get the job
+            const jobs = getJobs();
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+            
+            // Update payment status based on target category
+            const statuses = getPaymentStatuses();
+            
+            if (targetCategory === 'completed') {
+                // Moving to completed - mark as paid
+                statuses[jobId] = 'paid';
+            } else if (targetCategory === 'pending') {
+                // Moving to pending - mark as unpaid
+                statuses[jobId] = 'unpaid';
+            } else if (targetCategory === 'active') {
+                // Moving to active - mark as unpaid (default)
+                statuses[jobId] = 'unpaid';
+            }
+            
+            // Save the updated payment statuses
+            setPaymentStatuses(statuses);
+            
+            // Re-render the job tracking to reflect the changes
+            renderJobTracking();
+            
+            // Show a brief confirmation
+            const jobName = job.name || 'Job';
+            const categoryName = targetCategory === 'active' ? 'Active' : 
+                                targetCategory === 'pending' ? 'Pending Payment' : 'Completed';
+            
+            // Create a temporary notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4caf50;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = `✅ ${jobName} moved to ${categoryName}`;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 2 seconds
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    notification.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }
+            }, 2000);
         }
         
         function updatePaymentSummary() {
