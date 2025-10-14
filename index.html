@@ -597,6 +597,11 @@ All text is automatically saved as you type."></textarea>
             <span class="icon">📝</span>
             <span>Record</span>
         </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" id="menuDelete" style="color: #d32f2f;">
+            <span class="icon">🗑️</span>
+            <span>Delete</span>
+        </div>
     </div>
 
     <!-- Calendar Context Menu -->
@@ -2814,9 +2819,94 @@ All text is automatically saved as you type."></textarea>
                     // Open the job record modal
                     openJobRecordModal(state.contextMenuJobId);
                     break;
+                case 'delete':
+                    // Show confirmation dialog before deleting
+                    deleteJobWithConfirmation(state.contextMenuJobId);
+                    break;
             }
             
             hideContextMenu();
+        }
+        
+        function deleteJobWithConfirmation(jobId) {
+            const job = getJobs().find(j => j.id === jobId);
+            if (!job) return;
+            
+            const customer = getCustomers().find(c => c.id === job.clientId);
+            const jobName = job.name || 'Unnamed Job';
+            const customerName = customer ? customer.name : 'Unknown Customer';
+            
+            // Create a custom confirmation dialog
+            const confirmed = confirm(
+                `🗑️ DELETE JOB CONFIRMATION\n\n` +
+                `Job: ${jobName}\n` +
+                `Client: ${customerName}\n` +
+                `Job ID: ${jobId}\n\n` +
+                `⚠️ WARNING: This will permanently delete:\n` +
+                `• All job entries and time tracking\n` +
+                `• All expenses and materials\n` +
+                `• All job data and history\n\n` +
+                `This action cannot be undone!\n\n` +
+                `Are you sure you want to delete this job?`
+            );
+            
+            if (confirmed) {
+                deleteJob(jobId);
+            }
+        }
+        
+        function deleteJob(jobId) {
+            // Remove job from jobs array
+            const jobs = getJobs();
+            const updatedJobs = jobs.filter(job => job.id !== jobId);
+            setJobs(updatedJobs);
+            
+            // Remove all job entries for this job
+            const entries = getJobEntries();
+            const updatedEntries = entries.filter(entry => entry.jobId !== jobId);
+            setJobEntries(updatedEntries);
+            
+            // Remove job from payment statuses
+            const statuses = getPaymentStatuses();
+            delete statuses[jobId];
+            setPaymentStatuses(statuses);
+            
+            // Remove job summary data
+            localStorage.removeItem(`job_summary_${jobId}`);
+            
+            // Re-render the job tracking to reflect the deletion
+            renderJobTracking();
+            
+            // Show success notification
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f44336;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s ease-out;
+            `;
+            notification.textContent = `🗑️ Job deleted successfully`;
+            document.body.appendChild(notification);
+            
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                if (document.body.contains(notification)) {
+                    notification.style.animation = 'slideOut 0.3s ease-in';
+                    setTimeout(() => {
+                        if (document.body.contains(notification)) {
+                            document.body.removeChild(notification);
+                        }
+                    }, 300);
+                }
+            }, 3000);
         }
         
         // Job Record Modal Functions
@@ -3345,6 +3435,7 @@ All text is automatically saved as you type."></textarea>
         $('menuBill').onclick = () => handleContextMenuAction('bill');
         $('menuEdit').onclick = () => handleContextMenuAction('edit');
         $('menuRecord').onclick = () => handleContextMenuAction('record');
+        $('menuDelete').onclick = () => handleContextMenuAction('delete');
         
         // Hide context menu when clicking elsewhere
         document.addEventListener('click', (e) => {
