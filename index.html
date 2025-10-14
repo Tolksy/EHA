@@ -37,7 +37,7 @@
         .expense-row input[type="number"] { width:80px; }
         .expense-row input[type="text"] { flex:1; }
         .expense-row button { background:#ff6666; color:white; border:none; padding:2px 6px; border-radius:3px; font-size:11px; cursor:pointer; }
-        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:3px 4px; margin:2px 0; border-radius:3px; border-left:3px solid #888; cursor:pointer; transition:background-color 0.2s; }
+        .job-track-item { background:#f8f8f8; border:1px solid #ddd; padding:4px 6px; margin:2px 0; border-radius:3px; border-left:3px solid #888; cursor:pointer; transition:background-color 0.2s; min-height: 40px; }
         .job-track-item:hover { background:#f0f0f0; }
         .job-track-item.profit { border-left-color:#4CAF50; }
         .job-track-item.loss { border-left-color:#f44336; }
@@ -2704,7 +2704,7 @@ All text is automatically saved as you type."></textarea>
         function createJobItem(job, days) {
             const div = document.createElement('div');
             div.className = 'job-track-item job-color';
-            div.draggable = true;
+            div.draggable = false; // Disable default dragging initially
             div.dataset.jobId = job.id;
             
             // Use the job's color instead of profit/loss status
@@ -2774,9 +2774,38 @@ All text is automatically saved as you type."></textarea>
                 });
             });
             
-            // Add click event to open job tracking page (but not on payment status)
-            div.addEventListener('click', (e) => {
+            let isDragging = false;
+            let dragStartTime = 0;
+            
+            // Add mousedown to detect drag intent
+            div.addEventListener('mousedown', (e) => {
                 if (!e.target.closest('.payment-status')) {
+                    dragStartTime = Date.now();
+                    isDragging = false;
+                }
+            });
+            
+            // Add mousemove to enable dragging after a delay
+            div.addEventListener('mousemove', (e) => {
+                if (dragStartTime > 0 && Date.now() - dragStartTime > 200) {
+                    div.draggable = true;
+                    isDragging = true;
+                }
+            });
+            
+            // Add mouseup to handle clicks
+            div.addEventListener('mouseup', (e) => {
+                if (!isDragging && !e.target.closest('.payment-status')) {
+                    openJobTrackingPage(job.id);
+                }
+                dragStartTime = 0;
+                isDragging = false;
+                div.draggable = false;
+            });
+            
+            // Add click event as backup
+            div.addEventListener('click', (e) => {
+                if (!isDragging && !e.target.closest('.payment-status')) {
                     openJobTrackingPage(job.id);
                 }
             });
