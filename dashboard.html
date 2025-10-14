@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Business Dashboard</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 12px; 
+            background: #f6f6f6; 
+            color: #222; 
+        }
+        h1, h2 { margin: 8px 0; }
+        button { cursor: pointer; }
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 2px solid #333; 
+        }
+        .back-btn { 
+            background: #666; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .summary-cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 16px; 
+            margin-bottom: 24px; 
+        }
+        .card { 
+            background: white; 
+            border: 1px solid #bbb; 
+            padding: 16px; 
+            border-radius: 4px; 
+            text-align: center; 
+        }
+        .card-value { 
+            font-size: 24px; 
+            font-weight: bold; 
+            margin-bottom: 4px; 
+        }
+        .card-label { 
+            font-size: 12px; 
+            color: #666; 
+        }
+        .positive { color: #4CAF50; }
+        .negative { color: #f44336; }
+        .neutral { color: #ff9800; }
+        .panel { 
+            background: white; 
+            border: 1px solid #bbb; 
+            padding: 16px; 
+            margin-bottom: 16px; 
+            border-radius: 4px; 
+        }
+        .job-item { 
+            background: #f8f8f8; 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            margin: 8px 0; 
+            border-radius: 4px; 
+            border-left: 4px solid #888; 
+        }
+        .job-item.paid { border-left-color: #4CAF50; }
+        .job-item.unpaid { border-left-color: #f44336; }
+        .job-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 4px; 
+        }
+        .job-name { font-weight: bold; }
+        .job-status { 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            font-size: 11px; 
+            font-weight: bold; 
+        }
+        .status-paid { background: #4CAF50; color: white; }
+        .status-unpaid { background: #f44336; color: white; }
+        .job-details { 
+            font-size: 12px; 
+            color: #666; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 8px; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 13px; 
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Business Dashboard</h1>
+        <button class="back-btn" onclick="window.location.href='index.html'">← Back to Calendar</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+        <div class="card">
+            <div class="card-value positive" id="total-revenue">$0.00</div>
+            <div class="card-label">Total Revenue</div>
+        </div>
+        <div class="card">
+            <div class="card-value negative" id="outstanding">$0.00</div>
+            <div class="card-label">Outstanding</div>
+        </div>
+        <div class="card">
+            <div class="card-value positive" id="total-profit">$0.00</div>
+            <div class="card-label">Total Profit</div>
+        </div>
+        <div class="card">
+            <div class="card-value neutral" id="active-jobs">0</div>
+            <div class="card-label">Active Jobs</div>
+        </div>
+    </div>
+
+    <!-- Jobs Overview -->
+    <div class="panel">
+        <h2>All Jobs</h2>
+        <div id="jobs-overview">
+            <div style="text-align: center; color: #999; padding: 20px;">
+                Loading jobs...
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="panel">
+        <h2>Recent Activity</h2>
+        <table id="recent-activity">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Job</th>
+                    <th>Client</th>
+                    <th>Activity</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #999; padding: 20px;">
+                        Loading activity...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Load data from localStorage (same as main app)
+        function getJobs() {
+            const jobs = localStorage.getItem('jobs');
+            return jobs ? JSON.parse(jobs) : [];
+        }
+
+        function getCustomers() {
+            const customers = localStorage.getItem('customers');
+            return customers ? JSON.parse(customers) : [];
+        }
+
+        function getDayEntries() {
+            const entries = localStorage.getItem('dayEntries');
+            return entries ? JSON.parse(entries) : [];
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function loadDashboard() {
+            const jobs = getJobs();
+            const customers = getCustomers();
+            const dayEntries = getDayEntries();
+
+            // Calculate summary stats
+            let totalRevenue = 0;
+            let totalOutstanding = 0;
+            let totalProfit = 0;
+            let activeJobs = 0;
+
+            jobs.forEach(job => {
+                totalRevenue += job.revenue || 0;
+                if (!job.paid) {
+                    totalOutstanding += job.revenue || 0;
+                }
+                totalProfit += (job.revenue || 0) - (job.labor || 0) - (job.expenses || 0);
+                if (!job.paid) activeJobs++;
+            });
+
+            // Update summary cards
+            document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('outstanding').textContent = formatCurrency(totalOutstanding);
+            document.getElementById('total-profit').textContent = formatCurrency(totalProfit);
+            document.getElementById('active-jobs').textContent = activeJobs;
+
+            // Load jobs overview
+            const jobsContainer = document.getElementById('jobs-overview');
+            if (jobs.length === 0) {
+                jobsContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No jobs found</div>';
+            } else {
+                jobsContainer.innerHTML = jobs.map(job => {
+                    const customer = customers.find(c => c.id === job.clientId);
+                    const profit = (job.revenue || 0) - (job.labor || 0) - (job.expenses || 0);
+                    const statusClass = job.paid ? 'paid' : 'unpaid';
+                    const statusText = job.paid ? 'Paid' : 'Unpaid';
+                    
+                    return `
+                        <div class="job-item ${statusClass}">
+                            <div class="job-header">
+                                <div class="job-name">${job.name || 'Unnamed Job'}</div>
+                                <div class="job-status status-${statusClass}">${statusText}</div>
+                            </div>
+                            <div class="job-details">
+                                <div><strong>Client:</strong> ${customer ? customer.name : 'Unknown'}</div>
+                                <div><strong>Revenue:</strong> ${formatCurrency(job.revenue || 0)}</div>
+                                <div><strong>Labor:</strong> ${formatCurrency(job.labor || 0)}</div>
+                                <div><strong>Expenses:</strong> ${formatCurrency(job.expenses || 0)}</div>
+                                <div><strong>Profit:</strong> <span class="${profit >= 0 ? 'positive' : 'negative'}">${formatCurrency(profit)}</span></div>
+                                <div><strong>Updated:</strong> ${formatDate(job.lastUpdated || job.createdAt)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Load recent activity (simplified)
+            const activityTable = document.getElementById('recent-activity');
+            const recentEntries = dayEntries
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
+
+            if (recentEntries.length === 0) {
+                activityTable.querySelector('tbody').innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999; padding: 20px;">No recent activity</td></tr>';
+            } else {
+                activityTable.querySelector('tbody').innerHTML = recentEntries.map(entry => {
+                    const customer = customers.find(c => c.id === entry.clientId);
+                    const job = jobs.find(j => j.id === entry.jobId);
+                    return `
+                        <tr>
+                            <td>${formatDate(entry.date)}</td>
+                            <td>${job ? job.name : 'Unknown Job'}</td>
+                            <td>${customer ? customer.name : 'Unknown Client'}</td>
+                            <td>Work Entry</td>
+                            <td>${formatCurrency(entry.revenue || 0)}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Load dashboard when page loads
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>
