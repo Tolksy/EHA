@@ -67,6 +67,22 @@
             right:6px; 
             pointer-events:none; 
         }
+        
+        /* Today's date highlight */
+        .cal-cell.today {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid var(--accent);
+            box-shadow: inset 0 1px 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .cal-cell.today .date {
+            color: var(--accent);
+            font-weight: 600;
+            background: var(--surface);
+            padding: 2px 6px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(52, 152, 219, 0.2);
+        }
         .badge { 
             margin-top:18px; 
             font-size:11px; 
@@ -966,6 +982,13 @@ All text is automatically saved as you type."></textarea>
                     const date = days[w*7+d];
                     const cell = document.createElement('div'); cell.className='cal-cell';
                     if (date.getMonth()!==month) cell.style.background='#fbfbfb';
+                    
+                    // Add today's date highlighting
+                    const today = new Date();
+                    const todayISO = ymd(today);
+                    if (ymd(date) === todayISO) {
+                        cell.classList.add('today');
+                    }
                     const num = document.createElement('div'); num.className='date'; num.textContent = date.getDate(); cell.appendChild(num);
 
                     // badges from saved entries
