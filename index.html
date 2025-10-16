@@ -643,7 +643,7 @@
                         <div>Work Days: <span id="work-days-count">0</span></div>
                         <div>Last Work: <span id="last-work-day">None</span></div>
                     </div>
-                    </div>
+                </div>
 
                 <!-- Middle Column: Job Summary -->
                 <div style="background:#f8f9fa; padding:20px; border-radius:8px; border:1px solid #e0e0e0;">
@@ -1986,6 +1986,7 @@ All text is automatically saved as you type."></textarea>
                 $('last-work-day').textContent = 'Error';
             }
         }
+        
         
         function populateJobDays(entries, jobId) {
             const daysList = $('job-days-list');
